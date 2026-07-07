@@ -34,13 +34,16 @@ function ComponentA_NavBar() {
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          {["Modeller", "Hizmetler", "MyRenault Framework"].map((item) => (
+          {[
+            { label: 'Programs', href: '/programs' },
+            { label: 'Courses', href: '/courses' },
+          ].map((item) => (
             <Link
-              key={item}
-              href="#"
+              key={item.label}
+              href={item.href}
               className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-ink no-underline hover:opacity-70 transition-opacity"
             >
-              {item}
+              {item.label}
             </Link>
           ))}
         </div>
