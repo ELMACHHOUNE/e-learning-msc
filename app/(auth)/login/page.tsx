@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+import Link from 'next/link'
 import { signIn } from 'next-auth/react'
-import { motion } from 'framer-motion'
-import { Button, Input } from '@/components/ui'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -41,124 +41,118 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen">
-      <div className="hidden lg:flex w-1/2 bg-surface-dark items-center justify-center relative overflow-hidden">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.8 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, ease: 'easeOut' }}
-          className="absolute inset-0"
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-primary/5" />
-          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-          <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-primary/10 rounded-full blur-2xl" />
-        </motion.div>
-        <div className="relative z-10 text-center px-xl">
-          <motion.h1
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="text-display-xl text-on-dark font-700 leading-[0.95] mb-xl"
-          >
-            e-learning
-            <br />
-            <span className="text-primary">msc</span>
-          </motion.h1>
-          <motion.p
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-body-lg text-on-dark-mute"
-          >
-            Premium learning management platform
-          </motion.p>
+    <div className="grid min-h-screen lg:grid-cols-2">
+      <div className="relative hidden lg:block overflow-hidden">
+        <Image
+          src="/images/login.png"
+          alt="Login background"
+          fill
+          className="object-cover"
+          priority
+        />
+        <div className="absolute inset-0 bg-gradient-to-r from-surface-dark/40 to-transparent" />
+        <div className="absolute inset-0 z-10 flex items-end justify-center pb-14">
+          <div className="text-center px-8">
+            <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-3">
+              E-LEARNING MSC
+            </p>
+            <p className="text-display-md text-on-dark font-bold leading-[0.95]">
+              Structured learning. Measurable outcomes.
+            </p>
+          </div>
         </div>
       </div>
 
-      <div className="flex-1 flex items-center justify-center px-xl bg-canvas">
-        <motion.div
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5 }}
-          className="w-full max-w-sm"
-        >
-          <div className="lg:hidden mb-xxl">
-            <h1 className="text-display-md text-ink font-700 leading-[0.95]">e-learning-msc</h1>
+      <div className="bg-canvas flex items-center justify-center px-10 lg:px-16">
+        <div className="w-full max-w-[400px] mx-auto">
+          <div className="lg:hidden mb-10">
+            <Link href="/" className="text-display-md text-ink font-bold leading-[0.95] no-underline">e-learning-msc</Link>
           </div>
+          <Link href="/" className="hidden lg:inline-flex items-center gap-1.5 text-[12px] font-medium text-mute hover:text-ink no-underline mb-8 transition-colors">
+            &larr; Back to home
+          </Link>
 
-          <h2 className="text-heading-lg text-ink font-700 mb-xs">Welcome back</h2>
-          <p className="text-body-md text-mute mb-xxl">Sign in to your account</p>
+          <h2 className="text-[24px] font-bold text-ink uppercase leading-[0.95] mb-1">Welcome back</h2>
+          <p className="text-[14px] text-mute mb-8">Sign in to your account</p>
 
-          <form onSubmit={handleSubmit} className="space-y-lg">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {error && (
-              <div className="p-md bg-error/10 border border-error/20 rounded-xs">
-                <p className="text-body-sm text-error">{error}</p>
+              <div className="p-3 bg-error/10 border border-error/20">
+                <p className="text-[13px] text-error font-medium">{error}</p>
               </div>
             )}
 
             <div>
-              <Input
+              <label htmlFor="email" className="block text-[12px] font-semibold text-charcoal mb-1.5 uppercase tracking-[0.06em]">
+                Email
+              </label>
+              <input
                 id="email"
                 name="email"
                 type="email"
-                label="Email"
-                placeholder="Enter your email"
+                placeholder="you@example.com"
                 required
+                className="w-full h-11 bg-canvas text-ink text-[14px] px-0 border-b border-ink focus:outline-none focus:border-primary transition-colors placeholder:text-stone"
               />
             </div>
 
             <div>
-              <Input
+              <label htmlFor="password" className="block text-[12px] font-semibold text-charcoal mb-1.5 uppercase tracking-[0.06em]">
+                Password
+              </label>
+              <input
                 id="password"
                 name="password"
                 type="password"
-                label="Password"
                 placeholder="Enter your password"
                 required
+                className="w-full h-11 bg-canvas text-ink text-[14px] px-0 border-b border-ink focus:outline-none focus:border-primary transition-colors placeholder:text-stone"
               />
-              <div className="text-right mt-sm">
-                <a
+              <div className="text-right mt-2">
+                <Link
                   href="/forgot-password"
-                  className="text-body-sm text-ink underline hover:no-underline"
+                  className="text-[12px] font-medium text-ink underline hover:no-underline"
                 >
                   Forgot Password?
-                </a>
+                </Link>
               </div>
             </div>
 
-            <Button type="submit" variant="primary" className="w-full" disabled={isLoading}>
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full h-11 bg-primary text-on-primary text-[13px] font-bold uppercase tracking-[0.08em] hover:bg-primary-deep transition-colors disabled:opacity-50 cursor-pointer border-none"
+            >
               {isLoading ? 'Signing in...' : 'Sign In'}
-            </Button>
+            </button>
           </form>
 
-          <div className="relative my-xxl">
+          <div className="relative my-7">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-hairline" />
             </div>
             <div className="relative flex justify-center">
-              <span className="bg-canvas px-md text-body-sm text-mute">or continue with</span>
+              <span className="bg-canvas px-3 text-[11px] text-mute uppercase tracking-[0.05em]">or</span>
             </div>
           </div>
 
-          <div className="flex gap-md">
-            <Button
+          <div className="grid grid-cols-2 gap-3">
+            <button
               type="button"
-              variant="outline-dark"
-              className="flex-1"
               onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+              className="h-11 border border-ink bg-canvas text-ink text-[12px] font-bold uppercase tracking-[0.06em] hover:bg-surface-soft transition-colors cursor-pointer"
             >
               Google
-            </Button>
-            <Button
+            </button>
+            <button
               type="button"
-              variant="outline-dark"
-              className="flex-1"
               onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
+              className="h-11 border border-ink bg-canvas text-ink text-[12px] font-bold uppercase tracking-[0.06em] hover:bg-surface-soft transition-colors cursor-pointer"
             >
               GitHub
-            </Button>
+            </button>
           </div>
-        </motion.div>
+        </div>
       </div>
     </div>
   )
