@@ -1,0 +1,213 @@
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import {
+  ChevronDown,
+  LogOut,
+  Settings,
+  Moon,
+  Sun,
+  GraduationCap,
+  Users,
+  FlaskConical,
+  BookOpen,
+  Menu,
+  X,
+} from 'lucide-react'
+import { Avatar } from '@/components/ui/avatar'
+import { cn } from '@/lib/utils'
+
+const navLinks = [
+  { href: '/dashboard', label: 'Dashboard', icon: GraduationCap },
+  {
+    label: 'Teach',
+    icon: BookOpen,
+    children: [
+      { href: '/teach/attendance', label: 'Attendance' },
+      { href: '/teach/one-to-one', label: 'One-to-One' },
+      { href: '/teach/earnings', label: 'Earnings' },
+      { href: '/teach/online-sessions', label: 'Online Sessions' },
+    ],
+  },
+  { href: '/students', label: 'My Students', icon: Users },
+  {
+    label: 'LabPhase',
+    icon: FlaskConical,
+    children: [
+      { href: '/labphase/lab-phase-list', label: 'Lab Phase List' },
+      { href: '/labphase/student-projects', label: 'Student Projects' },
+    ],
+  },
+  { href: '/courses', label: 'My Courses', icon: BookOpen },
+]
+
+export function Navbar() {
+  const pathname = usePathname()
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+
+  return (
+    <nav className="h-16 bg-canvas border-b border-hairline px-xl flex items-center justify-between sticky top-0 z-50">
+      <div className="flex items-center gap-xl">
+        <Link href="/dashboard" className="text-heading-sm text-ink no-underline">
+          e-learning-msc
+        </Link>
+
+        <div className="hidden lg:flex items-center gap-lg">
+          {navLinks.map((link) => {
+            if ('children' in link && link.children) {
+              const isOpen = openDropdown === link.label
+              return (
+                <div key={link.label} className="relative">
+                  <button
+                    onClick={() => setOpenDropdown(isOpen ? null : link.label)}
+                    className={cn(
+                      'flex items-center gap-1 text-button-md text-charcoal hover:text-ink transition-colors py-1 bg-transparent border-none cursor-pointer'
+                    )}
+                  >
+                    {link.label}
+                    <ChevronDown className={cn('w-4 h-4 transition-transform', isOpen && 'rotate-180')} />
+                  </button>
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -4 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -4 }}
+                        className="absolute top-full left-0 mt-1 bg-canvas border border-hairline shadow-sm min-w-[180px] z-50"
+                      >
+                        {link.children.map((child) => (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className={cn(
+                              'block px-lg py-md text-body-md text-charcoal hover:bg-surface-soft no-underline',
+                              pathname === child.href && 'bg-surface-soft text-ink'
+                            )}
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              )
+            }
+            const Icon = link.icon!
+            return (
+              <Link
+                key={link.href}
+                href={link.href!}
+                className={cn(
+                  'flex items-center gap-1 text-button-md text-charcoal hover:text-ink transition-colors no-underline',
+                  pathname === link.href && 'text-ink'
+                )}
+              >
+                {link.label}
+              </Link>
+            )
+          })}
+        </div>
+      </div>
+
+      <div className="flex items-center gap-md">
+        <button className="bg-transparent border-none cursor-pointer text-charcoal hover:text-ink p-1">
+          <Moon className="w-5 h-5" />
+        </button>
+
+        <div className="relative">
+          <button
+            onClick={() => setProfileOpen(!profileOpen)}
+            className="bg-transparent border-none cursor-pointer"
+          >
+            <Avatar name="User" size="sm" />
+          </button>
+          <AnimatePresence>
+            {profileOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                className="absolute right-0 top-full mt-1 bg-canvas border border-hairline shadow-sm min-w-[220px] z-50"
+              >
+                <div className="px-lg py-md border-b border-hairline">
+                  <p className="text-body-sm text-ink font-600">User Name</p>
+                  <p className="text-caption text-mute">user@email.com</p>
+                </div>
+                <div className="py-xs">
+                  <button className="w-full flex items-center gap-md px-lg py-sm text-body-md text-charcoal hover:bg-surface-soft bg-transparent border-none cursor-pointer">
+                    <Settings className="w-4 h-4" />
+                    Account Settings
+                  </button>
+                  <button className="w-full flex items-center gap-md px-lg py-sm text-body-md text-charcoal hover:bg-surface-soft bg-transparent border-none cursor-pointer">
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="lg:hidden bg-transparent border-none cursor-pointer text-charcoal"
+        >
+          {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        </button>
+      </div>
+
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="absolute top-16 left-0 right-0 bg-canvas border-b border-hairline lg:hidden z-50"
+          >
+            <div className="flex flex-col p-lg">
+              {navLinks.map((link) => {
+                if ('children' in link && link.children) {
+                  return (
+                    <div key={link.label}>
+                      <p className="text-button-md text-charcoal py-sm">{link.label}</p>
+                      <div className="pl-lg">
+                        {link.children.map((child) => (
+                          <Link
+                            key={child.href}
+                            href={child.href}
+                            className="block text-body-md text-charcoal py-sm no-underline hover:text-ink"
+                            onClick={() => setMobileOpen(false)}
+                          >
+                            {child.label}
+                          </Link>
+                        ))}
+                      </div>
+                    </div>
+                  )
+                }
+                const Icon = link.icon
+                return (
+                  <Link
+                    key={link.href}
+                    href={link.href!}
+                    className="flex items-center gap-2 text-body-md text-charcoal py-sm no-underline hover:text-ink"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    {Icon && <Icon className="w-4 h-4" />}
+                    {link.label}
+                  </Link>
+                )
+              })}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </nav>
+  )
+}

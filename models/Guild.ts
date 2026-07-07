@@ -1,7 +1,15 @@
-import mongoose, { Schema, type Document, type Model } from 'mongoose'
-import type { IGuild } from '@/types'
+import mongoose, { Schema, Document, Model } from 'mongoose'
 
-export interface GuildDocument extends Omit<IGuild, '_id'>, Document {}
+export interface GuildDocument extends Document {
+  name: string
+  courseId: mongoose.Types.ObjectId
+  instructorId: mongoose.Types.ObjectId
+  studentIds: mongoose.Types.ObjectId[]
+  currentSession: number
+  skillsTotal: number
+  skillsAchieved: number
+  createdAt: Date
+}
 
 const GuildSchema = new Schema<GuildDocument>(
   {

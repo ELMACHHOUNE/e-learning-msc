@@ -1,9 +1,19 @@
-import mongoose, { Schema, type Document, type Model } from 'mongoose'
-import type { ISessionLog } from '@/types'
+import mongoose, { Schema, Document, Model } from 'mongoose'
 
-export interface SessionLogDocument extends Omit<ISessionLog, '_id'>, Document {}
+interface IAttendanceRecord {
+  studentId: mongoose.Types.ObjectId
+  status: 'present' | 'absent' | 'late'
+}
 
-const AttendanceRecordSchema = new Schema({
+export interface SessionLogDocument extends Document {
+  guildId: mongoose.Types.ObjectId
+  sessionNumber: number
+  date: Date
+  records: IAttendanceRecord[]
+  createdAt: Date
+}
+
+const AttendanceRecordSchema = new Schema<IAttendanceRecord>({
   studentId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, enum: ['present', 'absent', 'late'], required: true },
 })
