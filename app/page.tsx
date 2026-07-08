@@ -56,9 +56,13 @@ function ComponentA_NavBar({ user }: { user?: { name?: string | null; email?: st
               href="/dashboard"
               className="flex items-center gap-2 border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
             >
-              <div className="w-5 h-5 rounded-full bg-ink text-canvas text-[10px] font-bold flex items-center justify-center">
-                {user.name?.charAt(0)?.toUpperCase() ?? 'U'}
-              </div>
+              {user.image ? (
+                <Image src={user.image} alt="" width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center font-700 text-button-sm text-on-primary">
+                  {user.name?.charAt(0)?.toUpperCase() ?? 'U'}
+                </div>
+              )}
               Dashboard
             </Link>
           ) : (

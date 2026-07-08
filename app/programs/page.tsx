@@ -61,9 +61,13 @@ export default async function ProgramsPage() {
               href="/dashboard"
               className="flex items-center gap-2 border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
             >
-              <div className="w-5 h-5 rounded-full bg-ink text-canvas text-[10px] font-bold flex items-center justify-center">
-                {session.user.name?.charAt(0)?.toUpperCase() ?? 'U'}
-              </div>
+              {session.user.image ? (
+                <Image src={session.user.image} alt="" width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
+              ) : (
+                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center font-700 text-button-sm text-on-primary">
+                  {session.user.name?.charAt(0)?.toUpperCase() ?? 'U'}
+                </div>
+              )}
               Dashboard
             </Link>
           ) : (
