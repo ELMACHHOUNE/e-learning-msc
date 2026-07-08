@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { auth } from "@/lib/auth";
 
 const programs = [
   {
@@ -37,7 +38,8 @@ const programs = [
   },
 ];
 
-export default function ProgramsPage() {
+export default async function ProgramsPage() {
+  const session = await auth();
   return (
     <>
       <nav className="h-[60px] bg-canvas border-b border-hairline">
@@ -54,12 +56,24 @@ export default function ProgramsPage() {
               Courses
             </Link>
           </div>
-          <Link
-            href="/login"
-            className="border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
-          >
-            Login
-          </Link>
+          {session?.user ? (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
+            >
+              <div className="w-5 h-5 rounded-full bg-ink text-canvas text-[10px] font-bold flex items-center justify-center">
+                {session.user.name?.charAt(0)?.toUpperCase() ?? 'U'}
+              </div>
+              Dashboard
+            </Link>
+          ) : (
+            <Link
+              href="/login"
+              className="border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
+            >
+              Login
+            </Link>
+          )}
         </div>
       </nav>
 

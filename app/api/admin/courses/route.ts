@@ -1,0 +1,23 @@
+import { NextResponse } from 'next/server'
+import { requireRole } from '@/lib/auth'
+import { connectToDatabase } from '@/lib/db'
+import Course from '@/models/Course'
+
+export async function GET() {
+  await requireRole('admin')
+  await connectToDatabase()
+  const courses = await Course.find().sort({ createdAt: -1 })
+  return NextResponse.json(courses.map((c) => ({ id: c._id.toString(), title: c.title, description: c.description, durationInMonths: c.durationInMonths, totalSessions: c.totalSessions, content: c.content, createdAt: c.createdAt })))
+}
+
+export async function POST(req: Request) {
+  await requireRole('admin')
+  const body = await req.json()
+  const { title, description, durationInMonths, totalSessions, content } = body
+  if (!title || !description || !durationInMonths || !totalSessions) {
+    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
+  await connectToDatabase()
+  const course = await Course.create({ title, description, durationInMonths, totalSessions, content: content ?? [] })
+  return NextResponse.json({ id: course._id.toString(), title: course.title })
+}

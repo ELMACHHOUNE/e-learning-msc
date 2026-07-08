@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
+import { useSession, signOut } from 'next-auth/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronDown,
@@ -46,15 +48,30 @@ const navLinks = [
 
 export function Navbar() {
   const pathname = usePathname()
+  const { data: session } = useSession()
   const [mobileOpen, setMobileOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
+  const profileRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (profileRef.current && !profileRef.current.contains(e.target as Node)) {
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <nav className="h-16 bg-canvas border-b border-hairline px-xl flex items-center justify-between sticky top-0 z-50">
       <div className="flex items-center gap-xl">
-        <Link href="/dashboard" className="text-heading-sm text-ink no-underline">
-          e-learning-msc
+        <Link href="/" className="flex items-center gap-3 no-underline">
+          <Image src="/images/icon.png" alt="e-learning-msc" width={28} height={28} className="object-contain" />
+          <span className="text-heading-sm text-ink font-bold uppercase tracking-[0.144px] leading-none">
+            e-learning-msc
+          </span>
         </Link>
 
         <div className="hidden lg:flex items-center gap-lg">
@@ -79,6 +96,7 @@ export function Navbar() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -4 }}
                         className="absolute top-full left-0 mt-1 bg-canvas border border-hairline shadow-sm min-w-[180px] z-50"
+                        onMouseLeave={() => setOpenDropdown(null)}
                       >
                         {link.children.map((child) => (
                           <Link
@@ -120,12 +138,12 @@ export function Navbar() {
           <Moon className="w-5 h-5" />
         </button>
 
-        <div className="relative">
+        <div className="relative" ref={profileRef}>
           <button
             onClick={() => setProfileOpen(!profileOpen)}
             className="bg-transparent border-none cursor-pointer"
           >
-            <Avatar name="User" size="sm" />
+            <Avatar name={session?.user?.name ?? 'User'} size="sm" src={session?.user?.image ?? undefined} />
           </button>
           <AnimatePresence>
             {profileOpen && (
@@ -136,15 +154,18 @@ export function Navbar() {
                 className="absolute right-0 top-full mt-1 bg-canvas border border-hairline shadow-sm min-w-[220px] z-50"
               >
                 <div className="px-lg py-md border-b border-hairline">
-                  <p className="text-body-sm text-ink font-600">User Name</p>
-                  <p className="text-caption text-mute">user@email.com</p>
+                  <p className="text-body-sm text-ink font-600">{session?.user?.name ?? 'User'}</p>
+                  <p className="text-caption text-mute">{session?.user?.email ?? 'user@email.com'}</p>
                 </div>
                 <div className="py-xs">
-                  <button className="w-full flex items-center gap-md px-lg py-sm text-body-md text-charcoal hover:bg-surface-soft bg-transparent border-none cursor-pointer">
+                  <Link href="/profile" className="w-full flex items-center gap-md px-lg py-sm text-body-md text-charcoal hover:bg-surface-soft no-underline">
                     <Settings className="w-4 h-4" />
                     Account Settings
-                  </button>
-                  <button className="w-full flex items-center gap-md px-lg py-sm text-body-md text-charcoal hover:bg-surface-soft bg-transparent border-none cursor-pointer">
+                  </Link>
+                  <button
+                    onClick={() => signOut()}
+                    className="w-full flex items-center gap-md px-lg py-sm text-body-md text-charcoal hover:bg-surface-soft bg-transparent border-none cursor-pointer"
+                  >
                     <LogOut className="w-4 h-4" />
                     Logout
                   </button>

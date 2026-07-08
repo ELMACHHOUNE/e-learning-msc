@@ -1,11 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ShieldAlert, Terminal, MessageSquare, User } from "lucide-react";
+import { auth } from "@/lib/auth";
 
-export default function LandingPage() {
+export default async function LandingPage() {
+  const session = await auth();
   return (
     <>
-      <ComponentA_NavBar />
+      <ComponentA_NavBar user={session?.user} />
       <ComponentB_Hero />
       <ComponentB1_ElearningSection />
       <ComponentC_Capabilities />
@@ -16,7 +18,7 @@ export default function LandingPage() {
   );
 }
 
-function ComponentA_NavBar() {
+function ComponentA_NavBar({ user }: { user?: { name?: string | null; email?: string | null; image?: string | null } | undefined }) {
   return (
     <nav className="h-[60px] bg-canvas border-b border-hairline">
       <div className="max-w-[1440px] mx-auto px-6 h-full flex items-center justify-between">
@@ -49,18 +51,32 @@ function ComponentA_NavBar() {
         </div>
 
         <div className="flex items-center gap-4">
-          <Link
-            href="/login"
-            className="text-ink no-underline hover:opacity-70 transition-opacity"
-          >
-            <User className="w-5 h-5" />
-          </Link>
-          <Link
-            href="/login"
-            className="border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
-          >
-            Login
-          </Link>
+          {user ? (
+            <Link
+              href="/dashboard"
+              className="flex items-center gap-2 border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
+            >
+              <div className="w-5 h-5 rounded-full bg-ink text-canvas text-[10px] font-bold flex items-center justify-center">
+                {user.name?.charAt(0)?.toUpperCase() ?? 'U'}
+              </div>
+              Dashboard
+            </Link>
+          ) : (
+            <>
+              <Link
+                href="/login"
+                className="text-ink no-underline hover:opacity-70 transition-opacity"
+              >
+                <User className="w-5 h-5" />
+              </Link>
+              <Link
+                href="/login"
+                className="border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
+              >
+                Login
+              </Link>
+            </>
+          )}
         </div>
       </div>
     </nav>
