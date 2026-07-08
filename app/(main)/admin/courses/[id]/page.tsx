@@ -249,6 +249,20 @@ export default function CourseContentEditor() {
   const currentChap = currentMod?.chapters[selectedChapter]
   const currentLess = currentChap?.lessons[selectedLesson]
 
+  function commitCurrentBlockContent() {
+    const updated = { ...course }
+    const lesson = updated.content[selectedModule]?.chapters[selectedChapter]?.lessons[selectedLesson]
+    if (!lesson) return
+    if (contentType === 'text' && textContent) {
+      lesson.content = textContent
+    } else if (contentType === 'image' && imagePreview) {
+      lesson.content = `![image](${imagePreview})`
+    } else if (contentType === 'video' && videoUrl) {
+      lesson.content = `<video src="${videoUrl}" controls></video>\n\n${videoUrl}`
+    }
+    setCourse(updated)
+  }
+
   return (
     <div className="min-h-screen bg-canvas">
       {/* Header */}
