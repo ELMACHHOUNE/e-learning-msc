@@ -3,6 +3,23 @@ import { requireRole } from '@/lib/auth'
 import { connectToDatabase } from '@/lib/db'
 import Course from '@/models/Course'
 
+export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  await requireRole('admin')
+  const { id } = await params
+  await connectToDatabase()
+  const course = await Course.findById(id)
+  if (!course) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  return NextResponse.json({
+    id: course._id.toString(),
+    title: course.title,
+    description: course.description,
+    durationInMonths: course.durationInMonths,
+    totalSessions: course.totalSessions,
+    content: course.content,
+    createdAt: course.createdAt,
+  })
+}
+
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireRole('admin')
   const { id } = await params

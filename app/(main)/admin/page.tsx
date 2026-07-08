@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { motion } from "framer-motion";
 import { Button, Badge, Avatar } from "@/components/ui";
 import {
@@ -13,6 +14,8 @@ import {
   X,
   Save,
   Trash2,
+  Filter,
+  ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -162,6 +165,7 @@ export default function AdminPage() {
 
   const [allInstructors, setAllInstructors] = useState<UserData[]>([]);
   const [allStudents, setAllStudents] = useState<UserData[]>([]);
+  const [studentSearch, setStudentSearch] = useState("");
 
   function fetchAll() {
     fetch("/api/admin/users")
@@ -201,6 +205,7 @@ export default function AdminPage() {
         instructorId: "",
         studentIds: [],
       });
+      setStudentSearch("");
       fetch("/api/admin/users")
         .then((r) => r.json())
         .then((data) => {
@@ -243,6 +248,7 @@ export default function AdminPage() {
           );
           setAllStudents(data.filter((u: UserData) => u.role === "student"));
         });
+      setStudentSearch("");
       setFormGuild({
         name: g.name,
         courseId: g.courseId,
@@ -310,6 +316,12 @@ export default function AdminPage() {
         : [...prev.studentIds, id],
     }));
   }
+
+  const filteredStudents = allStudents.filter(
+    (s) =>
+      s.name.toLowerCase().includes(studentSearch.toLowerCase()) ||
+      s.email.toLowerCase().includes(studentSearch.toLowerCase()),
+  );
 
   const filteredUsers = users.filter(
     (u) =>
@@ -448,13 +460,12 @@ export default function AdminPage() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="flex items-center justify-between mb-lg">
             <h2 className="text-heading-sm text-ink font-700">All Courses</h2>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => openCreate("courses")}
+            <Link
+              href="/admin/courses/new"
+              className="flex items-center gap-1 bg-primary text-on-primary text-button-sm font-bold uppercase tracking-[0.144px] py-2 px-4 rounded-[2px] hover:bg-primary-deep transition-colors no-underline"
             >
-              <Plus className="w-4 h-4 mr-1" /> Create Course
-            </Button>
+              <Plus className="w-4 h-4" /> Create Course
+            </Link>
           </div>
           <div className="grid gap-lg">
             {courses.map((course, i) => (
@@ -476,13 +487,12 @@ export default function AdminPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline-dark"
-                    size="sm"
-                    onClick={() => openEdit("course", course.id)}
+                  <Link
+                    href={`/admin/courses/${course.id}`}
+                    className="flex items-center gap-1 border border-hairline-strong bg-canvas text-ink text-button-sm font-bold uppercase py-2 px-3 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
                   >
-                    Edit
-                  </Button>
+                    <ExternalLink className="w-3.5 h-3.5" /> Edit
+                  </Link>
                   <button
                     onClick={() => deleteItem("course", course.id)}
                     className="text-mute hover:text-error bg-transparent border-none cursor-pointer p-1"
@@ -774,25 +784,40 @@ export default function AdminPage() {
             <label className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-1.5 block">
               Students ({formGuild.studentIds.length} selected)
             </label>
+            <div className="relative mb-2">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-mute" />
+              <input
+                type="text"
+                value={studentSearch}
+                onChange={(e) => setStudentSearch(e.target.value)}
+                placeholder="Search students..."
+                autoComplete="off"
+                className="w-full h-9 pl-9 pr-3 border border-hairline bg-canvas text-ink text-body-sm rounded-none focus:outline-none focus:border-ink transition-colors"
+              />
+            </div>
             <div className="border border-hairline max-h-48 overflow-y-auto">
-              {allStudents.map((s) => (
-                <label
-                  key={s.id}
-                  className={cn(
-                    "flex items-center gap-3 px-4 py-2 hover:bg-surface-soft cursor-pointer text-body-sm",
-                    formGuild.studentIds.includes(s.id) && "bg-primary/10",
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    checked={formGuild.studentIds.includes(s.id)}
-                    onChange={() => toggleStudent(s.id)}
-                    className="accent-ink"
-                  />
-                  <Avatar name={s.name} size="sm" />
-                  {s.name}
-                </label>
-              ))}
+              {filteredStudents.length === 0 ? (
+                <p className="text-caption text-mute text-center py-lg">No students found</p>
+              ) : (
+                filteredStudents.map((s) => (
+                  <label
+                    key={s.id}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-2 hover:bg-surface-soft cursor-pointer text-body-sm",
+                      formGuild.studentIds.includes(s.id) && "bg-primary/10",
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={formGuild.studentIds.includes(s.id)}
+                      onChange={() => toggleStudent(s.id)}
+                      className="accent-ink"
+                    />
+                    <Avatar name={s.name} size="sm" />
+                    {s.name}
+                  </label>
+                ))
+              )}
             </div>
           </div>
           <div className="flex justify-end gap-md pt-4 border-t border-hairline">
