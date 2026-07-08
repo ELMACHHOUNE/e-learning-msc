@@ -1,164 +1,289 @@
 'use client'
 
+import { useState, useEffect } from 'react'
+import Link from 'next/link'
 import { motion } from 'framer-motion'
-import { Progress, Badge, Avatar } from '@/components/ui'
-import { ArrowUpRight, Target, Calendar } from 'lucide-react'
+import { Badge, Progress } from '@/components/ui'
+import { Users, BookOpen, Layers, ArrowUpRight, GraduationCap, UserPlus, Shield } from 'lucide-react'
 
-const metrics = [
-  { label: 'Performance Score', value: '88/100', change: '+12%' },
-  { label: 'Graduated Students', value: '1,247', change: '+8.2%' },
-  { label: 'Active Students', value: '3,841', change: '+5.4%' },
-  { label: 'Managed Guilds', value: '7', change: '+2' },
-  { label: 'Attendance Rate', value: '94.2%', change: '+1.3%' },
-]
-
-const students = [
-  { name: 'Alice Johnson', program: 'Software Engineering', progress: 100, status: 'green' as const },
-  { name: 'Bob Smith', program: 'Data Science', progress: 72, status: 'blue' as const },
-  { name: 'Carol White', program: 'Software Engineering', progress: 45, status: 'orange' as const },
-  { name: 'David Brown', program: 'UI/UX Design', progress: 28, status: 'red' as const },
-  { name: 'Eve Davis', program: 'Data Science', progress: 91, status: 'green' as const },
-]
-
-const statusColors = {
-  green: 'bg-success',
-  blue: 'bg-info',
-  orange: 'bg-warning',
-  red: 'bg-error',
+interface DashboardData {
+  role: string
+  stats: Record<string, number>
+  recentUsers?: { id: string; name: string; email: string; role: string }[]
+  recentGuilds?: { id: string; name: string; courseTitle: string; instructorName: string; studentCount: number }[]
+  guilds?: { id: string; name: string; courseTitle: string; currentSession: number; totalSessions: number; skillsTotal: number; skillsAchieved: number; studentCount?: number; instructorName?: string }[]
 }
 
 export default function DashboardPage() {
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/dashboard')
+      .then((r) => r.json())
+      .then(setData)
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-canvas flex items-center justify-center">
+        <div className="w-6 h-6 border-2 border-hairline-strong border-t-ink rounded-full animate-spin" />
+      </div>
+    )
+  }
+
+  if (data?.role === 'admin') return <AdminDashboard data={data} />
+  if (data?.role === 'instructor') return <InstructorDashboard data={data} />
+  return <StudentDashboard data={data!} />
+}
+
+function AdminDashboard({ data }: { data: DashboardData }) {
+  const statCards = [
+    { label: 'Total Users', value: data.stats.totalUsers, icon: Users, href: '/admin', color: 'bg-primary' },
+    { label: 'Instructors', value: data.stats.totalInstructors, icon: GraduationCap, href: '/admin', color: 'bg-info' },
+    { label: 'Students', value: data.stats.totalStudents, icon: Users, href: '/admin', color: 'bg-success' },
+    { label: 'Courses', value: data.stats.totalCourses, icon: BookOpen, href: '/admin', color: 'bg-warning' },
+    { label: 'Guilds', value: data.stats.totalGuilds, icon: Layers, href: '/admin', color: 'bg-error' },
+  ]
+
   return (
     <div className="max-w-[1440px] mx-auto px-xl py-xxl">
       <div className="flex items-center justify-between mb-xxl">
-        <h1 className="text-display-md text-ink font-700 leading-[0.95]">Dashboard</h1>
-        <Badge variant="new">Instructor View</Badge>
+        <div>
+          <h1 className="text-display-md text-ink font-700 leading-[0.95]">Admin Dashboard</h1>
+          <p className="text-body-md text-mute mt-sm">Manage users, courses, and guild assignments</p>
+        </div>
+        <Badge variant="new">Admin Access</Badge>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-lg mb-xxl">
-        {metrics.map((metric, i) => (
-          <motion.div
-            key={metric.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.05 }}
-            className="bg-canvas border border-hairline p-xl"
-          >
-            <p className="text-body-sm text-mute mb-sm">{metric.label}</p>
-            <p className="text-display-lg text-ink font-700 leading-[0.95] mb-xs">{metric.value}</p>
-            <p className="text-caption text-success">{metric.change} this month</p>
-          </motion.div>
-        ))}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-lg mb-xxl">
+        {statCards.map((stat, i) => {
+          const Icon = stat.icon
+          return (
+            <Link key={stat.label} href={stat.href} className="no-underline">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="bg-canvas border border-hairline p-xl hover:border-ink transition-colors"
+              >
+                <div className={`w-10 h-10 ${stat.color} text-on-primary flex items-center justify-center mb-md`}>
+                  <Icon className="w-5 h-5" />
+                </div>
+                <p className="text-display-lg text-ink font-700 leading-[0.95] mb-xs">{stat.value}</p>
+                <p className="text-body-sm text-mute">{stat.label}</p>
+              </motion.div>
+            </Link>
+          )
+        })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-xxl">
-        <div className="lg:col-span-2 space-y-xxl">
-          <section>
-            <h2 className="text-heading-md text-ink font-700 mb-lg">Active Programs</h2>
-            <div className="bg-canvas border border-hairline p-xxl">
-              <div className="flex items-start justify-between mb-lg">
-                <div>
-                  <h3 className="text-heading-sm text-ink font-700">15-Month Software Engineering Program</h3>
-                  <p className="text-body-sm text-mute mt-xs">Full-stack development track</p>
-                </div>
-                <button className="flex items-center gap-1 text-button-md text-ink underline bg-transparent border-none cursor-pointer">
-                  Track Details <ArrowUpRight className="w-4 h-4" />
-                </button>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-xxl">
+        <section>
+          <div className="flex items-center justify-between mb-lg">
+            <h2 className="text-heading-sm text-ink font-700">Recent Users</h2>
+            <Link href="/admin" className="flex items-center gap-1 text-button-md text-ink underline no-underline">
+              Manage Users <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="bg-canvas border border-hairline overflow-hidden">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-hairline bg-surface-soft">
+                  <th className="text-left px-lg py-md text-caption text-charcoal font-600">Name</th>
+                  <th className="text-left px-lg py-md text-caption text-charcoal font-600">Email</th>
+                  <th className="text-right px-lg py-md text-caption text-charcoal font-600">Role</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(data.recentUsers ?? []).map((u) => (
+                  <tr key={u.id} className="border-b border-hairline hover:bg-surface-soft/50">
+                    <td className="px-lg py-md text-body-sm text-ink">{u.name}</td>
+                    <td className="px-lg py-md text-body-sm text-mute">{u.email}</td>
+                    <td className="px-lg py-md text-right">
+                      <Badge variant={u.role === 'admin' ? 'new' : u.role === 'instructor' ? 'info' : 'default'}>{u.role}</Badge>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section>
+          <div className="flex items-center justify-between mb-lg">
+            <h2 className="text-heading-sm text-ink font-700">Recent Guilds</h2>
+            <Link href="/admin" className="flex items-center gap-1 text-button-md text-ink underline no-underline">
+              Manage Guilds <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </div>
+          <div className="space-y-lg">
+            {(data.recentGuilds ?? []).map((g) => (
+              <div key={g.id} className="bg-canvas border border-hairline p-xl">
+                <h3 className="text-heading-xs text-ink font-700 mb-sm">{g.name}</h3>
+                <p className="text-body-sm text-mute">{g.courseTitle} &middot; {g.instructorName} &middot; {g.studentCount} students</p>
               </div>
-              <div className="grid grid-cols-3 gap-lg">
-                <div>
-                  <p className="text-display-md text-ink font-700">3</p>
-                  <p className="text-caption text-mute">Active Guilds</p>
-                </div>
-                <div>
-                  <p className="text-display-md text-ink font-700">128</p>
-                  <p className="text-caption text-mute">Students Trained</p>
-                </div>
-                <div>
-                  <p className="text-display-md text-ink font-700">94%</p>
-                  <p className="text-caption text-mute">Completion Rate</p>
-                </div>
-              </div>
+            ))}
+          </div>
+        </section>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-lg mt-xxl">
+        <Link href="/admin" className="no-underline">
+          <div className="bg-canvas border border-hairline p-xl flex items-center gap-lg hover:border-ink transition-colors">
+            <div className="w-12 h-12 bg-primary text-on-primary flex items-center justify-center shrink-0"><Users className="w-6 h-6" /></div>
+            <div>
+              <p className="text-heading-xs text-ink font-700">User Management</p>
+              <p className="text-caption text-mute">Create, edit, and manage all accounts</p>
             </div>
-          </section>
+          </div>
+        </Link>
+        <Link href="/admin" className="no-underline">
+          <div className="bg-canvas border border-hairline p-xl flex items-center gap-lg hover:border-ink transition-colors">
+            <div className="w-12 h-12 bg-primary text-on-primary flex items-center justify-center shrink-0"><BookOpen className="w-6 h-6" /></div>
+            <div>
+              <p className="text-heading-xs text-ink font-700">Course Creator</p>
+              <p className="text-caption text-mute">Design and manage course content</p>
+            </div>
+          </div>
+        </Link>
+        <Link href="/admin" className="no-underline">
+          <div className="bg-canvas border border-hairline p-xl flex items-center gap-lg hover:border-ink transition-colors">
+            <div className="w-12 h-12 bg-success text-on-primary flex items-center justify-center shrink-0"><Layers className="w-6 h-6" /></div>
+            <div>
+              <p className="text-heading-xs text-ink font-700">Guild Assignment</p>
+              <p className="text-caption text-mute">Assign courses &amp; instructors to guilds</p>
+            </div>
+          </div>
+        </Link>
+      </div>
+    </div>
+  )
+}
 
-          <section>
-            <h2 className="text-heading-md text-ink font-700 mb-lg">Live Cohort Tracker</h2>
-            <div className="bg-canvas border border-hairline p-xxl">
+function InstructorDashboard({ data }: { data: DashboardData }) {
+  const statCards = [
+    { label: 'My Guilds', value: data.stats.totalGuilds, icon: Layers },
+    { label: 'My Students', value: data.stats.totalStudents, icon: Users },
+    { label: 'Total Sessions', value: data.stats.totalSessions, icon: BookOpen },
+    { label: 'Courses', value: data.stats.totalCourses, icon: GraduationCap },
+  ]
+
+  return (
+    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
+      <div className="flex items-center justify-between mb-xxl">
+        <div>
+          <h1 className="text-display-md text-ink font-700 leading-[0.95]">Instructor Dashboard</h1>
+          <p className="text-body-sm text-mute mt-sm">Track your guilds, students, and sessions</p>
+        </div>
+        <Badge variant="info">Instructor View</Badge>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-xxl">
+        {statCards.map((stat, i) => {
+          const Icon = stat.icon
+          return (
+            <motion.div key={stat.label} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-canvas border border-hairline p-xl">
+              <div className="flex items-center justify-between mb-md">
+                <Icon className="w-5 h-5 text-mute" />
+              </div>
+              <p className="text-display-lg text-ink font-700 leading-[0.95] mb-xs">{stat.value}</p>
+              <p className="text-body-sm text-mute">{stat.label}</p>
+            </motion.div>
+          )
+        })}
+      </div>
+
+      <section>
+        <div className="flex items-center justify-between mb-lg">
+          <h2 className="text-heading-sm text-ink font-700">My Guilds</h2>
+          <Link href="/courses" className="flex items-center gap-1 text-button-md text-ink underline no-underline">
+            View Courses <ArrowUpRight className="w-4 h-4" />
+          </Link>
+        </div>
+        <div className="grid gap-lg">
+          {(data.guilds ?? []).map((guild, i) => (
+            <motion.div key={guild.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-canvas border border-hairline p-xxl">
               <div className="flex items-center justify-between mb-lg">
-                <h3 className="text-heading-sm text-ink font-700">Achilles Vengeance</h3>
+                <h3 className="text-heading-sm text-ink font-700">{guild.name}</h3>
                 <Badge variant="success">Active</Badge>
               </div>
+              <p className="text-body-sm text-mute mb-lg">{guild.courseTitle} &middot; {guild.studentCount} students</p>
               <div className="mb-lg">
                 <div className="flex items-center justify-between mb-sm">
-                  <span className="text-body-sm text-charcoal">Session 54/194</span>
-                  <span className="text-body-sm text-charcoal">27.8%</span>
+                  <span className="text-body-sm text-charcoal">Session {guild.currentSession}/{guild.totalSessions}</span>
+                  <span className="text-body-sm text-charcoal">{guild.totalSessions > 0 ? Math.round((guild.currentSession / guild.totalSessions) * 100) : 0}%</span>
                 </div>
-                <Progress value={54} max={194} />
+                <div className="h-2 bg-surface-soft rounded-none"><div className="h-full bg-primary transition-all" style={{ width: `${guild.totalSessions > 0 ? (guild.currentSession / guild.totalSessions) * 100 : 0}%` }} /></div>
               </div>
-              <div className="mb-lg">
-                <div className="flex items-center justify-between mb-sm">
-                  <span className="text-body-sm text-charcoal">Skills: 5,583 of 9,210</span>
-                  <span className="text-body-sm text-charcoal">60.6%</span>
-                </div>
-                <Progress value={5583} max={9210} barClassName="bg-success" />
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex -space-x-2">
-                  {[1, 2, 3, 4].map((i) => (
-                    <Avatar key={i} name={`Student ${i}`} size="sm" />
-                  ))}
-                  <div className="w-8 h-8 rounded-full bg-surface-soft text-caption text-charcoal flex items-center justify-center font-600">+12</div>
-                </div>
-                <span className="text-heading-sm text-success font-700">60%</span>
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <aside className="space-y-xxl">
-          <div className="bg-canvas border border-hairline p-xxl">
-            <h3 className="text-heading-sm text-ink font-700 mb-lg">Session Scheduler</h3>
-            <div className="flex items-center gap-lg mb-lg">
-              <div className="w-12 h-12 bg-primary text-on-primary flex items-center justify-center">
-                <Calendar className="w-6 h-6" />
-              </div>
-              <div>
-                <p className="text-body-sm text-ink font-600">Today at 2:00 PM</p>
-                <p className="text-caption text-mute">Software Engineering - Module 3</p>
-              </div>
-            </div>
-            <button className="w-full bg-primary text-on-primary text-button-md h-12 rounded-xs font-700 hover:bg-primary-deep transition-colors border-none cursor-pointer">
-              Join Session
-            </button>
-          </div>
-
-          <div className="bg-canvas border border-hairline p-xxl">
-            <h3 className="text-heading-sm text-ink font-700 mb-lg">Tasks Board</h3>
-            <div className="flex flex-col items-center justify-center py-xxl text-center">
-              <Target className="w-12 h-12 text-stone mb-md" />
-              <p className="text-body-sm text-mute">No tasks yet</p>
-              <p className="text-caption text-ash">Create your first task to get started</p>
-            </div>
-          </div>
-
-          <div className="bg-canvas border border-hairline p-xxl">
-            <h3 className="text-heading-sm text-ink font-700 mb-lg">My Students</h3>
-            <div className="space-y-3">
-              {students.map((student) => (
-                <div key={student.name} className="flex items-center gap-md">
-                  <Avatar name={student.name} size="sm" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-body-sm text-ink truncate">{student.name}</p>
-                    <p className="text-caption text-mute truncate">{student.program}</p>
+              {guild.skillsTotal > 0 && (
+                <div className="mb-lg">
+                  <div className="flex items-center justify-between mb-sm">
+                    <span className="text-body-sm text-charcoal">Skills: {guild.skillsAchieved} of {guild.skillsTotal}</span>
+                    <span className="text-body-sm text-success">{Math.round((guild.skillsAchieved / guild.skillsTotal) * 100)}%</span>
                   </div>
-                  <span className={`w-2 h-2 rounded-full shrink-0 ${statusColors[student.status]}`} />
+                  <div className="h-2 bg-surface-soft rounded-none"><div className="h-full bg-success transition-all" style={{ width: `${(guild.skillsAchieved / guild.skillsTotal) * 100}%` }} /></div>
                 </div>
-              ))}
-            </div>
-          </div>
-        </aside>
+              )}
+              <Link href={`/courses/${guild.id}`} className="text-button-md text-ink underline no-underline hover:opacity-70 transition-opacity">View Details</Link>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function StudentDashboard({ data }: { data: DashboardData }) {
+  return (
+    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
+      <div className="flex items-center justify-between mb-xxl">
+        <div>
+          <h1 className="text-display-md text-ink font-700 leading-[0.95]">My Dashboard</h1>
+          <p className="text-body-sm text-mute mt-sm">Track your progress and guilds</p>
+        </div>
+        <Badge variant="default">Student View</Badge>
       </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-lg mb-xxl">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0 }} className="bg-canvas border border-hairline p-xl">
+          <p className="text-display-lg text-ink font-700 leading-[0.95] mb-xs">{data.stats.totalGuilds}</p>
+          <p className="text-body-sm text-mute">My Guilds</p>
+        </motion.div>
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }} className="bg-canvas border border-hairline p-xl">
+          <p className="text-display-lg text-ink font-700 leading-[0.95] mb-xs">{data.stats.totalCourses}</p>
+          <p className="text-body-sm text-mute">Active Courses</p>
+        </motion.div>
+      </div>
+
+      <section>
+        <h2 className="text-heading-sm text-ink font-700 mb-lg">My Guilds</h2>
+        <div className="grid gap-lg">
+          {(data.guilds ?? []).map((guild, i) => (
+            <motion.div key={guild.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }} className="bg-canvas border border-hairline p-xxl">
+              <h3 className="font-heading-sm text-ink font-700 mb-sm">{guild.name}</h3>
+              <p className="text-body-sm text-mute mb-sm">{guild.courseTitle} &middot; {guild.instructorName}</p>
+              <div className="mb-lg">
+                <div className="flex items-center justify-between mb-sm">
+                  <span className="text-body-sm text-charcoal">Session {guild.currentSession}/{guild.totalSessions}</span>
+                  <span className="text-body-sm text-charcoal">{guild.totalSessions > 0 ? Math.round((guild.currentSession / guild.totalSessions) * 100) : 0}%</span>
+                </div>
+                <div className="h-2 bg-surface-soft rounded-none"><div className="h-full bg-primary transition-all" style={{ width: `${guild.totalSessions > 0 ? (guild.currentSession / guild.totalSessions) * 100 : 0}%` }} /></div>
+              </div>
+              {guild.skillsTotal > 0 && (
+                <div className="mb-lg">
+                  <div className="flex items-center justify-between mb-sm">
+                    <span className="text-body-sm text-charcoal">Skills: {guild.skillsAchieved} of {guild.skillsTotal}</span>
+                    <span className="text-body-sm text-success">{Math.round((guild.skillsAchieved / guild.skillsTotal) * 100)}%</span>
+                  </div>
+                  <div className="h-2 bg-surface-soft rounded-none"><div className="h-full bg-success transition-all" style={{ width: `${(guild.skillsAchieved / guild.skillsTotal) * 100}%` }} /></div>
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </div>
+      </section>
     </div>
   )
 }
