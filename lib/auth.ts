@@ -6,7 +6,30 @@ import bcrypt from 'bcryptjs'
 import { connectToDatabase } from '@/lib/db'
 import User from '@/models/User'
 
+type AuthToken = {
+  id: string
+  role?: 'admin' | 'instructor' | 'student'
+  picture?: string
+}
+
+type AuthSessionUser = {
+  id: string
+  name: string
+  email: string
+  image?: string
+  role: 'admin' | 'instructor' | 'student'
+}
+
+function getSafeSessionImage(image?: string | null) {
+  if (!image) return undefined
+  if (image.startsWith('data:')) return undefined
+  if (image.length > 512) return undefined
+  return image
+}
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  session: { strategy: 'jwt', maxAge: 60 * 60 },
+  jwt: { maxAge: 60 * 60 },
   providers: [
     Credentials({
       name: 'credentials',
@@ -31,7 +54,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
           id: user._id.toString(),
           email: user.email,
           name: user.name,
-          image: user.avatar,
+          image: getSafeSessionImage(user.avatar),
           role: user.role,
         }
       },
@@ -49,16 +72,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     jwt({ token, user }) {
       if (user) {
-        token.id = user.id
-        token.role = (user as any).role
+        const typedToken = token as typeof token & AuthToken
+        typedToken.id = String(user.id)
+        typedToken.role = (user as { role?: AuthToken['role'] }).role
       }
       return token
     },
     session({ session, token }) {
       if (session.user) {
-        (session.user as any).id = token.id
-        ;(session.user as any).role = token.role
-        session.user.image = token.picture as string | undefined
+        const typedSessionUser = session.user as typeof session.user & AuthSessionUser
+        const typedToken = token as typeof token & AuthToken
+        typedSessionUser.id = typedToken.id
+        typedSessionUser.role = typedToken.role ?? 'student'
+        typedSessionUser.image = getSafeSessionImage(typedToken.picture)
       }
       return session
     },

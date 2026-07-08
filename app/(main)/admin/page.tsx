@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "framer-motion";
 import { Button, Badge, Avatar } from "@/components/ui";
@@ -66,6 +66,8 @@ function Modal({
   title: string;
   children: React.ReactNode;
 }) {
+  const contentRef = useRef<HTMLDivElement>(null)
+
   useEffect(() => {
     if (!open) return;
 
@@ -93,15 +95,19 @@ function Modal({
   return createPortal(
     <div
       className="fixed inset-0 z-[1000] bg-black/45 px-4 py-8 grid place-items-center"
-      onClick={onClose}
+      onClick={(e) => {
+        if (contentRef.current && !contentRef.current.contains(e.target as Node)) {
+          onClose()
+        }
+      }}
     >
       <div
+        ref={contentRef}
         className="bg-canvas border border-hairline shadow-[0_20px_60px_rgba(0,0,0,0.2)] flex flex-col"
         style={{
           width: "min(42rem, calc(100vw - 2rem))",
           maxHeight: "calc(100vh - 4rem)",
         }}
-        onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -352,6 +358,7 @@ export default function AdminPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search users..."
+                autoComplete="off"
                 className="w-full h-10 pl-10 pr-md bg-surface-soft text-ink text-body-sm rounded-none border-b border-hairline-strong focus-visible:outline-none"
               />
             </div>

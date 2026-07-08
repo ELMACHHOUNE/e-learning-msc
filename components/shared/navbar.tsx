@@ -18,37 +18,42 @@ import {
   BookOpen,
   Menu,
   X,
+  Shield,
 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 
-const navLinks = [
-  { href: '/dashboard', label: 'Dashboard', icon: GraduationCap },
-  {
-    label: 'Teach',
-    icon: BookOpen,
-    children: [
-      { href: '/teach/attendance', label: 'Attendance' },
-      { href: '/teach/one-to-one', label: 'One-to-One' },
-      { href: '/teach/earnings', label: 'Earnings' },
-      { href: '/teach/online-sessions', label: 'Online Sessions' },
-    ],
-  },
-  { href: '/students', label: 'My Students', icon: Users },
-  {
-    label: 'LabPhase',
-    icon: FlaskConical,
-    children: [
-      { href: '/labphase/lab-phase-list', label: 'Lab Phase List' },
-      { href: '/labphase/student-projects', label: 'Student Projects' },
-    ],
-  },
-  { href: '/courses', label: 'My Courses', icon: BookOpen },
-]
+type NavLink = { href?: string; label: string; icon?: React.ComponentType<{ className?: string }>; children?: { href: string; label: string }[] }
 
 export function Navbar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const role = (session?.user as any)?.role
+
+  const navLinks: NavLink[] = [
+    { href: '/dashboard', label: 'Dashboard', icon: GraduationCap },
+    ...(role === 'admin' ? [{ href: '/admin', label: 'Admin', icon: Shield }] : []),
+    {
+      label: 'Teach',
+      icon: BookOpen,
+      children: [
+        { href: '/teach/attendance', label: 'Attendance' },
+        { href: '/teach/one-to-one', label: 'One-to-One' },
+        { href: '/teach/earnings', label: 'Earnings' },
+        { href: '/teach/online-sessions', label: 'Online Sessions' },
+      ],
+    },
+    { href: '/students', label: 'My Students', icon: Users },
+    {
+      label: 'LabPhase',
+      icon: FlaskConical,
+      children: [
+        { href: '/labphase/lab-phase-list', label: 'Lab Phase List' },
+        { href: '/labphase/student-projects', label: 'Student Projects' },
+      ],
+    },
+    { href: '/courses', label: 'My Courses', icon: BookOpen },
+  ]
   const [mobileOpen, setMobileOpen] = useState(false)
   const [profileOpen, setProfileOpen] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<string | null>(null)
