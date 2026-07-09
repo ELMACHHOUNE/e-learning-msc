@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   await requireRole('admin')
   const body = await req.json()
   const { title, description, coverImage, durationInMonths, totalSessions, content } = body
-  if (!title || !description || !durationInMonths || !totalSessions) {
+  if (!title || !description || durationInMonths == null || totalSessions == null) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
   await connectToDatabase()

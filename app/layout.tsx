@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Inter_Tight } from "next/font/google";
 import Providers from "@/components/shared/session-provider";
+import { AlertContainer } from "@/components/ui/alert";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import "./globals.css";
 
 const interTight = Inter_Tight({
@@ -119,7 +121,11 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <Providers>{children}</Providers>
+        <Providers>
+          {children}
+          <AlertContainer />
+          <ConfirmDialog />
+        </Providers>
       </body>
     </html>
   );

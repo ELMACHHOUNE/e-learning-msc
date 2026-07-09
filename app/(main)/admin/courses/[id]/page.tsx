@@ -5,12 +5,14 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button, Badge } from '@/components/ui'
+import { ImageUpload } from '@/components/ui/image-upload'
 import LogoSpinner from '@/components/shared/logo-spinner'
 import {
   Plus, Trash2, Save, ArrowLeft, FileText, Layers, BookOpen,
   CheckSquare, Wrench, Image, Video, Type, GripVertical, X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { toast } from '@/components/ui/alert'
 
 type LessonType = 'lesson' | 'checkpoint' | 'workshop'
 
@@ -37,6 +39,7 @@ interface CourseData {
   id: string
   title: string
   description: string
+  coverImage?: string
   durationInMonths: number
   totalSessions: number
   content: Module[]
@@ -136,6 +139,7 @@ export default function CourseContentEditor() {
             id: data.id ?? data._id?.toString(),
             title: data.title ?? '',
             description: data.description ?? '',
+            coverImage: data.coverImage ?? '',
             durationInMonths: data.durationInMonths ?? 0,
             totalSessions: data.totalSessions ?? 0,
             content: parsedContent.length > 0 ? parsedContent : [createModule()],
@@ -192,6 +196,7 @@ export default function CourseContentEditor() {
     const payload = {
       title: course.title,
       description: course.description,
+      coverImage: course.coverImage ?? '',
       durationInMonths: course.durationInMonths,
       totalSessions: course.totalSessions,
       content: serializeContent(course.content),
@@ -204,15 +209,30 @@ export default function CourseContentEditor() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: 'Failed to create course' }))
+          toast({ variant: 'error', title: 'Failed to create course', message: err.error })
+          return
+        }
+        toast({ variant: 'success', title: 'Course created' })
         const data = await res.json()
         if (data.id) router.replace(`/admin/courses/${data.id}`)
       } else {
-        await fetch(`/api/admin/courses/${courseId}`, {
+        const res = await fetch(`/api/admin/courses/${courseId}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         })
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: 'Failed to save course' }))
+          toast({ variant: 'error', title: 'Failed to save course', message: err.error })
+          return
+        }
+        toast({ variant: 'success', title: 'Course saved' })
+        router.refresh()
       }
+    } catch (e) {
+      toast({ variant: 'error', title: 'Something went wrong', message: String(e) })
     } finally {
       setSaving(false)
     }
@@ -297,9 +317,16 @@ export default function CourseContentEditor() {
             <label className="text-caption text-mute uppercase tracking-[0.1em]">Sessions</label>
             <input type="number" value={String(course.totalSessions ?? '')} onChange={(e) => updateCourse((prev) => ({ ...prev, totalSessions: Number(e.target.value) }))} className="w-16 border border-hairline bg-canvas text-ink text-body-sm px-2 py-1 rounded-[2px] focus:outline-none focus:border-ink" />
           </div>
-          <div className="flex-1">
-            <input type="text" value={course.description} onChange={(e) => updateCourse((prev) => ({ ...prev, description: e.target.value }))} placeholder="Short description..." className="w-full bg-transparent border-none text-body-sm text-mute focus:outline-none placeholder:text-mute/50" />
-          </div>
+        </div>
+      </div>
+
+      {/* Cover image upload */}
+      <div className="border-b border-hairline bg-canvas">
+        <div className="max-w-[1440px] mx-auto px-xl py-3">
+          <ImageUpload
+            value={course.coverImage ?? ''}
+            onChange={(url) => updateCourse((prev) => ({ ...prev, coverImage: url }))}
+          />
         </div>
       </div>
 
@@ -397,11 +424,11 @@ export default function CourseContentEditor() {
                         {chap.lessons.map((les, li) => {
                           const LIcon = lessonTypeIcons[les.type]
                           return (
-                            <button
-                              key={li}
+                            <div
+                              key={les.id ?? li}
                               onClick={() => { setSelectedModule(mi); setSelectedChapter(ci); setSelectedLesson(li) }}
                               className={cn(
-                                'w-full flex items-center gap-2 py-1.5 px-2 text-left text-body-sm hover:bg-surface-soft transition-colors bg-transparent border-none cursor-pointer rounded-none',
+                                'w-full flex items-center gap-2 py-1.5 px-2 text-left text-body-sm hover:bg-surface-soft transition-colors cursor-pointer rounded-none',
                                 selectedModule === mi && selectedChapter === ci && selectedLesson === li && 'bg-surface-soft'
                               )}
                             >
@@ -414,11 +441,11 @@ export default function CourseContentEditor() {
                                   updated.content[mi].chapters[ci].lessons.splice(li, 1)
                                   setCourse(updated)
                                   if (selectedLesson >= updated.content[mi].chapters[ci].lessons.length) setSelectedLesson(Math.max(0, updated.content[mi].chapters[ci].lessons.length - 1))
-                                }} className="text-mute hover:text-error bg-transparent border-none cursor-pointer p-0">
+                                }} className="text-mute hover:text-error bg-transparent border-none cursor-pointer p-0 shrink-0">
                                   <Trash2 className="w-3 h-3" />
                                 </button>
                               )}
-                            </button>
+                            </div>
                           )
                         })}
                       </div>

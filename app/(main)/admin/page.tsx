@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import Link from "next/link";
-import Image from "next/image";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { Button, Badge, Avatar } from "@/components/ui";
+import { ImageUpload } from "@/components/ui/image-upload";
 import {
   Search,
   Plus,
@@ -19,6 +19,8 @@ import {
   ExternalLink,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { toast } from "@/components/ui/alert";
+import { confirm } from "@/components/ui/confirm-dialog";
 
 type Tab = "users" | "courses" | "guilds";
 
@@ -272,11 +274,17 @@ export default function AdminPage() {
     };
     if (formUser.password) body.password = formUser.password;
 
-    await fetch(url, {
+    const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Request failed' }));
+      toast({ variant: 'error', title: 'Failed to save user', message: err.error });
+      return;
+    }
+    toast({ variant: 'success', title: editId ? 'User updated' : 'User created' });
     setModal(null);
     fetchAll();
   }
@@ -284,11 +292,17 @@ export default function AdminPage() {
   async function saveCourse() {
     const url = editId ? `/api/admin/courses/${editId}` : "/api/admin/courses";
     const method = editId ? "PUT" : "POST";
-    await fetch(url, {
+    const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formCourse),
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Request failed' }));
+      toast({ variant: 'error', title: 'Failed to save course', message: err.error });
+      return;
+    }
+    toast({ variant: 'success', title: editId ? 'Course updated' : 'Course created' });
     setModal(null);
     fetchAll();
   }
@@ -296,19 +310,38 @@ export default function AdminPage() {
   async function saveGuild() {
     const url = editId ? `/api/admin/guilds/${editId}` : "/api/admin/guilds";
     const method = editId ? "PUT" : "POST";
-    await fetch(url, {
+    const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(formGuild),
     });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Request failed' }));
+      toast({ variant: 'error', title: 'Failed to save guild', message: err.error });
+      return;
+    }
+    toast({ variant: 'success', title: editId ? 'Guild updated' : 'Guild created' });
     setModal(null);
     fetchAll();
   }
 
-  async function deleteItem(type: "user" | "course" | "guild", id: string) {
-    if (!confirm("Are you sure?")) return;
-    await fetch(`/api/admin/${type}s/${id}`, { method: "DELETE" });
-    fetchAll();
+  function deleteItem(type: "user" | "course" | "guild", id: string) {
+    confirm({
+      title: `Delete ${type}`,
+      message: `This action cannot be undone.`,
+      variant: 'danger',
+      confirmLabel: 'Delete',
+      async onConfirm() {
+        const res = await fetch(`/api/admin/${type}s/${id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: 'Request failed' }));
+          toast({ variant: 'error', title: 'Failed to delete', message: err.error });
+          return;
+        }
+        toast({ variant: 'success', title: `${type} deleted` });
+        fetchAll();
+      },
+    });
   }
 
   function toggleStudent(id: string) {
@@ -477,9 +510,18 @@ export default function AdminPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="bg-canvas border border-hairline p-xxl flex items-center justify-between"
+                className="bg-canvas border border-hairline p-xxl flex items-center gap-6"
               >
-                <div>
+                {(course as any).coverImage && (
+                  <div className="w-24 h-16 shrink-0 overflow-hidden bg-surface-soft border border-hairline">
+                    <img
+                      src={(course as any).coverImage}
+                      alt=""
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="flex-1">
                   <h3 className="text-heading-sm text-ink font-700">
                     {course.title}
                   </h3>
@@ -489,7 +531,7 @@ export default function AdminPage() {
                     {course.description}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 shrink-0">
                   <Link
                     href={`/admin/courses/${course.id}`}
                     className="flex items-center gap-1 border border-hairline-strong bg-canvas text-ink text-button-sm font-bold uppercase py-2 px-3 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
@@ -679,29 +721,10 @@ export default function AdminPage() {
             />
           </div>
           <div>
-            <label className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-1.5 block">
-              Cover Image URL
-            </label>
-            <input
-              type="url"
+            <ImageUpload
               value={formCourse.coverImage}
-              onChange={(e) =>
-                setFormCourse((p) => ({ ...p, coverImage: e.target.value }))
-              }
-              placeholder="/images/cover.png"
-              className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2 rounded-[2px] outline-none focus:border-ink"
+              onChange={(url) => setFormCourse((p) => ({ ...p, coverImage: url }))}
             />
-            {formCourse.coverImage && (
-              <div className="mt-2 relative w-full aspect-[16/9] overflow-hidden bg-surface-soft border border-hairline">
-                <Image
-                  src={formCourse.coverImage}
-                  alt="Cover preview"
-                  fill
-                  sizes="100vw"
-                  className="object-cover"
-                />
-              </div>
-            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
