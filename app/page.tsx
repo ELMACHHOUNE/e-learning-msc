@@ -1,17 +1,22 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ShieldAlert, Terminal, MessageSquare, User } from "lucide-react";
+import { ShieldAlert, Terminal, MessageSquare, User, ArrowRight } from "lucide-react";
 import { auth } from "@/lib/auth";
+import { connectToDatabase } from "@/lib/db";
+import Course from "@/models/Course";
 
 export default async function LandingPage() {
   const session = await auth();
+  await connectToDatabase();
+  const courses = await Course.find().sort({ createdAt: -1 }).lean();
+
   return (
     <>
       <ComponentA_NavBar user={session?.user} />
       <ComponentB_Hero />
       <ComponentB1_ElearningSection />
       <ComponentC_Capabilities />
-      <ComponentD_Accent />
+      <ComponentD_Courses courses={courses} />
       <ComponentE_Footer />
       <ComponentF_SupportWidget />
     </>
@@ -38,7 +43,6 @@ function ComponentA_NavBar({ user }: { user?: { name?: string | null; email?: st
         <div className="hidden md:flex items-center gap-8">
           {[
             { label: 'Programs', href: '/programs' },
-            { label: 'Courses', href: '/courses' },
           ].map((item) => (
             <Link
               key={item.label}
@@ -212,25 +216,59 @@ function ComponentC_Capabilities() {
   );
 }
 
-function ComponentD_Accent() {
+function ComponentD_Courses({ courses }: { courses: Record<string, any>[] }) {
   return (
-    <section className="bg-primary py-16 px-6 md:px-24 rounded-none">
-      <div className="max-w-[1440px] mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
-        <div className="max-w-2xl">
-          <p className="text-[24px] md:text-[32px] font-bold uppercase leading-[0.95] text-on-primary">
-            FEATURED SYLLABUS: 15-MONTH SOFTWARE ENGINEERING PATHWAY.
-          </p>
-          <p className="text-[16px] font-normal leading-[1.4] text-on-primary/80 mt-4">
-            194 sessions across 12 modules &middot; 3 Guild tracks &middot;
-            Full-stack frontend to DevOps &middot; Real-time progress analytics
-          </p>
+    <section className="bg-canvas py-20 md:py-28">
+      <div className="max-w-[1440px] mx-auto px-6">
+        <p className="text-[10px] font-bold text-ink uppercase mb-3 tracking-[0.2em]">FEATURED COURSES</p>
+        <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-ink mb-12">
+          EXPLORE OUR PROGRAMS
+        </h2>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {courses.map((course) => {
+        const id = course._id.toString()
+        return (
+          <Link
+            key={id}
+            href={`/programs/${id}`}
+            className="border border-hairline bg-canvas flex flex-col no-underline group hover:border-ink transition-colors"
+          >
+            <div className="relative w-full aspect-[16/9] overflow-hidden bg-surface-soft">
+              <Image
+                src={course.coverImage || "/images/cover.png"}
+                alt={course.title}
+                fill
+                sizes="(max-width: 768px) 100vw, 33vw"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
+              />
+            </div>
+            <div className="p-6 flex flex-col flex-1">
+              <h3 className="text-heading-sm text-ink font-700 uppercase leading-[1] mb-2">
+                {course.title}
+              </h3>
+              <p className="text-body-sm text-mute flex-1 mb-4">
+                {course.description}
+              </p>
+              <div className="flex items-center gap-4 mb-4">
+                <div>
+                  <p className="text-heading-md text-ink font-700">{course.durationInMonths}</p>
+                  <p className="text-caption text-mute">Months</p>
+                </div>
+                <div className="w-px h-8 bg-hairline" />
+                <div>
+                  <p className="text-heading-md text-ink font-700">{course.totalSessions}</p>
+                  <p className="text-caption text-mute">Sessions</p>
+                </div>
+              </div>
+              <div className="inline-flex items-center gap-2 text-button-md font-bold uppercase tracking-[0.144px] text-ink group-hover:opacity-70 transition-opacity mt-auto">
+                View Details <ArrowRight className="w-4 h-4" />
+              </div>
+            </div>
+          </Link>
+        )
+      })}
         </div>
-        <Link
-          href="/courses"
-          className="bg-surface-dark text-on-dark text-[14.4px] font-bold uppercase tracking-[0.144px] py-4 px-8 rounded-[2px] hover:bg-surface-deep transition-colors whitespace-nowrap h-fit no-underline shrink-0"
-        >
-          View Syllabus
-        </Link>
       </div>
     </section>
   );
@@ -268,7 +306,7 @@ function ComponentE_Footer() {
               {[
                 { label: "Admin Registry", href: "/admin" },
                 { label: "Instructor Console", href: "/dashboard" },
-                { label: "Student Workspace", href: "/courses" },
+                { label: "Student Workspace", href: "/programs" },
               ].map((link) => (
                 <li key={link.label}>
                   <Link

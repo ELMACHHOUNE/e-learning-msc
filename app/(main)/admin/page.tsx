@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button, Badge, Avatar } from "@/components/ui";
 import {
@@ -152,6 +153,7 @@ export default function AdminPage() {
   const [formCourse, setFormCourse] = useState({
     title: "",
     description: "",
+    coverImage: "",
     durationInMonths: 0,
     totalSessions: 0,
   });
@@ -192,6 +194,7 @@ export default function AdminPage() {
       setFormCourse({
         title: "",
         description: "",
+        coverImage: "",
         durationInMonths: 0,
         totalSessions: 0,
       });
@@ -231,6 +234,7 @@ export default function AdminPage() {
       setFormCourse({
         title: c.title,
         description: c.description,
+        coverImage: (c as any).coverImage ?? "",
         durationInMonths: c.durationInMonths,
         totalSessions: c.totalSessions,
       });
@@ -673,6 +677,31 @@ export default function AdminPage() {
               }
               className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2 rounded-[2px] outline-none focus:border-ink resize-none"
             />
+          </div>
+          <div>
+            <label className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-1.5 block">
+              Cover Image URL
+            </label>
+            <input
+              type="url"
+              value={formCourse.coverImage}
+              onChange={(e) =>
+                setFormCourse((p) => ({ ...p, coverImage: e.target.value }))
+              }
+              placeholder="/images/cover.png"
+              className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2 rounded-[2px] outline-none focus:border-ink"
+            />
+            {formCourse.coverImage && (
+              <div className="mt-2 relative w-full aspect-[16/9] overflow-hidden bg-surface-soft border border-hairline">
+                <Image
+                  src={formCourse.coverImage}
+                  alt="Cover preview"
+                  fill
+                  sizes="100vw"
+                  className="object-cover"
+                />
+              </div>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>

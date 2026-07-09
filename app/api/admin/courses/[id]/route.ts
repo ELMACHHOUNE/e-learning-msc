@@ -13,6 +13,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     id: course._id.toString(),
     title: course.title,
     description: course.description,
+    coverImage: course.coverImage,
     durationInMonths: course.durationInMonths,
     totalSessions: course.totalSessions,
     content: course.content,
@@ -29,6 +30,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const update: Record<string, unknown> = {}
   if (body.title !== undefined) update.title = body.title
   if (body.description !== undefined) update.description = body.description
+  if (body.coverImage !== undefined) update.coverImage = body.coverImage
   if (body.durationInMonths !== undefined) update.durationInMonths = body.durationInMonths
   if (body.totalSessions !== undefined) update.totalSessions = body.totalSessions
   if (body.content !== undefined) update.content = body.content

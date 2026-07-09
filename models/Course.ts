@@ -23,6 +23,7 @@ const CourseSchema = new Schema<CourseDocument>(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
+    coverImage: { type: String },
     durationInMonths: { type: Number, required: true },
     totalSessions: { type: Number, required: true },
     content: [ModuleSchema],

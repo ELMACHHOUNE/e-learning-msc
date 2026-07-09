@@ -1,45 +1,14 @@
 import Image from "next/image";
 import Link from "next/link";
 import { auth } from "@/lib/auth";
-
-const programs = [
-  {
-    id: "software-engineering",
-    title: "Software Engineering",
-    duration: "15 months",
-    sessions: 194,
-    modules: 12,
-    students: 128,
-    image: "/images/cover.png",
-    description:
-      "Full-stack development track covering frontend, backend, databases, and DevOps. Build production-ready applications from the ground up.",
-  },
-  {
-    id: "data-science",
-    title: "Data Science & Analytics",
-    duration: "12 months",
-    sessions: 150,
-    modules: 10,
-    students: 64,
-    image: "/images/cover.png",
-    description:
-      "Statistics, machine learning, data engineering, and visualization. Turn raw data into actionable intelligence.",
-  },
-  {
-    id: "ui-ux-design",
-    title: "UI/UX Design",
-    duration: "6 months",
-    sessions: 72,
-    modules: 8,
-    students: 32,
-    image: "/images/cover.png",
-    description:
-      "Design thinking, user research, prototyping, and visual design. Create interfaces that users love.",
-  },
-];
+import { connectToDatabase } from "@/lib/db";
+import Course from "@/models/Course";
 
 export default async function ProgramsPage() {
   const session = await auth();
+  await connectToDatabase();
+  const courses = await Course.find().sort({ createdAt: -1 }).lean();
+
   return (
     <>
       <nav className="h-[60px] bg-canvas border-b border-hairline">
@@ -51,9 +20,6 @@ export default async function ProgramsPage() {
           <div className="hidden md:flex items-center gap-8">
             <Link href="/programs" className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-ink no-underline hover:opacity-70 transition-opacity">
               Programs
-            </Link>
-            <Link href="/courses" className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-ink no-underline hover:opacity-70 transition-opacity">
-              Courses
             </Link>
           </div>
           {session?.user ? (
@@ -107,38 +73,41 @@ export default async function ProgramsPage() {
       <section className="bg-canvas py-20">
         <div className="max-w-[1440px] mx-auto px-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {programs.map((program) => (
-              <Link
-                key={program.id}
-                href={`/courses/${program.id}`}
-                className="group border border-hairline overflow-hidden no-underline hover:border-ink transition-colors"
-              >
-                <div className="aspect-[16/10] overflow-hidden bg-surface-soft">
-                  <Image
-                    src={program.image}
-                    alt={program.title}
-                    width={600}
-                    height={375}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-                <div className="p-6">
-                  <h3 className="text-heading-sm text-ink font-bold uppercase leading-[0.95] mb-2">
-                    {program.title}
-                  </h3>
-                  <p className="text-body-sm text-mute leading-[1.6] mb-4 line-clamp-2">
-                    {program.description}
-                  </p>
-                  <div className="flex items-center gap-4 text-caption text-charcoal">
-                    <span>{program.duration}</span>
-                    <span className="w-px h-3 bg-hairline" />
-                    <span>{program.sessions} sessions</span>
-                    <span className="w-px h-3 bg-hairline" />
-                    <span>{program.modules} modules</span>
+            {courses.map((course) => {
+              const id = course._id.toString()
+              return (
+                <Link
+                  key={id}
+                  href={`/programs/${id}`}
+                  className="group border border-hairline overflow-hidden no-underline hover:border-ink transition-colors"
+                >
+                  <div className="aspect-[16/10] overflow-hidden bg-surface-soft">
+                    <Image
+                      src={course.coverImage || "/images/cover.png"}
+                      alt={course.title}
+                      width={600}
+                      height={375}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
                   </div>
-                </div>
-              </Link>
-            ))}
+                  <div className="p-6">
+                    <h3 className="text-heading-sm text-ink font-bold uppercase leading-[0.95] mb-2">
+                      {course.title}
+                    </h3>
+                    <p className="text-body-sm text-mute leading-[1.6] mb-4 line-clamp-2">
+                      {course.description}
+                    </p>
+                    <div className="flex items-center gap-4 text-caption text-charcoal">
+                      <span>{course.durationInMonths} months</span>
+                      <span className="w-px h-3 bg-hairline" />
+                      <span>{course.totalSessions} sessions</span>
+                      <span className="w-px h-3 bg-hairline" />
+                      <span>{course.content.length} modules</span>
+                    </div>
+                  </div>
+                </Link>
+              )
+            })}
           </div>
         </div>
       </section>
