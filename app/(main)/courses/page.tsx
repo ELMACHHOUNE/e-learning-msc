@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Badge } from '@/components/ui'
+import LogoSpinner from '@/components/shared/logo-spinner'
 import { ArrowRight, BookOpen } from 'lucide-react'
 
 interface CourseItem {
@@ -28,13 +29,7 @@ export default function CoursesPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-hairline-strong border-t-ink rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <LogoSpinner />
 
   if (courses.length === 0) {
     return (

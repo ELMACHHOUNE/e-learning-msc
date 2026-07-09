@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Button, Badge } from '@/components/ui'
+import LogoSpinner from '@/components/shared/logo-spinner'
 import {
   Plus, Trash2, Save, ArrowLeft, FileText, Layers, BookOpen,
   CheckSquare, Wrench, Image, Video, Type, GripVertical, X,
@@ -184,13 +185,7 @@ export default function CourseContentEditor() {
     }
   }, [currentLesson])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-hairline-strong border-t-ink rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <LogoSpinner />
 
   async function saveCourse() {
     setSaving(true)

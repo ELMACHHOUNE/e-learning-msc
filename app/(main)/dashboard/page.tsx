@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
 import { Badge, Progress } from '@/components/ui'
+import LogoSpinner from '@/components/shared/logo-spinner'
 import { Users, BookOpen, Layers, ArrowUpRight, GraduationCap, UserPlus, Shield } from 'lucide-react'
 
 interface DashboardData {
@@ -25,13 +26,7 @@ export default function DashboardPage() {
       .finally(() => setLoading(false))
   }, [])
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-hairline-strong border-t-ink rounded-full animate-spin" />
-      </div>
-    )
-  }
+  if (loading) return <LogoSpinner />
 
   if (data?.role === 'admin') return <AdminDashboard data={data} />
   if (data?.role === 'instructor') return <InstructorDashboard data={data} />

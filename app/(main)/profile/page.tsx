@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Camera, Save, Eye, EyeOff } from "lucide-react";
+import LogoSpinner from "@/components/shared/logo-spinner";
 
 function getSafeSessionImage(image?: string | null) {
   if (!image) return undefined;
@@ -101,13 +102,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (status === "loading" || !profile) {
-    return (
-      <div className="min-h-screen bg-canvas flex items-center justify-center">
-        <div className="w-6 h-6 border-2 border-hairline-strong border-t-ink rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (status === "loading" || !profile) return <LogoSpinner />
 
   return (
     <div className="min-h-screen bg-canvas">

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { motion } from 'framer-motion'
 import Image from 'next/image'
 
 export default function LoaderPage() {
@@ -33,32 +32,27 @@ export default function LoaderPage() {
 
   return (
     <div className="fixed inset-0 bg-canvas flex flex-col items-center justify-center z-[9999]">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.8 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5 }}
-        className="flex flex-col items-center gap-xxl"
-      >
-        <Image
-          src="/images/icon.png"
-          alt="Logo"
-          width={96}
-          height={96}
-          priority
-          className="object-contain"
-        />
-
-        <div className="w-64">
-          <div className="w-full bg-surface-soft rounded-none h-1.5 overflow-hidden">
-            <motion.div
-              className="h-full bg-primary"
-              style={{ width: `${progress}%` }}
-              transition={{ duration: 0.1 }}
-            />
-          </div>
-          <p className="text-caption text-mute text-center mt-md">{progress}%</p>
+      <div className="flex flex-col items-center gap-xxl">
+        <div className="animate-spin" style={{ animationDuration: '2s' }}>
+          <Image
+            src="/images/icon.png"
+            alt="Logo"
+            width={64}
+            height={64}
+            priority
+            className="object-contain"
+          />
         </div>
-      </motion.div>
+
+        <div className="text-center">
+          <p className="text-heading-sm text-ink font-700 uppercase tracking-[0.18em]">
+            e-learning-msc
+          </p>
+          <p className="text-caption text-mute mt-sm tracking-[0.1em] font-mono">
+            {progress}%
+          </p>
+        </div>
+      </div>
     </div>
   )
 }
