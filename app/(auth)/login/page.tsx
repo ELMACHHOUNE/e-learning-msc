@@ -57,6 +57,7 @@ export default function LoginPage() {
           src="/images/login.png"
           alt="Login background"
           fill
+          sizes="50vw"
           className="object-cover"
           priority
         />

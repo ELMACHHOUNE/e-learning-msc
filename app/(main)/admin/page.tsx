@@ -98,10 +98,9 @@ function Modal({
   return createPortal(
     <div
       className="fixed inset-0 z-[1000] bg-black/45 px-4 py-8 grid place-items-center"
-      onClick={(e) => {
-        if (contentRef.current && !contentRef.current.contains(e.target as Node)) {
-          onClose()
-        }
+      onMouseDown={(e) => {
+        if (e.target !== e.currentTarget) return
+        onClose()
       }}
     >
       <div

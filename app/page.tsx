@@ -95,6 +95,7 @@ function ComponentB_Hero() {
           src="/images/cover.png"
           alt="Platform workspace UI"
           fill
+          sizes="100vw"
           className="object-cover"
           priority
         />

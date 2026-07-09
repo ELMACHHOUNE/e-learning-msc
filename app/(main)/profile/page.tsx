@@ -134,6 +134,7 @@ export default function ProfilePage() {
                   src={avatarPreview}
                   alt="Avatar"
                   fill
+                  sizes="80px"
                   className="object-cover"
                 />
               ) : (
