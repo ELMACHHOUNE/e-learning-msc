@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react'
 
@@ -14,11 +13,11 @@ interface AlertData {
   message?: string
 }
 
-const variantStyles: Record<AlertVariant, { icon: typeof CheckCircle; iconColor: string }> = {
-  success: { icon: CheckCircle, iconColor: 'text-success' },
-  error: { icon: AlertCircle, iconColor: 'text-error' },
-  warning: { icon: AlertCircle, iconColor: 'text-warning' },
-  info: { icon: Info, iconColor: 'text-info' },
+const iconMap: Record<AlertVariant, typeof CheckCircle> = {
+  success: CheckCircle,
+  error: AlertCircle,
+  warning: AlertCircle,
+  info: Info,
 }
 
 let addAlertFn: ((a: Omit<AlertData, 'id'>) => void) | null = null
@@ -29,8 +28,10 @@ export function toast(alert: Omit<AlertData, 'id'>) {
 
 export function AlertContainer() {
   const [alerts, setAlerts] = useState<AlertData[]>([])
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
     addAlertFn = (a) => {
       const id = Math.random().toString(36).substring(2, 8)
       setAlerts((prev) => [...prev, { ...a, id }])
@@ -41,26 +42,25 @@ export function AlertContainer() {
     return () => { addAlertFn = null }
   }, [])
 
-  if (typeof document === 'undefined') return null
+  if (!mounted) return null
 
-  return createPortal(
+  return (
     <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
       <AnimatePresence>
         {alerts.map((alert) => {
-          const style = variantStyles[alert.variant]
-          const Icon = style.icon
+          const Icon = iconMap[alert.variant]
           return (
             <motion.div
               key={alert.id}
               initial={{ opacity: 0, x: 40, scale: 0.95 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 40, scale: 0.95 }}
-              className='border border-hairline-strong pointer-events-auto shadow-[0_4px_16px_rgba(0,0,0,0.10)] bg-canvas'
+              className="border border-hairline-strong pointer-events-auto bg-canvas"
             >
               <div className="flex items-start gap-3 p-4">
-                <Icon className={`w-5 h-5 shrink-0 mt-0.5 ${style.iconColor}`} />
+                <Icon className="w-5 h-5 shrink-0 mt-0.5 text-mute" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-button-sm font-bold uppercase tracking-[0.144px] text-ink">
+                  <p className="text-button-sm font-bold uppercase text-ink">
                     {alert.title}
                   </p>
                   {alert.message && (
@@ -78,7 +78,6 @@ export function AlertContainer() {
           )
         })}
       </AnimatePresence>
-    </div>,
-    document.body,
+    </div>
   )
 }

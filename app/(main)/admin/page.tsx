@@ -171,15 +171,14 @@ export default function AdminPage() {
   const [studentSearch, setStudentSearch] = useState("");
 
   function fetchAll() {
-    fetch("/api/admin/users")
+    fetch("/api/admin/dashboard")
       .then((r) => r.json())
-      .then(setUsers);
-    fetch("/api/admin/courses")
-      .then((r) => r.json())
-      .then(setCourses);
-    fetch("/api/admin/guilds")
-      .then((r) => r.json())
-      .then(setGuilds);
+      .then((data) => {
+        setUsers(data.users ?? [])
+        setCourses(data.courses ?? [])
+        setGuilds(data.guilds ?? [])
+      })
+      .catch(() => {});
   }
 
   useEffect(() => {

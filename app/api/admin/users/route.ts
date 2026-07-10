@@ -19,7 +19,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
   await connectToDatabase()
-  const hashed = await bcrypt.hash(password, 12)
+  const hashed = await bcrypt.hash(password, 10)
   const user = await User.create({ name, email, password: hashed, role })
   return NextResponse.json({ id: user._id.toString(), name: user.name, email: user.email, role: user.role })
 }

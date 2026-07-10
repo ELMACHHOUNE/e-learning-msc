@@ -1,10 +1,8 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
-import { createPortal } from 'react-dom'
+import { useEffect, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, Trash2, X } from 'lucide-react'
-import { cn } from '@/lib/utils'
 
 interface ConfirmOptions {
   title: string
@@ -24,36 +22,44 @@ export function confirm(opts: ConfirmOptions) {
 export function ConfirmDialog() {
   const [options, setOptions] = useState<ConfirmOptions | null>(null)
   const [loading, setLoading] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  const optionsRef = useRef<ConfirmOptions | null>(null)
 
-  const close = useCallback(() => setOptions(null), [])
+  const close = () => setOptions(null)
 
   useEffect(() => {
-    showConfirmFn = (opts) => setOptions(opts)
+    setMounted(true)
+    showConfirmFn = (opts) => {
+      setOptions(opts)
+      optionsRef.current = opts
+    }
     return () => { showConfirmFn = null }
   }, [])
 
-  const handleConfirm = useCallback(async () => {
-    if (!options) return
+  async function handleConfirm() {
+    const opts = optionsRef.current
+    if (!opts) return
     setLoading(true)
     try {
-      await options.onConfirm()
+      await opts.onConfirm()
     } catch {}
     setLoading(false)
     setOptions(null)
-  }, [options])
+    optionsRef.current = null
+  }
 
-  if (typeof document === 'undefined') return null
+  if (!mounted) return null
 
   const isDanger = options?.variant === 'danger'
 
-  return createPortal(
+  return (
     <AnimatePresence>
       {options && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/40 p-4"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 p-4"
           onClick={close}
         >
           <motion.div
@@ -61,7 +67,7 @@ export function ConfirmDialog() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-canvas border border-hairline-strong max-w-sm w-full shadow-[0_8px_32px_rgba(0,0,0,0.12)]"
+            className="bg-canvas border border-hairline-strong max-w-sm w-full"
           >
             <div className="flex items-start justify-between gap-4 p-5 pb-0">
               <div className="flex items-center gap-3">
@@ -75,7 +81,7 @@ export function ConfirmDialog() {
                   </div>
                 )}
                 <div>
-                  <h3 className="text-heading-xs text-ink font-700 uppercase tracking-[0.192px]">{options.title}</h3>
+                  <h3 className="text-heading-sm text-ink font-bold uppercase">{options.title}</h3>
                   {options.message && <p className="text-body-sm text-mute mt-1">{options.message}</p>}
                 </div>
               </div>
@@ -83,7 +89,7 @@ export function ConfirmDialog() {
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex items-center justify-end gap-2 p-5">
+            <div className="flex items-center justify-end gap-2 p-5 pt-4">
               <button
                 onClick={close}
                 disabled={loading}
@@ -94,15 +100,14 @@ export function ConfirmDialog() {
               <button
                 onClick={handleConfirm}
                 disabled={loading}
-                className={cn(
-                  'border text-button-sm font-bold uppercase px-4 py-2 cursor-pointer transition-colors disabled:opacity-40 flex items-center gap-2',
+                className={`border text-button-sm font-bold uppercase px-4 py-2 cursor-pointer transition-colors disabled:opacity-40 flex items-center gap-2 ${
                   isDanger
                     ? 'border-error bg-error text-white hover:bg-error/90'
-                    : 'border-ink bg-ink text-canvas hover:bg-ink/90',
-                )}
+                    : 'border-ink bg-ink text-canvas hover:bg-ink/90'
+                }`}
               >
                 {loading && (
-                  <span className="w-3.5 h-3.5 border-[2px] border-white/30 border-t-white rounded-full animate-spin" />
+                  <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 )}
                 {options.confirmLabel ?? (isDanger ? 'Delete' : 'Confirm')}
               </button>
@@ -110,7 +115,6 @@ export function ConfirmDialog() {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>,
-    document.body,
+    </AnimatePresence>
   )
 }
