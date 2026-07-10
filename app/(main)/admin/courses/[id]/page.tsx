@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -8,11 +8,12 @@ import { Button, Badge } from '@/components/ui'
 import { ImageUpload } from '@/components/ui/image-upload'
 import LogoSpinner from '@/components/shared/logo-spinner'
 import {
-  Plus, Trash2, Save, ArrowLeft, FileText, Layers, BookOpen,
-  CheckSquare, Wrench, Image, Video, Type, GripVertical, X,
+  Plus, Trash2, Save, ArrowLeft, FileText, BookOpen,
+  CheckSquare, Wrench,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from '@/components/ui/alert'
+import RichTextEditor from '@/components/ui/rich-text-editor'
 
 type LessonType = 'lesson' | 'checkpoint' | 'workshop'
 
@@ -116,13 +117,6 @@ export default function CourseContentEditor() {
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(!isNew)
 
-  // Content editor state
-  const [contentType, setContentType] = useState<'text' | 'image' | 'video'>('text')
-  const [textContent, setTextContent] = useState('')
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [videoUrl, setVideoUrl] = useState('')
-
   useEffect(() => {
     if (!isNew) {
       fetch(`/api/admin/courses/${courseId}`)
@@ -150,44 +144,6 @@ export default function CourseContentEditor() {
   }, [courseId, isNew, router])
 
   const currentLesson = course.content[selectedModule]?.chapters[selectedChapter]?.lessons[selectedLesson]
-
-  const updateLessonContent = useCallback(() => {
-    if (!currentLesson) return
-    const updated = { ...course }
-    const lesson = updated.content[selectedModule].chapters[selectedChapter].lessons[selectedLesson]
-
-    if (contentType === 'text') {
-      lesson.content = textContent
-    } else if (contentType === 'image' && imagePreview) {
-      lesson.content = `![image](${imagePreview})`
-    } else if (contentType === 'video' && videoUrl) {
-      lesson.content = `<video src="${videoUrl}" controls></video>\n\n${videoUrl}`
-    }
-
-    setCourse(updated)
-  }, [course, selectedModule, selectedChapter, selectedLesson, contentType, textContent, imagePreview, videoUrl])
-
-  useEffect(() => {
-    if (!currentLesson) return
-    const content = currentLesson.content
-    if (content.startsWith('![image](') && content.endsWith(')')) {
-      setContentType('image')
-      setImagePreview(content.slice(8, -1))
-      setVideoUrl('')
-      setTextContent('')
-    } else if (content.includes('<video') || content.startsWith('http') && (content.includes('youtube') || content.includes('vimeo') || content.includes('mp4'))) {
-      setContentType('video')
-      const match = content.match(/src="([^"]+)"/)
-      setVideoUrl(match?.[1] ?? content.split('\n\n')[1] ?? content)
-      setTextContent('')
-      setImagePreview(null)
-    } else {
-      setContentType('text')
-      setTextContent(content)
-      setImagePreview(null)
-      setVideoUrl('')
-    }
-  }, [currentLesson])
 
   if (loading) return <LogoSpinner />
 
@@ -260,23 +216,6 @@ export default function CourseContentEditor() {
   }
 
   const modules = course.content
-  const currentMod = modules[selectedModule]
-  const currentChap = currentMod?.chapters[selectedChapter]
-  const currentLess = currentChap?.lessons[selectedLesson]
-
-  function commitCurrentBlockContent() {
-    const updated = { ...course }
-    const lesson = updated.content[selectedModule]?.chapters[selectedChapter]?.lessons[selectedLesson]
-    if (!lesson) return
-    if (contentType === 'text' && textContent) {
-      lesson.content = textContent
-    } else if (contentType === 'image' && imagePreview) {
-      lesson.content = `![image](${imagePreview})`
-    } else if (contentType === 'video' && videoUrl) {
-      lesson.content = `<video src="${videoUrl}" controls></video>\n\n${videoUrl}`
-    }
-    setCourse(updated)
-  }
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -459,13 +398,13 @@ export default function CourseContentEditor() {
 
         {/* Right: Lesson editor */}
         <div className="flex-1 min-w-0">
-          {currentLess ? (
+          {currentLesson ? (
             <div className="border border-hairline bg-canvas">
               {/* Lesson header */}
               <div className="border-b border-hairline bg-surface-soft px-6 py-3 flex items-center gap-4">
                 <input
                   type="text"
-                  value={currentLess.title}
+                  value={currentLesson.title}
                   onChange={(e) => {
                     const updated = { ...course }
                     updated.content[selectedModule].chapters[selectedChapter].lessons[selectedLesson].title = e.target.value
@@ -487,7 +426,7 @@ export default function CourseContentEditor() {
                         }}
                         className={cn(
                           'flex items-center gap-1 px-3 py-1.5 text-caption uppercase font-bold tracking-[0.1em] border border-hairline rounded-none bg-transparent cursor-pointer transition-colors',
-                          currentLess.type === t ? 'bg-primary text-on-primary border-primary' : 'text-mute hover:text-ink'
+                          currentLesson.type === t ? 'bg-primary text-on-primary border-primary' : 'text-mute hover:text-ink'
                         )}
                       >
                         <TIcon className="w-3 h-3" />
@@ -498,142 +437,20 @@ export default function CourseContentEditor() {
                 </div>
               </div>
 
-              {/* Content type selector */}
-              <div className="border-b border-hairline px-6 py-3 flex items-center gap-3 bg-canvas">
-                <span className="text-caption text-mute uppercase tracking-[0.1em] font-600">Content:</span>
-                {(['text', 'image', 'video'] as const).map((ct) => (
-                  <button
-                    key={ct}
-                    onClick={() => {
-                      commitCurrentBlockContent()
-                      setContentType(ct)
-                    }}
-                    className={cn(
-                      'flex items-center gap-1 px-3 py-1 text-caption uppercase font-bold border border-hairline rounded-none bg-transparent cursor-pointer transition-colors',
-                      contentType === ct ? 'bg-ink text-canvas border-ink' : 'text-mute hover:text-ink'
-                    )}
-                  >
-                    {ct === 'text' ? <FileText className="w-3 h-3" /> : ct === 'image' ? <ImageIcon className="w-3 h-3" /> : <Video className="w-3 h-3" />}
-                    {ct}
-                  </button>
-                ))}
-              </div>
-
-              {/* Content editor area */}
+              {/* Content editor */}
               <div className="p-6">
-                {contentType === 'text' && (
-                  <div>
-                    <textarea
-                      value={textContent}
-                      onChange={(e) => setTextContent(e.target.value)}
-                      onBlur={() => {
-                        const updated = { ...course }
-                        if (updated.content[selectedModule]?.chapters[selectedChapter]?.lessons[selectedLesson]) {
-                          updated.content[selectedModule].chapters[selectedChapter].lessons[selectedLesson].content = textContent
-                          setCourse(updated)
-                        }
-                      }}
-                      placeholder="Write your lesson content here... You can use Markdown formatting:
-
-# Heading 1
-## Heading 2
-**Bold text**
-*Italic text*
-
-- Bullet list
-- Another item
-
-1. Numbered list
-2. Second item
-
-![alt text](image-url)
-
-> Blockquote
-
-`inline code`
-
-```code block```"
-                      className="w-full min-h-[300px] border border-hairline bg-canvas text-ink text-body-md px-4 py-3 focus:outline-none focus:border-ink transition-colors resize-y font-mono leading-relaxed"
-                    />
-                    <div className="mt-3 border border-hairline p-4 bg-surface-soft">
-                      <p className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-2">Preview</p>
-                      <div className="prose prose-sm text-ink whitespace-pre-wrap">{textContent}</div>
-                    </div>
-                  </div>
-                )}
-
-                {contentType === 'image' && (
-                  <div>
-                    <div className="border-2 border-dashed border-hairline-strong p-8 text-center">
-                      {imagePreview ? (
-                        <div className="relative inline-block">
-                          {/* eslint-disable-next-line @next/next/no-img-element */}
-                          <img src={imagePreview} alt="Preview" className="max-w-full max-h-64 object-contain mx-auto" />
-                          <button onClick={() => { setImagePreview(null); setImageFile(null) }} className="mt-2 text-caption text-error hover:underline bg-transparent border-none cursor-pointer">Remove</button>
-                        </div>
-                      ) : (
-                        <label className="cursor-pointer block">
-                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                            const file = e.target.files?.[0]
-                            if (!file) return
-                            setImageFile(file)
-                            const b64 = await encodeImageToBase64(file)
-                            setImagePreview(b64)
-                          }} />
-                          <ImageIcon className="w-10 h-10 text-mute mx-auto mb-2" />
-                          <p className="text-body-sm text-mute">Click to upload an image</p>
-                          <p className="text-caption text-charcoal mt-1">Supports PNG, JPG, GIF, WebP</p>
-                        </label>
-                      )}
-                    </div>
-                    <div className="flex justify-end mt-3">
-                      <Button variant="primary" size="sm" onClick={() => {
-                        const updated = { ...course }
-                        const lesson = updated.content[selectedModule]?.chapters[selectedChapter]?.lessons[selectedLesson]
-                        if (lesson && imagePreview) {
-                          lesson.content = `![image](${imagePreview})`
-                          setCourse(updated)
-                        }
-                      }} disabled={!imagePreview}>Insert Image</Button>
-                    </div>
-                  </div>
-                )}
-
-                {contentType === 'video' && (
-                  <div>
-                    <label className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-1.5 block">Video URL</label>
-                    <input
-                      type="url"
-                      value={videoUrl}
-                      onChange={(e) => setVideoUrl(e.target.value)}
-                      placeholder="https://youtube.com/watch?v=... or https://example.com/video.mp4"
-                      className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2 rounded-[2px] outline-none focus:border-ink transition-colors mb-3"
-                    />
-                    {videoUrl && (
-                      <div className="aspect-video bg-surface-dark flex items-center justify-center mb-3">
-                        {videoUrl.includes('youtube') || videoUrl.includes('youtu.be') ? (
-                          <iframe
-                            src={videoUrl.replace('watch?v=', 'embed/').replace('youtu.be/', 'youtube.com/embed/')}
-                            className="w-full h-full"
-                            allowFullScreen
-                          />
-                        ) : (
-                          <video src={videoUrl} controls className="max-w-full max-h-full" />
-                        )}
-                      </div>
-                    )}
-                    <div className="flex justify-end">
-                      <Button variant="primary" size="sm" onClick={() => {
-                        const updated = { ...course }
-                        const lesson = updated.content[selectedModule]?.chapters[selectedChapter]?.lessons[selectedLesson]
-                        if (lesson && videoUrl) {
-                          lesson.content = `<video src="${videoUrl}" controls></video>\n\n${videoUrl}`
-                          setCourse(updated)
-                        }
-                      }} disabled={!videoUrl}>Insert Video</Button>
-                    </div>
-                  </div>
-                )}
+                <RichTextEditor
+                  value={currentLesson.content}
+                  onChange={(html) => {
+                    const updated = { ...course }
+                    const lesson = updated.content[selectedModule]?.chapters[selectedChapter]?.lessons[selectedLesson]
+                    if (lesson) {
+                      lesson.content = html
+                      setCourse(updated)
+                    }
+                  }}
+                  placeholder="Type your lesson content here..."
+                />
               </div>
             </div>
           ) : (
@@ -647,8 +464,4 @@ export default function CourseContentEditor() {
       </div>
     </div>
   )
-}
-
-function ImageIcon({ className }: { className?: string }) {
-  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L9 18"/></svg>
 }
