@@ -6,9 +6,16 @@ import { connectToDatabase } from "@/lib/db";
 import Course from "@/models/Course";
 
 export default async function LandingPage() {
-  const session = await auth();
-  await connectToDatabase();
-  const courses = await Course.find().sort({ createdAt: -1 }).lean();
+  const [session, courses] = await Promise.all([
+    auth(),
+    connectToDatabase().then(() =>
+      Course.find()
+        .select('title description coverImage durationInMonths totalSessions')
+        .sort({ createdAt: -1 })
+        .limit(6)
+        .lean()
+    ),
+  ])
 
   return (
     <>

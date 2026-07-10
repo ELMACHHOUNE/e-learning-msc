@@ -5,9 +5,26 @@ import { connectToDatabase } from "@/lib/db";
 import Course from "@/models/Course";
 
 export default async function ProgramsPage() {
-  const session = await auth();
-  await connectToDatabase();
-  const courses = await Course.find().sort({ createdAt: -1 }).lean();
+  const [session, courses] = await Promise.all([
+    auth(),
+    connectToDatabase().then(() =>
+      Course.aggregate([
+        { $sort: { createdAt: -1 } },
+        { $limit: 12 },
+        {
+          $project: {
+            _id: 1,
+            title: 1,
+            description: 1,
+            coverImage: 1,
+            durationInMonths: 1,
+            totalSessions: 1,
+            moduleCount: { $size: '$content' },
+          },
+        },
+      ])
+    ),
+  ])
 
   return (
     <>
@@ -102,7 +119,7 @@ export default async function ProgramsPage() {
                       <span className="w-px h-3 bg-hairline" />
                       <span>{course.totalSessions} sessions</span>
                       <span className="w-px h-3 bg-hairline" />
-                      <span>{course.content.length} modules</span>
+                      <span>{course.moduleCount} modules</span>
                     </div>
                   </div>
                 </Link>

@@ -75,16 +75,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         const typedToken = token as typeof token & AuthToken
         typedToken.id = String(user.id)
         typedToken.role = (user as { role?: AuthToken['role'] }).role
+        typedToken.picture = (user as any).image
       }
       return token
     },
-    session({ session, token }) {
+    async session({ session, token }) {
       if (session.user) {
         const typedSessionUser = session.user as typeof session.user & AuthSessionUser
         const typedToken = token as typeof token & AuthToken
         typedSessionUser.id = typedToken.id
         typedSessionUser.role = typedToken.role ?? 'student'
         typedSessionUser.image = getSafeSessionImage(typedToken.picture)
+        if (!typedSessionUser.image && typedToken.id) {
+          try {
+            await connectToDatabase()
+            const u = await User.findById(typedToken.id).select('avatar').lean()
+            if (u && (u as any).avatar) typedSessionUser.image = String((u as any).avatar)
+          } catch {}
+        }
       }
       return session
     },

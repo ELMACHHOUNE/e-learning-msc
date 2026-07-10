@@ -46,7 +46,8 @@ export function AlertContainer() {
   if (!mounted || typeof document === 'undefined') return null
 
   return createPortal(
-    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
+    <div className="fixed top-4 left-4 z-[9999] flex flex-col gap-2 pointer-events-none"
+         style={{ width: 'calc(100vw - 2rem)', maxWidth: '384px' }}>
       <AnimatePresence>
         {alerts.map((alert) => {
           const Icon = iconMap[alert.variant]
@@ -58,23 +59,23 @@ export function AlertContainer() {
               exit={{ opacity: 0, x: 40, scale: 0.95 }}
               className="border border-hairline pointer-events-auto bg-canvas shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
             >
-              <div className="flex items-start gap-3 p-4">
-                <Icon className="w-5 h-5 shrink-0 mt-0.5 text-mute" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-button-sm font-bold uppercase text-ink">
-                    {alert.title}
-                  </p>
-                  {alert.message && (
-                    <p className="text-body-sm text-mute mt-0.5">{alert.message}</p>
-                  )}
+              <div className="grid grid-cols-[1fr_auto] gap-2 px-6 py-4 border-b border-hairline bg-surface-soft">
+                <div className="flex items-start gap-2 min-w-0">
+                  <Icon className="w-5 h-5 shrink-0 mt-0.5 text-mute" />
+                  <p className="text-button-sm font-bold uppercase text-ink break-words min-w-0">{alert.title}</p>
                 </div>
                 <button
                   onClick={() => setAlerts((prev) => prev.filter((x) => x.id !== alert.id))}
-                  className="text-mute hover:text-ink bg-transparent border-none cursor-pointer p-0.5 shrink-0"
+                  className="text-mute hover:text-ink bg-transparent border-none cursor-pointer p-0.5 shrink-0 self-start"
                 >
                   <X className="w-4 h-4" />
                 </button>
               </div>
+              {alert.message && (
+                <div className="px-6 py-4">
+                  <p className="text-body-sm text-mute">{alert.message}</p>
+                </div>
+              )}
             </motion.div>
           )
         })}
