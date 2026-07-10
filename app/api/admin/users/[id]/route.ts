@@ -11,14 +11,15 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   await connectToDatabase()
 
   const update: Record<string, unknown> = {}
-  if (body.name) update.name = body.name
-  if (body.email) update.email = body.email
-  if (body.role) update.role = body.role
-  if (body.password) update.password = await bcrypt.hash(body.password, 12)
+  if ('name' in body) update.name = body.name
+  if ('email' in body) update.email = body.email
+  if ('phone' in body) update.phone = body.phone
+  if ('role' in body) update.role = body.role
+  if ('password' in body && body.password) update.password = await bcrypt.hash(body.password, 10)
 
-  const user = await User.findByIdAndUpdate(id, update, { new: true }).select('-password')
+  const user = await User.findByIdAndUpdate(id, { $set: update }, { new: true, runValidators: true }).select('-password')
   if (!user) return NextResponse.json({ error: 'User not found' }, { status: 404 })
-  return NextResponse.json({ id: user._id.toString(), name: user.name, email: user.email, role: user.role })
+  return NextResponse.json({ id: user._id.toString(), name: user.name, email: user.email, phone: user.phone, role: user.role })
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {

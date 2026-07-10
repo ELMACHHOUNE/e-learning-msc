@@ -12,7 +12,7 @@ export async function GET() {
   const [users, courses, guilds] = await Promise.all([
     User.find().select('-password').sort({ createdAt: -1 }).lean(),
     Course.find().sort({ createdAt: -1 }).lean(),
-    Guild.find().populate('courseId instructorId studentIds').sort({ createdAt: -1 }).lean(),
+    Guild.find().populate('courseId', 'title').populate('instructorId', 'name').populate('studentIds', 'name').sort({ createdAt: -1 }).lean(),
   ])
 
   return NextResponse.json(
@@ -21,6 +21,7 @@ export async function GET() {
         id: u._id.toString(),
         name: u.name,
         email: u.email,
+        phone: u.phone,
         avatar: u.avatar,
         role: u.role,
         createdAt: u.createdAt,
@@ -48,11 +49,6 @@ export async function GET() {
         skillsTotal: g.skillsTotal,
         skillsAchieved: g.skillsAchieved,
       })),
-    },
-    {
-      headers: {
-        'Cache-Control': 'private, max-age=15, stale-while-revalidate=60',
-      },
     },
   )
 }

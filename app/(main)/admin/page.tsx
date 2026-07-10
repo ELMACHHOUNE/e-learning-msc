@@ -28,6 +28,7 @@ interface UserData {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   role: string;
   avatar?: string;
   createdAt?: string;
@@ -139,6 +140,7 @@ function Modal({
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const [searchQuery, setSearchQuery] = useState("");
+  const [loading, setLoading] = useState(true);
   const [users, setUsers] = useState<UserData[]>([]);
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [guilds, setGuilds] = useState<GuildData[]>([]);
@@ -149,6 +151,7 @@ export default function AdminPage() {
   const [formUser, setFormUser] = useState({
     name: "",
     email: "",
+    phone: "",
     password: "",
     role: "student",
   });
@@ -171,14 +174,15 @@ export default function AdminPage() {
   const [studentSearch, setStudentSearch] = useState("");
 
   function fetchAll() {
-    fetch("/api/admin/dashboard")
+    fetch("/api/admin/dashboard", { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => {
         setUsers(data.users ?? [])
         setCourses(data.courses ?? [])
         setGuilds(data.guilds ?? [])
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoading(false));
   }
 
   useEffect(() => {
@@ -188,7 +192,7 @@ export default function AdminPage() {
   function openCreate(tab: Tab) {
     setEditId(null);
     if (tab === "users") {
-      setFormUser({ name: "", email: "", password: "", role: "student" });
+      setFormUser({ name: "", email: "", phone: "", password: "", role: "student" });
       setModal("user");
     }
     if (tab === "courses") {
@@ -226,7 +230,7 @@ export default function AdminPage() {
     if (type === "user") {
       const u = users.find((x) => x.id === id);
       if (!u) return;
-      setFormUser({ name: u.name, email: u.email, password: "", role: u.role });
+      setFormUser({ name: u.name, email: u.email, phone: u.phone ?? "", password: "", role: u.role });
       setModal("user");
     }
     if (type === "course") {
@@ -269,6 +273,7 @@ export default function AdminPage() {
     const body: Record<string, unknown> = {
       name: formUser.name,
       email: formUser.email,
+      phone: formUser.phone,
       role: formUser.role,
     };
     if (formUser.password) body.password = formUser.password;
@@ -284,6 +289,13 @@ export default function AdminPage() {
       return;
     }
     toast({ variant: 'success', title: editId ? 'User updated' : 'User created' });
+    const saved = await res.json();
+    setUsers((prev) => {
+      if (editId) {
+        return prev.map((u) => (u.id === editId ? { ...u, name: saved.name, email: saved.email, phone: saved.phone, role: saved.role } : u))
+      }
+      return [{ id: saved.id, name: saved.name, email: saved.email, phone: saved.phone, role: saved.role, avatar: undefined }, ...prev]
+    });
     setModal(null);
     fetchAll();
   }
@@ -417,6 +429,16 @@ export default function AdminPage() {
               <Plus className="w-4 h-4 mr-1" /> Add User
             </Button>
           </div>
+          {loading ? (
+            <div className="bg-canvas border border-hairline flex items-center justify-center py-xxxl">
+              <div className="flex flex-col items-center gap-lg">
+                <div className="animate-spin" style={{ animationDuration: '2s' }}>
+                  <img src="/images/icon.png" alt="" className="w-8 h-8 object-contain" />
+                </div>
+                <p className="text-caption text-mute tracking-[0.1em]">Loading users...</p>
+              </div>
+            </div>
+          ) : (
           <div className="bg-canvas border border-hairline overflow-hidden">
             <table className="w-full">
               <thead>
@@ -426,6 +448,9 @@ export default function AdminPage() {
                   </th>
                   <th className="text-left px-lg py-md text-caption text-charcoal font-600">
                     Email
+                  </th>
+                  <th className="text-left px-lg py-md text-caption text-charcoal font-600">
+                    Phone
                   </th>
                   <th className="text-left px-lg py-md text-caption text-charcoal font-600">
                     Role
@@ -451,6 +476,9 @@ export default function AdminPage() {
                     </td>
                     <td className="px-lg py-md text-body-sm text-mute">
                       {user.email}
+                    </td>
+                    <td className="px-lg py-md text-body-sm text-mute">
+                      {user.phone || '—'}
                     </td>
                     <td className="px-lg py-md">
                       <Badge
@@ -487,6 +515,7 @@ export default function AdminPage() {
               </tbody>
             </table>
           </div>
+          )}
         </motion.div>
       )}
 
@@ -502,6 +531,16 @@ export default function AdminPage() {
               <Plus className="w-4 h-4" /> Create Course
             </Link>
           </div>
+          {loading ? (
+            <div className="bg-canvas border border-hairline flex items-center justify-center py-xxxl">
+              <div className="flex flex-col items-center gap-lg">
+                <div className="animate-spin" style={{ animationDuration: '2s' }}>
+                  <img src="/images/icon.png" alt="" className="w-8 h-8 object-contain" />
+                </div>
+                <p className="text-caption text-mute tracking-[0.1em]">Loading courses...</p>
+              </div>
+            </div>
+          ) : (
           <div className="grid gap-lg">
             {courses.map((course, i) => (
               <motion.div
@@ -547,6 +586,7 @@ export default function AdminPage() {
               </motion.div>
             ))}
           </div>
+          )}
         </motion.div>
       )}
 
@@ -565,6 +605,16 @@ export default function AdminPage() {
               <Plus className="w-4 h-4 mr-1" /> Create Guild
             </Button>
           </div>
+          {loading ? (
+            <div className="bg-canvas border border-hairline flex items-center justify-center py-xxxl">
+              <div className="flex flex-col items-center gap-lg">
+                <div className="animate-spin" style={{ animationDuration: '2s' }}>
+                  <img src="/images/icon.png" alt="" className="w-8 h-8 object-contain" />
+                </div>
+                <p className="text-caption text-mute tracking-[0.1em]">Loading guilds...</p>
+              </div>
+            </div>
+          ) : (
           <div className="grid gap-lg">
             {guilds.map((guild, i) => (
               <motion.div
@@ -610,6 +660,7 @@ export default function AdminPage() {
               </motion.div>
             ))}
           </div>
+          )}
         </motion.div>
       )}
 
@@ -642,6 +693,19 @@ export default function AdminPage() {
               value={formUser.email}
               onChange={(e) =>
                 setFormUser((p) => ({ ...p, email: e.target.value }))
+              }
+              className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2 rounded-[2px] outline-none focus:border-ink"
+            />
+          </div>
+          <div>
+            <label className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-1.5 block">
+              Phone
+            </label>
+            <input
+              type="tel"
+              value={formUser.phone}
+              onChange={(e) =>
+                setFormUser((p) => ({ ...p, phone: e.target.value }))
               }
               className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2 rounded-[2px] outline-none focus:border-ink"
             />

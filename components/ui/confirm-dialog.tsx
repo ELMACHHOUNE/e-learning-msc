@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useRef } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, Trash2, X } from 'lucide-react'
 
@@ -25,7 +26,10 @@ export function ConfirmDialog() {
   const [mounted, setMounted] = useState(false)
   const optionsRef = useRef<ConfirmOptions | null>(null)
 
-  const close = () => setOptions(null)
+  const close = () => {
+    setOptions(null)
+    optionsRef.current = null
+  }
 
   useEffect(() => {
     setMounted(true)
@@ -36,6 +40,15 @@ export function ConfirmDialog() {
     return () => { showConfirmFn = null }
   }, [])
 
+  useEffect(() => {
+    if (options) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => { document.body.style.overflow = '' }
+  }, [options])
+
   async function handleConfirm() {
     const opts = optionsRef.current
     if (!opts) return
@@ -44,22 +57,21 @@ export function ConfirmDialog() {
       await opts.onConfirm()
     } catch {}
     setLoading(false)
-    setOptions(null)
-    optionsRef.current = null
+    close()
   }
 
-  if (!mounted) return null
+  if (!mounted || typeof document === 'undefined') return null
 
   const isDanger = options?.variant === 'danger'
 
-  return (
+  return createPortal(
     <AnimatePresence>
       {options && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 p-4"
+          className="fixed inset-0 z-[9999] bg-black/45 grid place-items-center px-4 py-8"
           onClick={close}
         >
           <motion.div
@@ -67,29 +79,33 @@ export function ConfirmDialog() {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.95 }}
             onClick={(e) => e.stopPropagation()}
-            className="bg-canvas border border-hairline-strong max-w-sm w-full"
+            className="bg-canvas border border-hairline shadow-[0_20px_60px_rgba(0,0,0,0.2)] w-full"
+            style={{ maxWidth: '28rem' }}
           >
-            <div className="flex items-start justify-between gap-4 p-5 pb-0">
-              <div className="flex items-center gap-3">
-                {isDanger ? (
-                  <div className="w-10 h-10 flex items-center justify-center border border-hairline-strong bg-surface-soft">
-                    <Trash2 className="w-5 h-5 text-error" />
-                  </div>
-                ) : (
-                  <div className="w-10 h-10 flex items-center justify-center border border-hairline-strong bg-surface-soft">
-                    <AlertTriangle className="w-5 h-5 text-warning" />
-                  </div>
-                )}
-                <div>
-                  <h3 className="text-heading-sm text-ink font-bold uppercase">{options.title}</h3>
-                  {options.message && <p className="text-body-sm text-mute mt-1">{options.message}</p>}
-                </div>
-              </div>
-              <button onClick={close} className="text-mute hover:text-ink bg-transparent border-none cursor-pointer p-0.5 shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-hairline bg-surface-soft">
+              <h2 className="text-heading-sm text-ink font-bold uppercase">
+                {isDanger ? 'Confirm Deletion' : 'Confirm Action'}
+              </h2>
+              <button onClick={close} className="text-mute hover:text-ink bg-transparent border-none cursor-pointer p-1">
                 <X className="w-4 h-4" />
               </button>
             </div>
-            <div className="flex items-center justify-end gap-2 p-5 pt-4">
+            <div className="flex items-start gap-4 px-6 py-5">
+              {isDanger ? (
+                <div className="w-10 h-10 shrink-0 flex items-center justify-center border border-hairline-strong bg-surface-soft">
+                  <Trash2 className="w-5 h-5 text-error" />
+                </div>
+              ) : (
+                <div className="w-10 h-10 shrink-0 flex items-center justify-center border border-hairline-strong bg-surface-soft">
+                  <AlertTriangle className="w-5 h-5 text-warning" />
+                </div>
+              )}
+              <div>
+                <h3 className="text-heading-sm text-ink font-bold uppercase">{options.title}</h3>
+                {options.message && <p className="text-body-sm text-mute mt-1">{options.message}</p>}
+              </div>
+            </div>
+            <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-hairline">
               <button
                 onClick={close}
                 disabled={loading}
@@ -115,6 +131,7 @@ export function ConfirmDialog() {
           </motion.div>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body,
   )
 }

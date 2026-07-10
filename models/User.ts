@@ -7,6 +7,7 @@ const UserSchema = new Schema<UserDocument>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true, lowercase: true },
+    phone: { type: String },
     password: { type: String, required: false, select: false },
     avatar: { type: String },
     role: { type: String, enum: ['admin', 'instructor', 'student'], required: true },

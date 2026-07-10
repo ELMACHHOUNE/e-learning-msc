@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react'
 
@@ -42,9 +43,9 @@ export function AlertContainer() {
     return () => { addAlertFn = null }
   }, [])
 
-  if (!mounted) return null
+  if (!mounted || typeof document === 'undefined') return null
 
-  return (
+  return createPortal(
     <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
       <AnimatePresence>
         {alerts.map((alert) => {
@@ -55,7 +56,7 @@ export function AlertContainer() {
               initial={{ opacity: 0, x: 40, scale: 0.95 }}
               animate={{ opacity: 1, x: 0, scale: 1 }}
               exit={{ opacity: 0, x: 40, scale: 0.95 }}
-              className="border border-hairline-strong pointer-events-auto bg-canvas"
+              className="border border-hairline pointer-events-auto bg-canvas shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
             >
               <div className="flex items-start gap-3 p-4">
                 <Icon className="w-5 h-5 shrink-0 mt-0.5 text-mute" />
@@ -78,6 +79,7 @@ export function AlertContainer() {
           )
         })}
       </AnimatePresence>
-    </div>
+    </div>,
+    document.body,
   )
 }
