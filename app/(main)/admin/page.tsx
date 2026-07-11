@@ -13,16 +13,19 @@ import {
   BookOpen,
   Layers,
   X,
+  MessageCircle,
   Save,
   Trash2,
   Filter,
   ExternalLink,
+  ArrowLeft,
+  Send,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/alert";
 import { confirm } from "@/components/ui/confirm-dialog";
 
-type Tab = "users" | "courses" | "guilds";
+type Tab = "users" | "courses" | "guilds" | "messages";
 
 interface UserData {
   id: string;
@@ -63,6 +66,7 @@ const tabs: { id: Tab; label: string; icon: typeof Users }[] = [
   { id: "users", label: "User Management", icon: Users },
   { id: "courses", label: "Course Creator", icon: BookOpen },
   { id: "guilds", label: "Guild Assignment", icon: Layers },
+  { id: "messages", label: "Support Messages", icon: MessageCircle as any },
 ];
 
 function Modal({
@@ -138,6 +142,184 @@ function Modal({
     </div>,
     document.body,
   );
+}
+
+function MessagesPanel() {
+  const [conversations, setConversations] = useState<any[]>([]);
+  const [selected, setSelected] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [replyText, setReplyText] = useState('');
+  const [sending, setSending] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  async function fetchConversations() {
+    try {
+      const res = await fetch('/api/support/messages')
+      if (res.ok) {
+        const data = await res.json()
+        setConversations(data.conversations ?? [])
+      }
+    } catch {} finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => { fetchConversations() }, []);
+
+  async function markAsRead(email: string) {
+    await fetch('/api/support/messages', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
+    fetchConversations()
+  }
+
+  async function selectConversation(conv: any) {
+    setSelected(conv)
+    await markAsRead(conv.email)
+  }
+
+  useEffect(() => {
+    if (chatEndRef.current) {
+      chatEndRef.current.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [selected?.messages?.length])
+
+  async function sendReply() {
+    const text = replyText.trim()
+    if (!text || sending || !selected) return
+    setSending(true)
+    setReplyText('')
+    try {
+      const res = await fetch('/api/support/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, targetEmail: selected.email }),
+      })
+      if (res.ok) {
+        const saved = await res.json()
+        setSelected((prev: any) => ({ ...prev, messages: [...prev.messages, saved] }))
+      }
+    } catch {} finally {
+      setSending(false)
+    }
+  }
+
+  function handleKeyDown(e: React.KeyboardEvent) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      sendReply()
+    }
+  }
+
+  if (loading) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <div className="bg-canvas border border-hairline flex items-center justify-center py-xxxl">
+          <div className="flex flex-col items-center gap-lg">
+            <div className="animate-spin" style={{ animationDuration: '2s' }}>
+              <img src="/images/icon.png" alt="" className="w-8 h-8 object-contain" />
+            </div>
+            <p className="text-caption text-mute tracking-[0.1em]">Loading messages...</p>
+          </div>
+        </div>
+      </motion.div>
+    )
+  }
+
+  if (selected) {
+    return (
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col h-[calc(100vh-220px)]">
+        <div className="flex items-center gap-md mb-lg">
+          <button
+            onClick={() => setSelected(null)}
+            className="bg-transparent border-none cursor-pointer text-ink hover:opacity-70 p-0"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h2 className="text-heading-sm text-ink font-700">{selected.name}</h2>
+          <span className="text-caption text-mute">{selected.email}</span>
+        </div>
+        <div className="flex-1 overflow-y-auto border border-hairline bg-canvas p-xl space-y-lg mb-lg">
+          {selected.messages.map((msg: any) => (
+            <div key={msg.id} className={`flex flex-col ${msg.name?.startsWith('Admin (') ? 'items-end' : 'items-start'}`}>
+              <span className="text-caption text-mute mb-xs">
+                {msg.name?.startsWith('Admin (') ? 'Admin' : selected.name} &middot; {new Date(msg.createdAt).toLocaleString()}
+              </span>
+              <div className={`px-md py-sm text-body-sm max-w-[75%] ${msg.name?.startsWith('Admin (') ? 'bg-primary text-on-primary' : 'bg-surface-soft text-ink'}`}>
+                {msg.message}
+              </div>
+            </div>
+          ))}
+          <div ref={chatEndRef} />
+        </div>
+        <div className="flex gap-md">
+          <input
+            value={replyText}
+            onChange={(e) => setReplyText(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your reply..."
+            className="flex-1 h-10 bg-surface-soft text-ink text-body-sm px-md rounded-none border-b border-hairline-strong focus-visible:outline-none"
+          />
+          <button
+            onClick={sendReply}
+            disabled={!replyText.trim() || sending}
+            className="bg-primary text-on-primary text-button-md px-lg h-10 rounded-xs font-700 border-none cursor-pointer disabled:opacity-50 flex items-center gap-1"
+          >
+            <Send className="w-4 h-4" /> Reply
+          </button>
+        </div>
+      </motion.div>
+    )
+  }
+
+  return (
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+      <div className="flex items-center justify-between mb-lg">
+        <h2 className="text-heading-sm text-ink font-700">Support Messages</h2>
+        <span className="text-caption text-mute">{conversations.length} conversations</span>
+      </div>
+      {conversations.length === 0 ? (
+        <div className="bg-canvas border border-hairline py-xxxl text-center">
+          <p className="text-body-md text-mute">No support messages yet</p>
+        </div>
+      ) : (
+        <div className="grid gap-lg">
+          {conversations.map((conv) => {
+            const lastMsg = conv.messages[conv.messages.length - 1]
+            return (
+              <button
+                key={conv.email}
+                onClick={() => selectConversation(conv)}
+                className="bg-canvas border border-hairline p-xxl text-left cursor-pointer hover:border-ink transition-colors w-full"
+              >
+                <div className="flex items-center justify-between mb-sm">
+                  <div className="flex items-center gap-2">
+                    <span className="text-body-sm font-700 text-ink">{conv.name}</span>
+                    {conv.unread > 0 && <span className="w-2 h-2 rounded-full bg-red-500 inline-block shrink-0" />}
+                    <span className="text-caption text-mute">{conv.email}</span>
+                  </div>
+                  <span className="text-caption text-mute">
+                    {new Date(lastMsg.createdAt).toLocaleString()}
+                  </span>
+                </div>
+                <p className="text-body-md text-mute truncate">{lastMsg.message}</p>
+                <div className="flex items-center gap-md mt-sm">
+                  <span className="text-caption text-mute">{conv.messages.length} messages</span>
+                  {conv.messages.some((m: any) => m.isAdmin) ? (
+                    <span className="text-caption text-success font-600">Replied</span>
+                  ) : (
+                    <span className="text-caption text-mute">Unanswered</span>
+                  )}
+                </div>
+              </button>
+            )
+          })}
+        </div>
+      )}
+    </motion.div>
+  )
 }
 
 export default function AdminPage() {
@@ -691,6 +873,11 @@ export default function AdminPage() {
           </div>
           )}
         </motion.div>
+      )}
+
+      {/* ── Support Messages Tab ── */}
+      {activeTab === "messages" && (
+        <MessagesPanel />
       )}
 
       {/* ── User Modal ── */}

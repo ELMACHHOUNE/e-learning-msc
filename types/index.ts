@@ -65,3 +65,14 @@ export interface ISessionLog {
   date: Date | string
   records: IAttendanceRecord[]
 }
+
+export interface IMessage {
+  _id: string
+  name: string
+  email: string
+  userId?: string
+  message: string
+  isAdmin?: boolean
+  read?: boolean
+  createdAt: Date | string
+}
