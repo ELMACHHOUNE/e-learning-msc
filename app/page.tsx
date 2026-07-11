@@ -9,8 +9,8 @@ export default async function LandingPage() {
   const [session, courses] = await Promise.all([
     auth(),
     connectToDatabase().then(() =>
-      Course.find()
-        .select('title description coverImage durationInMonths totalSessions')
+      Course.find({ active: { $ne: false } })
+        .select('title description coverImage price durationInMonths totalSessions')
         .sort({ createdAt: -1 })
         .limit(6)
         .lean()
@@ -266,6 +266,10 @@ function ComponentD_Courses({ courses }: { courses: Record<string, any>[] }) {
                 <div>
                   <p className="text-heading-md text-ink font-700">{course.totalSessions}</p>
                   <p className="text-caption text-mute">Sessions</p>
+                </div>
+                <div className="ml-auto text-right">
+                  <p className="text-heading-lg text-primary font-700">{course.price ?? '—'}</p>
+                  <p className="text-caption text-mute">MAD</p>
                 </div>
               </div>
               <div className="inline-flex items-center gap-2 text-button-md font-bold uppercase tracking-[0.144px] text-ink group-hover:opacity-70 transition-opacity mt-auto">

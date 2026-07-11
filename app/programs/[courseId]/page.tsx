@@ -13,7 +13,7 @@ export default async function ProgramDetailPage({
   const { courseId } = await params;
   await connectToDatabase();
 
-  const course = await Course.findById(courseId).lean();
+  const course = await Course.findOne({ _id: courseId, active: { $ne: false } }).lean();
   if (!course) notFound();
 
   const totalLessons = course.content.reduce(
@@ -94,6 +94,13 @@ export default async function ProgramDetailPage({
             <div>
               <p className="text-heading-sm text-ink font-700">{totalLessons}</p>
               <p className="text-caption text-mute">Lessons</p>
+            </div>
+          </div>
+          <div className="w-px h-8 bg-hairline" />
+          <div className="flex items-center gap-3">
+            <div>
+              <p className="text-heading-sm text-ink font-700">{course.price ? `${course.price}` : 'Free'}</p>
+              <p className="text-caption text-mute">{course.price ? 'MAD' : ''}</p>
             </div>
           </div>
         </div>

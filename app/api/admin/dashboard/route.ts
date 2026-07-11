@@ -10,9 +10,9 @@ export async function GET() {
   await connectToDatabase()
 
   const [users, courses, guilds] = await Promise.all([
-    User.find().select('-password').sort({ createdAt: -1 }).lean(),
-    Course.find().sort({ createdAt: -1 }).lean(),
-    Guild.find().populate('courseId', 'title').populate('instructorId', 'name').populate('studentIds', 'name').sort({ createdAt: -1 }).lean(),
+    User.find().select('-password').sort({ createdAt: -1 }).limit(100).lean(),
+    Course.find().select('-content').sort({ createdAt: -1 }).limit(100).lean(),
+    Guild.find().populate('courseId', 'title').populate('instructorId', 'name').populate('studentIds', 'name').sort({ createdAt: -1 }).limit(100).lean(),
   ])
 
   return NextResponse.json(
@@ -31,9 +31,10 @@ export async function GET() {
         title: c.title,
         description: c.description,
         coverImage: c.coverImage,
+        price: c.price,
+        active: c.active,
         durationInMonths: c.durationInMonths,
         totalSessions: c.totalSessions,
-        content: c.content,
         createdAt: c.createdAt,
       })),
       guilds: guilds.map((g: any) => ({

@@ -37,9 +37,12 @@ interface CourseData {
   id: string;
   title: string;
   description: string;
+  coverImage?: string;
+  price?: number;
+  active?: boolean;
   durationInMonths: number;
   totalSessions: number;
-  content: unknown[];
+  content?: unknown[];
   createdAt?: string;
 }
 interface GuildData {
@@ -159,6 +162,8 @@ export default function AdminPage() {
     title: "",
     description: "",
     coverImage: "",
+    price: 0,
+    active: true,
     durationInMonths: 0,
     totalSessions: 0,
   });
@@ -200,6 +205,8 @@ export default function AdminPage() {
         title: "",
         description: "",
         coverImage: "",
+        price: 0,
+        active: true,
         durationInMonths: 0,
         totalSessions: 0,
       });
@@ -240,6 +247,8 @@ export default function AdminPage() {
         title: c.title,
         description: c.description,
         coverImage: (c as any).coverImage ?? "",
+        price: (c as any).price ?? 0,
+        active: (c as any).active ?? true,
         durationInMonths: c.durationInMonths,
         totalSessions: c.totalSessions,
       });
@@ -313,8 +322,15 @@ export default function AdminPage() {
       toast({ variant: 'error', title: 'Failed to save course', message: err.error });
       return;
     }
+    const saved = await res.json();
     toast({ variant: 'success', title: editId ? 'Course updated' : 'Course created' });
     setModal(null);
+    setCourses((prev) => {
+      if (editId) {
+        return prev.map((c) => c.id === editId ? { ...c, ...saved, price: saved.price ?? c.price, active: saved.active ?? c.active } : c)
+      }
+      return [{ id: saved.id, title: saved.title, description: saved.description ?? '', coverImage: saved.coverImage ?? '', price: saved.price, active: saved.active ?? true, durationInMonths: saved.durationInMonths ?? 0, totalSessions: saved.totalSessions ?? 0, createdAt: new Date().toISOString() }, ...prev]
+    });
     fetchAll();
   }
 
@@ -564,10 +580,23 @@ export default function AdminPage() {
                     {course.title}
                   </h3>
                   <p className="text-body-sm text-mute mt-xs">
-                    {course.durationInMonths} months &middot;{" "}
-                    {course.totalSessions} sessions &middot;{" "}
-                    {course.description}
+                    {course.durationInMonths} months · {course.totalSessions} sessions · {course.description}
                   </p>
+                  <div className="flex items-center gap-3 mt-sm">
+                    <span className="text-caption text-primary font-700">
+                      {(course as any).price ? `${(course as any).price} MAD` : 'Free'}
+                    </span>
+                    <span className={cn(
+                      'inline-flex items-center gap-1.5 text-caption uppercase font-bold tracking-[0.1em]',
+                      (course as any).active !== false ? 'text-success' : 'text-error'
+                    )}>
+                      <span className={cn(
+                        'w-1.5 h-1.5 rounded-full',
+                        (course as any).active !== false ? 'bg-success' : 'bg-error'
+                      )} />
+                      {(course as any).active !== false ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   <Link
@@ -789,7 +818,23 @@ export default function AdminPage() {
               onChange={(url) => setFormCourse((p) => ({ ...p, coverImage: url }))}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div>
+              <label className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-1.5 block">
+                Price (MAD)
+              </label>
+              <input
+                type="number"
+                value={String(formCourse.price ?? "")}
+                onChange={(e) =>
+                  setFormCourse((p) => ({
+                    ...p,
+                    price: e.target.value ? Number(e.target.value) : 0,
+                  }))
+                }
+                className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2 rounded-[2px] outline-none focus:border-ink"
+              />
+            </div>
             <div>
               <label className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-1.5 block">
                 Duration (months)

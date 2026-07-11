@@ -7,17 +7,17 @@ export async function GET() {
   await requireRole('admin')
   await connectToDatabase()
   const courses = await Course.find().sort({ createdAt: -1 })
-  return NextResponse.json(courses.map((c) => ({ id: c._id.toString(), title: c.title, description: c.description, coverImage: c.coverImage, durationInMonths: c.durationInMonths, totalSessions: c.totalSessions, content: c.content, createdAt: c.createdAt })))
+  return NextResponse.json(courses.map((c) => ({ id: c._id.toString(), title: c.title, description: c.description, coverImage: c.coverImage, price: c.price, active: c.active, durationInMonths: c.durationInMonths, totalSessions: c.totalSessions, content: c.content, createdAt: c.createdAt })))
 }
 
 export async function POST(req: Request) {
   await requireRole('admin')
   const body = await req.json()
-  const { title, description, coverImage, durationInMonths, totalSessions, content } = body
+  const { title, description, coverImage, price, active, durationInMonths, totalSessions, content } = body
   if (!title || !description || durationInMonths == null || totalSessions == null) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
   await connectToDatabase()
-  const course = await Course.create({ title, description, coverImage, durationInMonths, totalSessions, content: content ?? [] })
+  const course = await Course.create({ title, description, coverImage, price, active, durationInMonths, totalSessions, content: content ?? [] })
   return NextResponse.json({ id: course._id.toString(), title: course.title })
 }

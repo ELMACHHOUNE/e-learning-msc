@@ -44,16 +44,17 @@ export async function GET() {
 
   if (role === 'instructor') {
     const guilds = await Guild.find({ instructorId: userId })
-      .populate('courseId', 'title totalSessions')
+      .populate('courseId', 'title totalSessions active')
       .lean()
-    const totalStudents = guilds.reduce((sum: number, g: any) => sum + (g.studentIds ?? []).length, 0)
-    const totalSessions = guilds.reduce((sum: number, g: any) => sum + g.currentSession, 0)
-    const courses = [...new Set(guilds.map((g: any) => (g.courseId as any)?._id?.toString()).filter(Boolean))]
+    const activeGuilds = guilds.filter((g: any) => (g.courseId as any)?.active !== false)
+    const totalStudents = activeGuilds.reduce((sum: number, g: any) => sum + (g.studentIds ?? []).length, 0)
+    const totalSessions = activeGuilds.reduce((sum: number, g: any) => sum + g.currentSession, 0)
+    const courses = [...new Set(activeGuilds.map((g: any) => (g.courseId as any)?._id?.toString()).filter(Boolean))]
 
     return NextResponse.json({
       role: 'instructor',
-      stats: { totalGuilds: guilds.length, totalStudents, totalSessions, totalCourses: courses.length },
-      guilds: guilds.map((g: any) => ({
+      stats: { totalGuilds: activeGuilds.length, totalStudents, totalSessions, totalCourses: courses.length },
+      guilds: activeGuilds.map((g: any) => ({
         id: g._id.toString(),
         name: g.name,
         courseTitle: (g.courseId as any)?.title ?? 'Unknown',
@@ -68,15 +69,16 @@ export async function GET() {
 
   // student
   const guilds = await Guild.find({ studentIds: userId })
-    .populate('courseId', 'title totalSessions')
+    .populate('courseId', 'title totalSessions active')
     .populate('instructorId', 'name')
     .lean()
-  const courses = [...new Set(guilds.map((g: any) => (g.courseId as any)?._id?.toString()).filter(Boolean))]
+  const activeGuilds = guilds.filter((g: any) => (g.courseId as any)?.active !== false)
+  const courses = [...new Set(activeGuilds.map((g: any) => (g.courseId as any)?._id?.toString()).filter(Boolean))]
 
   return NextResponse.json({
     role: 'student',
-    stats: { totalGuilds: guilds.length, totalCourses: courses.length },
-    guilds: guilds.map((g: any) => ({
+    stats: { totalGuilds: activeGuilds.length, totalCourses: courses.length },
+    guilds: activeGuilds.map((g: any) => ({
       id: g._id.toString(),
       name: g.name,
       courseTitle: (g.courseId as any)?.title ?? 'Unknown',

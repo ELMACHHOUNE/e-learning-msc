@@ -14,6 +14,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     title: course.title,
     description: course.description,
     coverImage: course.coverImage,
+    price: course.price,
+    active: course.active,
     durationInMonths: course.durationInMonths,
     totalSessions: course.totalSessions,
     content: course.content,
@@ -27,17 +29,32 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const body = await req.json()
   await connectToDatabase()
 
-  const update: Record<string, unknown> = {}
-  if (body.title !== undefined) update.title = body.title
-  if (body.description !== undefined) update.description = body.description
-  if (body.coverImage !== undefined) update.coverImage = body.coverImage
-  if (body.durationInMonths !== undefined) update.durationInMonths = body.durationInMonths
-  if (body.totalSessions !== undefined) update.totalSessions = body.totalSessions
-  if (body.content !== undefined) update.content = body.content
-
-  const course = await Course.findByIdAndUpdate(id, update, { new: true })
+  const course = await Course.findById(id)
   if (!course) return NextResponse.json({ error: 'Course not found' }, { status: 404 })
-  return NextResponse.json({ id: course._id.toString(), title: course.title })
+
+  if (body.title !== undefined) course.title = body.title
+  if (body.description !== undefined) course.description = body.description
+  if (body.coverImage !== undefined) course.coverImage = body.coverImage
+  if (body.price !== undefined) course.price = body.price
+  if (body.active !== undefined) course.active = body.active
+  if (body.durationInMonths !== undefined) course.durationInMonths = body.durationInMonths
+  if (body.totalSessions !== undefined) course.totalSessions = body.totalSessions
+  if (body.content !== undefined) course.content = body.content
+
+  const saved = await course.save()
+
+  return NextResponse.json({
+    id: saved._id.toString(),
+    title: saved.title,
+    description: saved.description,
+    coverImage: saved.coverImage,
+    price: saved.price,
+    active: saved.active,
+    durationInMonths: saved.durationInMonths,
+    totalSessions: saved.totalSessions,
+    content: saved.content,
+    createdAt: saved.createdAt,
+  })
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -15,6 +15,9 @@ const UserSchema = new Schema<UserDocument>(
   { timestamps: true }
 )
 
+UserSchema.index({ createdAt: -1 })
+UserSchema.index({ role: 1, createdAt: -1 })
+
 const User: Model<UserDocument> = mongoose.models.User ?? mongoose.model<UserDocument>('User', UserSchema)
 
 export default User

@@ -24,12 +24,16 @@ const CourseSchema = new Schema<CourseDocument>(
     title: { type: String, required: true },
     description: { type: String, required: true },
     coverImage: { type: String },
+    price: { type: Number },
+    active: { type: Boolean, default: true },
     durationInMonths: { type: Number, required: true },
     totalSessions: { type: Number, required: true },
     content: [ModuleSchema],
   },
   { timestamps: true }
 )
+
+CourseSchema.index({ createdAt: -1 })
 
 const Course: Model<CourseDocument> = mongoose.models.Course ?? mongoose.model<CourseDocument>('Course', CourseSchema)
 

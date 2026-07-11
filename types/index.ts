@@ -17,6 +17,8 @@ export interface ICourse {
   title: string
   description: string
   coverImage?: string
+  price?: number
+  active?: boolean
   durationInMonths: number
   totalSessions: number
   content: IModule[]

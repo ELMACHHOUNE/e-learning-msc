@@ -41,6 +41,8 @@ interface CourseData {
   title: string
   description: string
   coverImage?: string
+  price?: number
+  active?: boolean
   durationInMonths: number
   totalSessions: number
   content: Module[]
@@ -76,6 +78,23 @@ function deserializeModules(encoded: string): Module[] {
   } catch { return [] }
 }
 
+function normalizeContent(raw: any[]): Module[] {
+  return raw.map((m: any) => ({
+    id: m.id ?? m._id?.toString() ?? generateId(),
+    title: m.title,
+    chapters: (m.chapters ?? []).map((ch: any) => ({
+      id: ch.id ?? ch._id?.toString() ?? generateId(),
+      title: ch.title,
+      lessons: (ch.lessons ?? []).map((l: any) => ({
+        id: l.id ?? l._id?.toString() ?? generateId(),
+        title: l.title,
+        content: l.content ?? '',
+        type: l.type ?? 'lesson',
+      })),
+    })),
+  }))
+}
+
 const lessonTypeIcons: Record<LessonType, typeof FileText> = {
   lesson: FileText,
   checkpoint: CheckSquare,
@@ -107,6 +126,7 @@ export default function CourseContentEditor() {
     id: '',
     title: '',
     description: '',
+    price: 0,
     durationInMonths: 0,
     totalSessions: 0,
     content: [createModule()],
@@ -128,12 +148,14 @@ export default function CourseContentEditor() {
           }
           const parsedContent = typeof data.content === 'string'
             ? deserializeModules(data.content as string)
-            : (data.content ?? [createModule()])
+            : normalizeContent(data.content ?? [])
           setCourse({
             id: data.id ?? data._id?.toString(),
             title: data.title ?? '',
             description: data.description ?? '',
             coverImage: data.coverImage ?? '',
+            price: data.price ?? 0,
+            active: data.active ?? true,
             durationInMonths: data.durationInMonths ?? 0,
             totalSessions: data.totalSessions ?? 0,
             content: parsedContent.length > 0 ? parsedContent : [createModule()],
@@ -153,6 +175,8 @@ export default function CourseContentEditor() {
       title: course.title,
       description: course.description,
       coverImage: course.coverImage ?? '',
+      price: course.price,
+      active: course.active,
       durationInMonths: course.durationInMonths,
       totalSessions: course.totalSessions,
       content: serializeContent(course.content),
@@ -184,8 +208,22 @@ export default function CourseContentEditor() {
           toast({ variant: 'error', title: 'Failed to save course', message: err.error })
           return
         }
+        const saved = await res.json()
+        setCourse((prev) => ({
+          ...prev,
+          id: saved.id,
+          title: saved.title,
+          description: saved.description ?? prev.description,
+          coverImage: saved.coverImage ?? prev.coverImage,
+          price: saved.price ?? prev.price,
+          active: saved.active ?? true,
+          durationInMonths: saved.durationInMonths ?? prev.durationInMonths,
+          totalSessions: saved.totalSessions ?? prev.totalSessions,
+          content: typeof saved.content === 'string'
+            ? deserializeModules(saved.content)
+            : normalizeContent(saved.content ?? prev.content),
+        }))
         toast({ variant: 'success', title: 'Course saved' })
-        router.refresh()
       }
     } catch (e) {
       toast({ variant: 'error', title: 'Something went wrong', message: String(e) })
@@ -256,12 +294,33 @@ export default function CourseContentEditor() {
             <label className="text-caption text-mute uppercase tracking-[0.1em]">Sessions</label>
             <input type="number" value={String(course.totalSessions ?? '')} onChange={(e) => updateCourse((prev) => ({ ...prev, totalSessions: Number(e.target.value) }))} className="w-16 border border-hairline bg-canvas text-ink text-body-sm px-2 py-1 rounded-[2px] focus:outline-none focus:border-ink" />
           </div>
+          <div className="flex items-center gap-2">
+            <label className="text-caption text-mute uppercase tracking-[0.1em]">Price (MAD)</label>
+            <input type="number" value={String(course.price ?? '')} onChange={(e) => updateCourse((prev) => ({ ...prev, price: Number(e.target.value) }))} className="w-24 border border-hairline bg-canvas text-ink text-body-sm px-2 py-1 rounded-[2px] focus:outline-none focus:border-ink" />
+          </div>
+          <div className="flex items-center gap-2 ml-auto">
+            <button
+              onClick={() => updateCourse((prev) => ({ ...prev, active: !prev.active }))}
+              className={cn(
+                'flex items-center gap-2 px-3 py-1.5 text-caption uppercase font-bold tracking-[0.1em] border cursor-pointer transition-colors rounded-none bg-transparent',
+                course.active !== false
+                  ? 'border-success text-success hover:bg-success/10'
+                  : 'border-error text-error hover:bg-error/10'
+              )}
+            >
+              <span className={cn(
+                'w-2 h-2 rounded-full',
+                course.active !== false ? 'bg-success' : 'bg-error'
+              )} />
+              {course.active !== false ? 'Active' : 'Inactive'}
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Cover image upload */}
       <div className="border-b border-hairline bg-canvas">
-        <div className="max-w-[1440px] mx-auto px-xl py-3">
+        <div className="max-w-[600px] mx-auto px-xl py-3">
           <ImageUpload
             value={course.coverImage ?? ''}
             onChange={(url) => updateCourse((prev) => ({ ...prev, coverImage: url }))}

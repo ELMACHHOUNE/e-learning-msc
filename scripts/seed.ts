@@ -58,6 +58,7 @@ async function main() {
   const coursesData: Array<{
     title: string
     description: string
+    active: boolean
     durationInMonths: number
     totalSessions: number
     content: Array<{
@@ -72,6 +73,7 @@ async function main() {
       title: '15-Month Software Engineering Program',
       description:
         'Comprehensive full-stack development track covering frontend, backend, databases, and DevOps. Build production-ready applications from the ground up.',
+      active: true,
       durationInMonths: 15,
       totalSessions: 194,
       content: [
@@ -193,6 +195,7 @@ async function main() {
       title: 'Data Science & Analytics Bootcamp',
       description:
         'Statistics, machine learning, data engineering, and visualization. Turn raw data into actionable intelligence.',
+      active: true,
       durationInMonths: 12,
       totalSessions: 150,
       content: [
@@ -267,6 +270,7 @@ async function main() {
       title: 'UI/UX Design Masterclass',
       description:
         'Design thinking, user research, prototyping, and visual design. Create interfaces that users love.',
+      active: true,
       durationInMonths: 6,
       totalSessions: 72,
       content: [

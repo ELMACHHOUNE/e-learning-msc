@@ -9,6 +9,7 @@ export default async function ProgramsPage() {
     auth(),
     connectToDatabase().then(() =>
       Course.aggregate([
+        { $match: { active: { $ne: false } } },
         { $sort: { createdAt: -1 } },
         { $limit: 12 },
         {
@@ -17,6 +18,7 @@ export default async function ProgramsPage() {
             title: 1,
             description: 1,
             coverImage: 1,
+            price: 1,
             durationInMonths: 1,
             totalSessions: 1,
             moduleCount: { $size: '$content' },
@@ -120,6 +122,8 @@ export default async function ProgramsPage() {
                       <span>{course.totalSessions} sessions</span>
                       <span className="w-px h-3 bg-hairline" />
                       <span>{course.moduleCount} modules</span>
+                      <span className="w-px h-3 bg-hairline" />
+                      <span className="font-600 text-ink">{course.price ? `${course.price} MAD` : 'Free'}</span>
                     </div>
                   </div>
                 </Link>

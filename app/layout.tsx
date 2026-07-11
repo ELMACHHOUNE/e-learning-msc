@@ -115,8 +115,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={interTight.variable}>
-      <body className="min-h-full bg-canvas text-ink antialiased" suppressHydrationWarning>
+    <html
+      lang="en"
+      className={interTight.variable}
+      data-scroll-behavior="smooth"
+    >
+      <body
+        className="min-h-full bg-canvas text-ink antialiased"
+        suppressHydrationWarning
+      >
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
