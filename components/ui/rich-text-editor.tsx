@@ -30,6 +30,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
   const [showVideoInput, setShowVideoInput] = useState(false)
   const [videoUrl, setVideoUrl] = useState('')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imageUrl, setImageUrl] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   function focusEditor() {
@@ -175,7 +176,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
           <div className="flex items-center justify-between mb-3">
             <p className="text-caption text-ink uppercase tracking-[0.1em] font-600">Insert Image</p>
             <button
-              onClick={() => { setShowImageUpload(false); setImagePreview(null) }}
+              onClick={() => { setShowImageUpload(false); setImagePreview(null); setImageUrl('') }}
               className="text-mute hover:text-ink bg-transparent border-none cursor-pointer text-[13px]"
             >
               Cancel
@@ -190,10 +191,11 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
                     onClick={() => {
                       if (imagePreview) {
                         insertHtml(
-                          `<img src="${imagePreview}" alt="" style="max-width:100%;height:auto;display:block;margin:12px 0" />`
+                          `<img src="${imagePreview}" alt="" style="max-width:100%;height:auto;display:block;margin:12px auto" />`
                         )
                       }
                       setImagePreview(null)
+                      setImageUrl('')
                       setShowImageUpload(false)
                     }}
                     className="border border-ink bg-ink text-canvas text-button-sm font-bold uppercase px-3 py-1.5 cursor-pointer hover:bg-ink/90 transition-colors"
@@ -226,6 +228,37 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
                 <p className="text-body-sm text-mute">Click to upload an image</p>
               </label>
             )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-3">
+            <div className="flex-1 h-px bg-hairline" />
+            <span className="text-caption text-ash uppercase tracking-[0.1em]">or paste URL</span>
+            <div className="flex-1 h-px bg-hairline" />
+          </div>
+          <div className="flex gap-2 mt-2">
+            <input
+              type="url"
+              value={imageUrl}
+              onChange={(e) => setImageUrl(e.target.value)}
+              placeholder="https://example.com/image.jpg"
+              className="flex-1 border border-hairline-strong bg-canvas text-ink text-body-sm px-3 py-1.5 outline-none focus:border-ink"
+            />
+            <button
+              onClick={() => {
+                if (imageUrl.trim()) {
+                  insertHtml(
+                    `<img src="${imageUrl.trim()}" alt="" style="max-width:100%;height:auto;display:block;margin:12px auto" />`
+                  )
+                }
+                setImageUrl('')
+                setImagePreview(null)
+                setShowImageUpload(false)
+              }}
+              disabled={!imageUrl.trim()}
+              className="border border-ink bg-ink text-canvas text-button-sm font-bold uppercase px-3 py-1.5 cursor-pointer hover:bg-ink/90 transition-colors disabled:opacity-40 shrink-0"
+            >
+              Insert
+            </button>
           </div>
         </div>
       )}

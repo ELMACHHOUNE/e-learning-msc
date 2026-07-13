@@ -2,7 +2,7 @@
 
 import { useRef, useState, type DragEvent } from 'react'
 import Image from 'next/image'
-import { Upload, X, Trash2 } from 'lucide-react'
+import { Upload, Trash2 } from 'lucide-react'
 
 interface ImageUploadProps {
   value: string
@@ -21,7 +21,6 @@ export function ImageUpload({
 }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [dragging, setDragging] = useState(false)
-  const [preview, setPreview] = useState(value)
 
   function encodeFile(file: File): Promise<string> {
     return new Promise((resolve, reject) => {
@@ -35,7 +34,6 @@ export function ImageUpload({
   async function handleFile(file: File) {
     if (!file.type.startsWith('image/')) return
     const b64 = await encodeFile(file)
-    setPreview(b64)
     if (onFile) onFile(b64)
     onChange(b64)
   }
@@ -57,11 +55,8 @@ export function ImageUpload({
   }
 
   function handleRemove() {
-    setPreview('')
     onChange('')
   }
-
-  const showPreview = preview || value
 
   return (
     <div className={`space-y-2 ${className}`}>
@@ -69,10 +64,10 @@ export function ImageUpload({
         Cover Image
       </label>
 
-      {showPreview ? (
+      {value ? (
         <div className={`relative w-full ${aspectRatio} overflow-hidden bg-surface-soft border border-hairline group`}>
           <Image
-            src={showPreview}
+            src={value}
             alt="Cover"
             fill
             sizes="100vw"
@@ -135,18 +130,15 @@ export function ImageUpload({
       <div className="flex items-center gap-2">
         <input
           type="url"
-          value={value}
-          onChange={(e) => {
-            onChange(e.target.value)
-            if (!e.target.value.startsWith('data:')) setPreview(e.target.value)
-          }}
+          value={value.startsWith('data:') ? '' : value}
+          onChange={(e) => onChange(e.target.value)}
           placeholder="/images/cover.png"
           className="flex-1 border border-hairline-strong bg-canvas text-ink text-body-sm px-3 py-1.5 rounded-[2px] outline-none focus:border-ink"
         />
         {value && (
           <button
             type="button"
-            onClick={() => { onChange(''); setPreview('') }}
+            onClick={() => onChange('')}
             className="text-mute hover:text-error bg-transparent border-none cursor-pointer p-1 shrink-0"
           >
             <Trash2 className="w-4 h-4" />
