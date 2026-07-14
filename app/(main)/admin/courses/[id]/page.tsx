@@ -43,6 +43,7 @@ interface CourseData {
   coverImage?: string
   price?: number
   active?: boolean
+  category?: string
   durationInMonths: number
   totalSessions: number
   content: Module[]
@@ -127,6 +128,7 @@ export default function CourseContentEditor() {
     title: '',
     description: '',
     price: 0,
+    category: '',
     durationInMonths: 0,
     totalSessions: 0,
     content: [createModule()],
@@ -156,6 +158,7 @@ export default function CourseContentEditor() {
             coverImage: data.coverImage ?? '',
             price: data.price ?? 0,
             active: data.active ?? true,
+            category: data.category ?? '',
             durationInMonths: data.durationInMonths ?? 0,
             totalSessions: data.totalSessions ?? 0,
             content: parsedContent.length > 0 ? parsedContent : [createModule()],
@@ -177,6 +180,7 @@ export default function CourseContentEditor() {
       coverImage: course.coverImage ?? '',
       price: course.price,
       active: course.active,
+      category: course.category || undefined,
       durationInMonths: course.durationInMonths,
       totalSessions: course.totalSessions,
       content: serializeContent(course.content),
@@ -217,6 +221,7 @@ export default function CourseContentEditor() {
           coverImage: saved.coverImage ?? prev.coverImage,
           price: saved.price ?? prev.price,
           active: saved.active ?? true,
+          category: saved.category ?? prev.category,
           durationInMonths: saved.durationInMonths ?? prev.durationInMonths,
           totalSessions: saved.totalSessions ?? prev.totalSessions,
           content: typeof saved.content === 'string'
@@ -293,6 +298,20 @@ export default function CourseContentEditor() {
           <div className="flex items-center gap-2">
             <label className="text-caption text-mute uppercase tracking-[0.1em]">Sessions</label>
             <input type="number" value={String(course.totalSessions ?? '')} onChange={(e) => updateCourse((prev) => ({ ...prev, totalSessions: Number(e.target.value) }))} className="w-16 border border-hairline bg-canvas text-ink text-body-sm px-2 py-1 rounded-[2px] focus:outline-none focus:border-ink" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-caption text-mute uppercase tracking-[0.1em]">Category</label>
+            <select
+              value={course.category ?? ''}
+              onChange={(e) => updateCourse((prev) => ({ ...prev, category: e.target.value }))}
+              className="border border-hairline bg-canvas text-ink text-body-sm px-2 py-1 rounded-[2px] focus:outline-none focus:border-ink"
+            >
+              <option value="">Select...</option>
+              <option value="Data Science">Data Science</option>
+              <option value="Information Technology">Information Technology</option>
+              <option value="Graphic Design">Graphic Design</option>
+              <option value="Digital Marketing">Digital Marketing</option>
+            </select>
           </div>
           <div className="flex items-center gap-2">
             <label className="text-caption text-mute uppercase tracking-[0.1em]">Price (MAD)</label>

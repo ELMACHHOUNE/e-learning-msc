@@ -35,6 +35,7 @@ export async function GET() {
         active: c.active,
         durationInMonths: c.durationInMonths,
         totalSessions: c.totalSessions,
+        category: (c as any).category,
         createdAt: c.createdAt,
       })),
       guilds: guilds.map((g: any) => ({

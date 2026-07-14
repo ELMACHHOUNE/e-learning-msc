@@ -25,7 +25,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/alert";
 import { confirm } from "@/components/ui/confirm-dialog";
 
-type Tab = "users" | "courses" | "guilds" | "messages";
+type Tab = "users" | "courses" | "guilds" | "messages" | "categories";
 
 interface UserData {
   id: string;
@@ -45,9 +45,18 @@ interface CourseData {
   active?: boolean;
   durationInMonths: number;
   totalSessions: number;
+  category?: string;
   content?: unknown[];
   createdAt?: string;
 }
+interface CategoryData {
+  id: string;
+  name: string;
+  courses: number;
+  labPhases: number;
+  createdAt?: string;
+}
+
 interface GuildData {
   id: string;
   name: string;
@@ -65,6 +74,7 @@ interface GuildData {
 const tabs: { id: Tab; label: string; icon: typeof Users }[] = [
   { id: "users", label: "User Management", icon: Users },
   { id: "courses", label: "Course Creator", icon: BookOpen },
+  { id: "categories", label: "Categories", icon: Filter as any },
   { id: "guilds", label: "Guild Assignment", icon: Layers },
   { id: "messages", label: "Support Messages", icon: MessageCircle as any },
 ];
@@ -329,8 +339,9 @@ export default function AdminPage() {
   const [users, setUsers] = useState<UserData[]>([]);
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [guilds, setGuilds] = useState<GuildData[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
 
-  const [modal, setModal] = useState<"user" | "course" | "guild" | null>(null);
+  const [modal, setModal] = useState<"user" | "course" | "guild" | "category" | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
 
   const [formUser, setFormUser] = useState({
@@ -348,6 +359,7 @@ export default function AdminPage() {
     active: true,
     durationInMonths: 0,
     totalSessions: 0,
+    category: "",
   });
   const [formGuild, setFormGuild] = useState({
     name: "",
@@ -355,10 +367,18 @@ export default function AdminPage() {
     instructorId: "",
     studentIds: [] as string[],
   });
+  const [formCategory, setFormCategory] = useState({ name: "" });
 
   const [allInstructors, setAllInstructors] = useState<UserData[]>([]);
   const [allStudents, setAllStudents] = useState<UserData[]>([]);
   const [studentSearch, setStudentSearch] = useState("");
+
+  function fetchCategories() {
+    fetch("/api/admin/categories")
+      .then((r) => r.json())
+      .then((data) => setCategories(data.categories ?? []))
+      .catch(() => {})
+  }
 
   function fetchAll() {
     fetch("/api/admin/dashboard", { cache: 'no-store' })
@@ -370,6 +390,7 @@ export default function AdminPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false));
+    fetchCategories();
   }
 
   useEffect(() => {
@@ -391,8 +412,13 @@ export default function AdminPage() {
         active: true,
         durationInMonths: 0,
         totalSessions: 0,
+        category: "",
       });
       setModal("course");
+    }
+    if (tab === "categories") {
+      setFormCategory({ name: "" });
+      setModal("category");
     }
     if (tab === "guilds") {
       setFormGuild({
@@ -433,6 +459,7 @@ export default function AdminPage() {
         active: (c as any).active ?? true,
         durationInMonths: c.durationInMonths,
         totalSessions: c.totalSessions,
+        category: (c as any).category ?? "",
       });
       setModal("course");
     }
@@ -497,7 +524,7 @@ export default function AdminPage() {
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(formCourse),
+      body: JSON.stringify({ ...formCourse, category: formCourse.category || undefined }),
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: 'Request failed' }));
@@ -532,6 +559,45 @@ export default function AdminPage() {
     toast({ variant: 'success', title: editId ? 'Guild updated' : 'Guild created' });
     setModal(null);
     fetchAll();
+  }
+
+  async function saveCategory() {
+    if (!formCategory.name.trim()) {
+      toast({ variant: 'error', title: 'Category name is required' })
+      return
+    }
+    const res = await fetch("/api/admin/categories", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: formCategory.name.trim() }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({ error: 'Request failed' }));
+      toast({ variant: 'error', title: 'Failed to save category', message: err.error });
+      return;
+    }
+    toast({ variant: 'success', title: 'Category created' });
+    setModal(null);
+    fetchCategories();
+  }
+
+  async function deleteCategory(id: string) {
+    confirm({
+      title: 'Delete Category',
+      message: 'This action cannot be undone.',
+      variant: 'danger',
+      confirmLabel: 'Delete',
+      async onConfirm() {
+        const res = await fetch(`/api/admin/categories/${id}`, { method: "DELETE" });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ error: 'Request failed' }));
+          toast({ variant: 'error', title: 'Failed to delete', message: err.error });
+          return;
+        }
+        toast({ variant: 'success', title: 'Category deleted' });
+        fetchCategories();
+      },
+    });
   }
 
   function deleteItem(type: "user" | "course" | "guild", id: string) {
@@ -801,6 +867,53 @@ export default function AdminPage() {
         </motion.div>
       )}
 
+      {/* ── Categories Tab ── */}
+      {activeTab === "categories" && (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="flex items-center justify-between mb-lg">
+            <h2 className="text-heading-sm text-ink font-700">Categories</h2>
+            <Button variant="primary" size="sm" onClick={() => openCreate("categories")}>
+              <Plus className="w-4 h-4 mr-1" /> Add Category
+            </Button>
+          </div>
+          {categories.length === 0 ? (
+            <div className="bg-canvas border border-hairline py-xxxl text-center">
+              <p className="text-body-md text-mute">No categories yet</p>
+            </div>
+          ) : (
+            <div className="bg-canvas border border-hairline overflow-hidden">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-hairline bg-surface-soft">
+                    <th className="text-left px-lg py-md text-caption text-charcoal font-600">Category</th>
+                    <th className="text-left px-lg py-md text-caption text-charcoal font-600">Courses</th>
+                    <th className="text-left px-lg py-md text-caption text-charcoal font-600">Lab Phases</th>
+                    <th className="text-right px-lg py-md text-caption text-charcoal font-600">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {categories.map((cat) => (
+                    <tr key={cat.id} className="border-b border-hairline hover:bg-surface-soft/50">
+                      <td className="px-lg py-md text-body-sm text-ink font-600">{cat.name}</td>
+                      <td className="px-lg py-md text-body-sm text-mute">{cat.courses}</td>
+                      <td className="px-lg py-md text-body-sm text-mute">{cat.labPhases}</td>
+                      <td className="px-lg py-md text-right">
+                        <button
+                          onClick={() => deleteCategory(cat.id)}
+                          className="text-mute hover:text-error bg-transparent border-none cursor-pointer p-1"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </motion.div>
+      )}
+
       {/* ── Guilds Tab ── */}
       {activeTab === "guilds" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -1057,6 +1170,21 @@ export default function AdminPage() {
               />
             </div>
           </div>
+          <div>
+            <label className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-1.5 block">
+              Category
+            </label>
+            <select
+              value={formCourse.category}
+              onChange={(e) => setFormCourse((p) => ({ ...p, category: e.target.value }))}
+              className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2 rounded-[2px] outline-none focus:border-ink"
+            >
+              <option value="">Select category...</option>
+              {categories.map((cat) => (
+                <option key={cat.id} value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
+          </div>
           <div className="flex justify-end gap-md pt-4 border-t border-hairline">
             <Button variant="outline-dark" onClick={() => setModal(null)}>
               Cancel
@@ -1172,6 +1300,35 @@ export default function AdminPage() {
             </Button>
             <Button variant="primary" onClick={saveGuild}>
               <Save className="w-4 h-4 mr-1" /> Save
+            </Button>
+          </div>
+        </div>
+      </Modal>
+      {/* ── Category Modal ── */}
+      <Modal
+        open={modal === "category"}
+        onClose={() => setModal(null)}
+        title="Create Category"
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-1.5 block">
+              Category Name
+            </label>
+            <input
+              type="text"
+              value={formCategory.name}
+              onChange={(e) => setFormCategory((p) => ({ ...p, name: e.target.value }))}
+              placeholder="e.g. Cloud Computing"
+              className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2 rounded-[2px] outline-none focus:border-ink"
+            />
+          </div>
+          <div className="flex justify-end gap-md pt-4 border-t border-hairline">
+            <Button variant="outline-dark" onClick={() => setModal(null)}>
+              Cancel
+            </Button>
+            <Button variant="primary" onClick={saveCategory}>
+              <Save className="w-4 h-4 mr-1" /> Create
             </Button>
           </div>
         </div>

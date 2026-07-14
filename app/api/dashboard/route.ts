@@ -44,7 +44,7 @@ export async function GET() {
 
   if (role === 'instructor') {
     const guilds = await Guild.find({ instructorId: userId })
-      .populate('courseId', 'title totalSessions active')
+      .populate('courseId', 'title totalSessions active category')
       .lean()
     const activeGuilds = guilds.filter((g: any) => (g.courseId as any)?.active !== false)
     const totalStudents = activeGuilds.reduce((sum: number, g: any) => sum + (g.studentIds ?? []).length, 0)
@@ -60,6 +60,7 @@ export async function GET() {
         courseTitle: (g.courseId as any)?.title ?? 'Unknown',
         currentSession: g.currentSession,
         totalSessions: (g.courseId as any)?.totalSessions ?? 0,
+        courseCategory: (g.courseId as any)?.category ?? '',
         skillsTotal: g.skillsTotal,
         skillsAchieved: g.skillsAchieved,
         studentCount: (g.studentIds ?? []).length,
@@ -69,7 +70,7 @@ export async function GET() {
 
   // student
   const guilds = await Guild.find({ studentIds: userId })
-    .populate('courseId', 'title totalSessions active')
+    .populate('courseId', 'title totalSessions active category')
     .populate('instructorId', 'name')
     .lean()
   const activeGuilds = guilds.filter((g: any) => (g.courseId as any)?.active !== false)
@@ -85,6 +86,7 @@ export async function GET() {
       instructorName: (g.instructorId as any)?.name ?? 'Unknown',
       currentSession: g.currentSession,
       totalSessions: (g.courseId as any)?.totalSessions ?? 0,
+      courseCategory: (g.courseId as any)?.category ?? '',
       skillsTotal: g.skillsTotal,
       skillsAchieved: g.skillsAchieved,
     })),

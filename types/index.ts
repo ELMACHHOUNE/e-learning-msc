@@ -12,6 +12,21 @@ export interface IUser {
   createdAt: Date | string
 }
 
+export const CATEGORIES = [
+  'Data Science',
+  'Information Technology',
+  'Graphic Design',
+  'Digital Marketing',
+] as const
+
+export type Category = typeof CATEGORIES[number]
+
+export interface ICategory {
+  _id: string
+  name: string
+  createdAt: Date | string
+}
+
 export interface ICourse {
   _id: string
   title: string
@@ -21,6 +36,7 @@ export interface ICourse {
   active?: boolean
   durationInMonths: number
   totalSessions: number
+  category?: Category
   content: IModule[]
   createdAt: Date | string
 }
@@ -86,8 +102,32 @@ export interface ILabPhase {
   instructions: string
   duration: string
   image?: string
+  category?: Category
   status: LabPhaseStatus
   createdBy: string
   rejectionReason?: string
+  createdAt: Date | string
+}
+
+export type ProjectStep = 'presentation' | 'gitRepo' | 'deployment'
+
+export interface IStepValidation {
+  url: string
+  score?: number
+  validated: boolean
+}
+
+export type ProjectStatus = 'pending' | 'approved' | 'in_progress' | 'completed' | 'rejected'
+
+export interface IProjectApplication {
+  _id: string
+  studentId: string
+  labPhaseId: string
+  guildId?: string
+  status: ProjectStatus
+  presentation: IStepValidation
+  gitRepo: IStepValidation
+  deployment: IStepValidation
+  finalGrade?: number
   createdAt: Date | string
 }

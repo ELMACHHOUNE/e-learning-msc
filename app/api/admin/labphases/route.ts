@@ -39,6 +39,7 @@ export async function GET() {
       instructions: l.instructions,
       duration: l.duration,
       image: l.image,
+      category: l.category,
       status: l.status,
       createdBy: l.createdBy ? { id: l.createdBy._id?.toString() ?? l.createdBy.toString(), name: (l.createdBy as any).name ?? 'Unknown' } : null,
       rejectionReason: l.rejectionReason,
@@ -54,7 +55,7 @@ export async function POST(req: Request) {
   const role = (session?.user as any).role
 
   const body = await req.json()
-  const { title, description, instructions, duration, image } = body
+  const { title, description, instructions, duration, image, category } = body
 
   if (!title || !description || !instructions || !duration) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -70,6 +71,7 @@ export async function POST(req: Request) {
     instructions,
     duration,
     image,
+    category,
     status,
     createdBy: userId,
   })
@@ -81,6 +83,7 @@ export async function POST(req: Request) {
     instructions: lab.instructions,
     duration: lab.duration,
     image: lab.image,
+    category: lab.category,
     status: lab.status,
     createdAt: lab.createdAt,
   })

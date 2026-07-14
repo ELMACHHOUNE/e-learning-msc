@@ -18,6 +18,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     active: course.active,
     durationInMonths: course.durationInMonths,
     totalSessions: course.totalSessions,
+    category: course.category,
     content: course.content,
     createdAt: course.createdAt,
   })
@@ -39,6 +40,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (body.active !== undefined) course.active = body.active
   if (body.durationInMonths !== undefined) course.durationInMonths = body.durationInMonths
   if (body.totalSessions !== undefined) course.totalSessions = body.totalSessions
+  if (body.category !== undefined) course.category = body.category
   if (body.content !== undefined) course.content = body.content
 
   const saved = await course.save()
@@ -52,6 +54,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     active: saved.active,
     durationInMonths: saved.durationInMonths,
     totalSessions: saved.totalSessions,
+    category: saved.category,
     content: saved.content,
     createdAt: saved.createdAt,
   })

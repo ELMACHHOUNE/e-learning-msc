@@ -25,13 +25,14 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   }
 
   const body = await req.json()
-  const { title, description, instructions, duration, image } = body
+  const { title, description, instructions, duration, image, category } = body
 
   if (title) lab.title = title
   if (description) lab.description = description
   if (instructions) lab.instructions = instructions
   if (duration) lab.duration = duration
   if (image !== undefined) lab.image = image
+  if (category !== undefined) lab.category = category
 
   if (role === 'admin' && body.status) {
     lab.status = body.status
@@ -50,6 +51,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     instructions: lab.instructions,
     duration: lab.duration,
     image: lab.image,
+    category: lab.category,
     status: lab.status,
     createdAt: lab.createdAt,
   })

@@ -16,6 +16,7 @@ interface LabPhaseData {
   instructions: string
   duration: string
   image?: string
+  category?: string
   status: 'pending' | 'approved' | 'rejected'
   createdBy: { id: string; name: string } | null
   rejectionReason?: string
@@ -42,7 +43,16 @@ function LabPhaseModal({
   const [instructions, setInstructions] = useState(lab?.instructions ?? '')
   const [duration, setDuration] = useState(lab?.duration ?? '')
   const [image, setImage] = useState(lab?.image ?? '')
+  const [category, setCategory] = useState(lab?.category ?? '')
+  const [categoryOptions, setCategoryOptions] = useState<{ id: string; name: string }[]>([])
   const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    fetch('/api/admin/categories')
+      .then((r) => r.json())
+      .then((data) => setCategoryOptions(data.categories ?? []))
+      .catch(() => {})
+  }, [])
 
   async function handleSave() {
     if (!title.trim() || !description.trim() || !instructions.trim() || !duration.trim()) {
@@ -56,7 +66,7 @@ function LabPhaseModal({
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, description, instructions, duration, image }),
+        body: JSON.stringify({ title, description, instructions, duration, image, category }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -98,6 +108,15 @@ function LabPhaseModal({
               <label className="text-caption text-mute uppercase tracking-widest font-600 mb-1.5 block">Duration</label>
               <input type="text" value={duration} onChange={(e) => setDuration(e.target.value)} placeholder="e.g. 4 weeks" className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2.5 rounded-xs outline-none focus:border-ink transition-colors" />
             </div>
+          </div>
+          <div>
+            <label className="text-caption text-mute uppercase tracking-widest font-600 mb-1.5 block">Category</label>
+            <select value={category} onChange={(e) => setCategory(e.target.value)} className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2.5 rounded-xs outline-none focus:border-ink transition-colors">
+              <option value="">Select category...</option>
+              {categoryOptions.map((cat) => (
+                <option key={cat.id} value={cat.name}>{cat.name}</option>
+              ))}
+            </select>
           </div>
           <ImageUpload value={image} onChange={(url) => setImage(url)} />
         </div>
@@ -293,7 +312,7 @@ export default function LabPhaseListPage() {
                         <Badge variant={config.variant}>{config.label}</Badge>
                       </div>
                       <p className="text-body-sm text-mute">{lab.description}</p>
-                      <p className="text-caption text-charcoal mt-xs">{lab.duration}</p>
+                      <p className="text-caption text-charcoal mt-xs">{lab.duration}{lab.category ? ` · ${lab.category}` : ''}</p>
                       {lab.status === 'rejected' && lab.rejectionReason && (
                         <p className="text-caption text-error mt-xs">Reason: {lab.rejectionReason}</p>
                       )}
