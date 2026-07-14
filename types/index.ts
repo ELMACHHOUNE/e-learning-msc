@@ -76,3 +76,18 @@ export interface IMessage {
   read?: boolean
   createdAt: Date | string
 }
+
+export type LabPhaseStatus = 'pending' | 'approved' | 'rejected'
+
+export interface ILabPhase {
+  _id: string
+  title: string
+  description: string
+  instructions: string
+  duration: string
+  image?: string
+  status: LabPhaseStatus
+  createdBy: string
+  rejectionReason?: string
+  createdAt: Date | string
+}

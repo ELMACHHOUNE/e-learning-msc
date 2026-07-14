@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Badge, Progress } from '@/components/ui'
 import LogoSpinner from '@/components/shared/logo-spinner'
@@ -16,6 +17,8 @@ interface DashboardData {
 }
 
 export default function DashboardPage() {
+  const searchParams = useSearchParams()
+  const forceStudent = searchParams.get('view') === 'student'
   const [data, setData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -28,6 +31,7 @@ export default function DashboardPage() {
 
   if (loading) return <LogoSpinner />
 
+  if (forceStudent || data?.role === 'student') return <StudentDashboard data={data!} />
   if (data?.role === 'admin') return <AdminDashboard data={data} />
   if (data?.role === 'instructor') return <InstructorDashboard data={data} />
   return <StudentDashboard data={data!} />

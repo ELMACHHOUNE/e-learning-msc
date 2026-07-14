@@ -21,6 +21,7 @@ import {
   Shield,
 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
+import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
 
 type NavLink = { href?: string; label: string; icon?: React.ComponentType<{ className?: string }>; children?: { href: string; label: string }[] }
@@ -46,7 +47,7 @@ export function Navbar() {
         { href: '/teach/online-sessions', label: 'Online Sessions' },
       ],
     }] : []),
-    { href: '/students', label: role === 'admin' ? 'Students' : 'My Students', icon: Users },
+    ...(role !== 'student' ? [{ href: '/students', label: role === 'admin' ? 'Students' : 'My Students', icon: Users }] : []),
     {
       label: 'LabPhase',
       icon: FlaskConical,
@@ -142,6 +143,12 @@ export function Navbar() {
       </div>
 
       <div className="flex items-center gap-md">
+        <Link
+          href={role === 'admin' ? '/admin' : role === 'instructor' ? '/dashboard' : '/dashboard'}
+          className="no-underline"
+        >
+          <Badge variant="default">{role === 'admin' ? 'Admin View' : role === 'instructor' ? 'Instructor View' : 'Student View'}</Badge>
+        </Link>
         <button className="bg-transparent border-none cursor-pointer text-charcoal hover:text-ink p-1">
           <Moon className="w-5 h-5" />
         </button>
