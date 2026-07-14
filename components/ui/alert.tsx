@@ -21,6 +21,13 @@ const iconMap: Record<AlertVariant, typeof CheckCircle> = {
   info: Info,
 }
 
+const iconColorMap: Record<AlertVariant, string> = {
+  success: 'text-success',
+  error: 'text-error',
+  warning: 'text-warning',
+  info: 'text-info',
+}
+
 let addAlertFn: ((a: Omit<AlertData, 'id'>) => void) | null = null
 
 export function toast(alert: Omit<AlertData, 'id'>) {
@@ -46,8 +53,7 @@ export function AlertContainer() {
   if (!mounted || typeof document === 'undefined') return null
 
   return createPortal(
-    <div className="fixed top-4 left-4 z-[9999] flex flex-col gap-2 pointer-events-none"
-         style={{ width: 'calc(100vw - 2rem)', maxWidth: '384px' }}>
+    <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none w-full max-w-[384px]">
       <AnimatePresence>
         {alerts.map((alert) => {
           const Icon = iconMap[alert.variant]
@@ -61,7 +67,7 @@ export function AlertContainer() {
             >
               <div className="grid grid-cols-[1fr_auto] gap-2 px-6 py-4 border-b border-hairline bg-surface-soft">
                 <div className="flex items-start gap-2 min-w-0">
-                  <Icon className="w-5 h-5 shrink-0 mt-0.5 text-mute" />
+                  <Icon className={`w-5 h-5 shrink-0 mt-0.5 ${iconColorMap[alert.variant]}`} />
                   <p className="text-button-sm font-bold uppercase text-ink break-words min-w-0">{alert.title}</p>
                 </div>
                 <button

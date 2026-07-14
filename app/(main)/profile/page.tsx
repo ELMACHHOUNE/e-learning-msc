@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Camera, Save, Eye, EyeOff } from "lucide-react";
 import LogoSpinner from "@/components/shared/logo-spinner";
+import { toast } from "@/components/ui/alert";
 
 function getSafeSessionImage(image?: string | null) {
   if (!image) return undefined;
@@ -37,8 +38,6 @@ export default function ProfilePage() {
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -69,9 +68,12 @@ export default function ProfilePage() {
   };
 
   const handleSave = async () => {
+    if (!name.trim()) {
+      toast({ variant: 'error', title: 'Validation error', message: 'Full name is required' });
+      return
+    }
+
     setSaving(true);
-    setMessage("");
-    setError("");
 
     const body: Record<string, unknown> = { name, phone };
     if (avatarPreview && avatarPreview.startsWith("data:")) {
@@ -90,16 +92,16 @@ export default function ProfilePage() {
       });
       const data = await res.json();
       if (data.error) {
-        setError(data.error);
+        toast({ variant: 'error', title: 'Update failed', message: data.error });
       } else {
-        setMessage("Profile updated successfully");
+        toast({ variant: 'success', title: 'Profile updated successfully' });
         setCurrentPassword("");
         setNewPassword("");
         setProfile(data);
         update({ name: data.name, image: getSafeSessionImage(data.avatar) });
       }
     } catch {
-      setError("Failed to update profile");
+      toast({ variant: 'error', title: 'Update failed', message: 'Failed to update profile' });
     } finally {
       setSaving(false);
     }
@@ -113,13 +115,6 @@ export default function ProfilePage() {
         <h1 className="text-display-sm text-ink font-bold uppercase leading-[0.95] mb-10">
           Account Settings
         </h1>
-
-        {message && (
-          <p className="text-body-sm text-[#22c55e] mb-6 font-500">{message}</p>
-        )}
-        {error && (
-          <p className="text-body-sm text-red-500 mb-6 font-500">{error}</p>
-        )}
 
         <section className="mb-12">
           <h2 className="text-heading-xs text-ink font-bold uppercase tracking-widest mb-6">
@@ -171,6 +166,7 @@ export default function ProfilePage() {
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
+                required
                 className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2.5 rounded-xs outline-none focus:border-ink transition-colors"
               />
             </div>
