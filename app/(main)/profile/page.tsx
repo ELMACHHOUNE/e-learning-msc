@@ -18,6 +18,7 @@ interface ProfileData {
   id: string;
   name: string;
   email: string;
+  phone?: string;
   avatar?: string;
   role: string;
 }
@@ -29,6 +30,7 @@ export default function ProfilePage() {
 
   const [profile, setProfile] = useState<ProfileData | null>(null);
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -50,6 +52,7 @@ export default function ProfilePage() {
           if (data.error) return;
           setProfile(data);
           setName(data.name);
+          setPhone(data.phone ?? "");
           setAvatarPreview(data.avatar ?? null);
         });
     }
@@ -70,7 +73,7 @@ export default function ProfilePage() {
     setMessage("");
     setError("");
 
-    const body: Record<string, unknown> = { name };
+    const body: Record<string, unknown> = { name, phone };
     if (avatarPreview && avatarPreview.startsWith("data:")) {
       body.avatar = avatarPreview;
     }
@@ -180,6 +183,17 @@ export default function ProfilePage() {
                 value={profile.email}
                 disabled
                 className="w-full border border-hairline bg-surface-soft text-mute text-body-md px-4 py-2.5 rounded-xs cursor-not-allowed"
+              />
+            </div>
+            <div>
+              <label className="text-caption text-mute uppercase tracking-widest font-600 mb-1.5 block">
+                Phone Number
+              </label>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2.5 rounded-xs outline-none focus:border-ink transition-colors"
               />
             </div>
             <div>

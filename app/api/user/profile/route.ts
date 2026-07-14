@@ -20,6 +20,7 @@ export async function GET() {
     id: user._id.toString(),
     name: user.name,
     email: user.email,
+    phone: user.phone,
     avatar: user.avatar,
     role: user.role,
   })
@@ -32,7 +33,7 @@ export async function PUT(req: Request) {
   }
 
   const body = await req.json()
-  const { name, avatar, currentPassword, newPassword } = body
+  const { name, phone, avatar, currentPassword, newPassword } = body
 
   await connectToDatabase()
   const user = await User.findById(session.user.id).select('+password')
@@ -41,6 +42,7 @@ export async function PUT(req: Request) {
   }
 
   if (name) user.name = name
+  if (phone !== undefined) user.phone = phone
   if (avatar !== undefined) user.avatar = avatar
 
   if (currentPassword && newPassword) {
@@ -57,6 +59,7 @@ export async function PUT(req: Request) {
     id: user._id.toString(),
     name: user.name,
     email: user.email,
+    phone: user.phone,
     avatar: user.avatar,
     role: user.role,
   })

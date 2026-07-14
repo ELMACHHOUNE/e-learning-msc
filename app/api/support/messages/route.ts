@@ -3,16 +3,19 @@ import { auth } from '@/lib/auth'
 import { connectToDatabase } from '@/lib/db'
 import Message from '@/models/Message'
 
-export async function GET() {
+export async function GET(req: Request) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const user = session.user as { name?: string; email?: string; id?: string; role?: string }
+  const { searchParams } = new URL(req.url)
+  const filterEmail = searchParams.get('email')
 
   await connectToDatabase()
 
-  if (user.role === 'admin') {
-    const messages = await Message.find().sort({ createdAt: 1 }).lean()
+  if (user.role === 'admin' || user.role === 'instructor') {
+    const query = filterEmail ? { email: filterEmail } : {}
+    const messages = await Message.find(query).sort({ createdAt: 1 }).lean()
 
     const grouped: Record<string, { name: string; email: string; unread: number; messages: any[] }> = {}
     for (const m of messages) {
@@ -42,6 +45,10 @@ export async function GET() {
     const conversations = Object.values(grouped).sort(
       (a, b) => new Date(b.messages[b.messages.length - 1].createdAt).getTime() - new Date(a.messages[a.messages.length - 1].createdAt).getTime()
     )
+
+    if (filterEmail) {
+      return NextResponse.json({ conversation: conversations[0] ?? null })
+    }
 
     return NextResponse.json({ conversations, totalUnread })
   }
@@ -74,17 +81,18 @@ export async function POST(req: Request) {
 
   const user = session.user as { name?: string; email?: string; id?: string; role?: string }
 
+  const canTarget = user.role === 'admin' || user.role === 'instructor'
   const isAdmin = user.role === 'admin'
-  const email = isAdmin ? (targetEmail || user.email) : (user.email || 'unknown')
+  const email = canTarget ? (targetEmail || user.email) : (user.email || 'unknown')
 
   await connectToDatabase()
   const msg = await Message.create({
-    name: isAdmin ? `Admin (${user.name ?? 'Support'})` : (user.name ?? 'Anonymous'),
+    name: isAdmin ? `Admin (${user.name ?? 'Support'})` : canTarget ? `Instructor (${user.name ?? 'Support'})` : (user.name ?? 'Anonymous'),
     email,
-    userId: isAdmin ? undefined : user.id,
+    userId: canTarget ? undefined : user.id,
     message: message.trim(),
-    isAdmin,
-    read: isAdmin,
+    isAdmin: true,
+    read: true,
   })
 
   return NextResponse.json({
