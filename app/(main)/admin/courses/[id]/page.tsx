@@ -138,8 +138,13 @@ export default function CourseContentEditor() {
   const [selectedLesson, setSelectedLesson] = useState(0)
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(!isNew)
+  const [categoryOptions, setCategoryOptions] = useState<{ id: string; name: string }[]>([])
 
   useEffect(() => {
+    fetch('/api/admin/categories')
+      .then((r) => r.json())
+      .then((data) => setCategoryOptions(data.categories ?? []))
+      .catch(() => {})
     if (!isNew) {
       fetch(`/api/admin/courses/${courseId}`)
         .then((r) => r.json())
@@ -307,10 +312,9 @@ export default function CourseContentEditor() {
               className="border border-hairline bg-canvas text-ink text-body-sm px-2 py-1 rounded-[2px] focus:outline-none focus:border-ink"
             >
               <option value="">Select...</option>
-              <option value="Data Science">Data Science</option>
-              <option value="Information Technology">Information Technology</option>
-              <option value="Graphic Design">Graphic Design</option>
-              <option value="Digital Marketing">Digital Marketing</option>
+              {categoryOptions.map((cat) => (
+                <option key={cat.id} value={cat.name}>{cat.name}</option>
+              ))}
             </select>
           </div>
           <div className="flex items-center gap-2">

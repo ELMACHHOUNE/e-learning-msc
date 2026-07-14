@@ -5,6 +5,7 @@ import Course from '@/models/Course'
 import Guild from '@/models/Guild'
 import SessionLog from '@/models/SessionLog'
 import LabPhase from '@/models/LabPhase'
+import Category from '@/models/Category'
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/e-learning-msc'
 
@@ -18,6 +19,11 @@ async function main() {
   console.log('Database dropped.\n')
 
   const password = await bcrypt.hash('password123', 12)
+
+  // ── Categories ──
+  const categoryNames = ['Data Science', 'Information Technology', 'Graphic Design', 'Digital Marketing']
+  const categoryDocs = await Category.insertMany(categoryNames.map((name) => ({ name })))
+  console.log(`✓ ${categoryDocs.length} categories created`)
 
   // ── Admin ──
   const admin = await User.create({

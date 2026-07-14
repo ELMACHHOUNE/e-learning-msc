@@ -4,19 +4,21 @@ import { connectToDatabase } from '@/lib/db'
 import User from '@/models/User'
 import Course from '@/models/Course'
 import Guild from '@/models/Guild'
+import Category from '@/models/Category'
 
 export async function GET() {
   await requireRole('admin')
   await connectToDatabase()
 
-  const [users, courses, guilds] = await Promise.all([
+  const [users, courses, guilds, categoryCount] = await Promise.all([
     User.find().select('-password').sort({ createdAt: -1 }).limit(100).lean(),
     Course.find().select('-content').sort({ createdAt: -1 }).limit(100).lean(),
     Guild.find().populate('courseId', 'title').populate('instructorId', 'name').populate('studentIds', 'name').sort({ createdAt: -1 }).limit(100).lean(),
+    Category.countDocuments(),
   ])
 
-  return NextResponse.json(
-    {
+  return NextResponse.json({
+    categoryCount,
       users: users.map((u) => ({
         id: u._id.toString(),
         name: u.name,
