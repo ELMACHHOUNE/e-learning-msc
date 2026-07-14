@@ -58,6 +58,10 @@ export default function InstructorsPage() {
 
   const isAdmin = session?.user?.role === 'admin'
 
+  if (status === 'loading') {
+    return <LogoSpinner />
+  }
+
   if (!isAdmin) {
     return (
       <div className="max-w-[1440px] mx-auto px-xl py-xxl">
