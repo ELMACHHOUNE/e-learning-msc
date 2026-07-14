@@ -32,8 +32,11 @@ export function Navbar() {
 
   const navLinks: NavLink[] = [
     { href: '/dashboard', label: 'Dashboard', icon: GraduationCap },
-    ...(role === 'admin' ? [{ href: '/admin', label: 'Admin', icon: Shield }] : []),
-    {
+    ...(role === 'admin' ? [
+      { href: '/admin', label: 'Admin', icon: Shield },
+      { href: '/instructors', label: 'Instructors', icon: Users },
+    ] : []),
+    ...(role !== 'admin' ? [{
       label: 'Teach',
       icon: BookOpen,
       children: [
@@ -42,8 +45,8 @@ export function Navbar() {
         { href: '/teach/earnings', label: 'Earnings' },
         { href: '/teach/online-sessions', label: 'Online Sessions' },
       ],
-    },
-    { href: '/students', label: 'My Students', icon: Users },
+    }] : []),
+    { href: '/students', label: role === 'admin' ? 'Students' : 'My Students', icon: Users },
     {
       label: 'LabPhase',
       icon: FlaskConical,

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
+import LogoSpinner from '@/components/shared/logo-spinner'
 import { Badge, Avatar, Progress } from '@/components/ui'
 import { Search, MessageCircle, Phone, Send, X } from 'lucide-react'
 import { useSession } from 'next-auth/react'
@@ -198,11 +199,7 @@ export default function StudentsPage() {
   const isAdmin = session?.user?.role === 'admin'
 
   if (loading) {
-    return (
-      <div className="max-w-[1440px] mx-auto px-xl py-xxl">
-        <p className="text-ink">Loading students...</p>
-      </div>
-    )
+    return <LogoSpinner />
   }
 
   if (error) {
