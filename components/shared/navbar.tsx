@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
+import { useTheme } from 'next-themes'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronDown,
@@ -29,6 +30,7 @@ type NavLink = { href?: string; label: string; icon?: React.ComponentType<{ clas
 export function Navbar() {
   const pathname = usePathname()
   const { data: session } = useSession()
+  const { theme, setTheme } = useTheme()
   const role = (session?.user as any)?.role
 
   const navLinks: NavLink[] = [
@@ -149,8 +151,12 @@ export function Navbar() {
         >
           <Badge variant="default">{role === 'admin' ? 'Admin View' : role === 'instructor' ? 'Instructor View' : 'Student View'}</Badge>
         </Link>
-        <button className="bg-transparent border-none cursor-pointer text-charcoal hover:text-ink p-1">
-          <Moon className="w-5 h-5" />
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="bg-transparent border-none cursor-pointer text-charcoal hover:text-ink p-1"
+          aria-label="Toggle theme"
+        >
+          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
         </button>
 
         <div className="relative" ref={profileRef}>

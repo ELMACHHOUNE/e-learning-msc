@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter_Tight } from "next/font/google";
+import { ThemeProvider } from "next-themes";
 import Providers from "@/components/shared/session-provider";
 import { AlertContainer } from "@/components/ui/alert";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -128,11 +129,13 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
-        <Providers>
-          {children}
-          <AlertContainer />
-          <ConfirmDialog />
-        </Providers>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <Providers>
+            {children}
+            <AlertContainer />
+            <ConfirmDialog />
+          </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );

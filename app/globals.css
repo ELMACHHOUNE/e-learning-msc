@@ -109,3 +109,29 @@
     @apply border-hairline;
   }
 }
+
+.dark {
+  --color-primary: #ffed00;
+  --color-primary-deep: #cfba00;
+  --color-on-primary: #000000;
+  --color-canvas: #111113;
+  --color-surface-soft: #1c1c1f;
+  --color-surface-dark: #000000;
+  --color-surface-deep: #0a0a0c;
+  --color-hairline: #26262b;
+  --color-hairline-strong: #3a3a40;
+  --color-divider-dark: rgba(255, 255, 255, 0.08);
+  --color-ink: #e4e4e7;
+  --color-body: #c0c0c6;
+  --color-charcoal: #a1a1aa;
+  --color-mute: #787885;
+  --color-ash: #565661;
+  --color-stone: #303036;
+  --color-on-dark: #ffffff;
+  --color-on-dark-mute: rgba(255, 255, 255, 0.6);
+  --color-error: #d4818c;
+  --color-warning: #d4a84b;
+  --color-success: #89c47a;
+  --color-info: #6aacd9;
+  --color-link: #82b0f5;
+}
