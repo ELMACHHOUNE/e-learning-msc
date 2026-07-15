@@ -12,14 +12,7 @@ export interface IUser {
   createdAt: Date | string
 }
 
-export const CATEGORIES = [
-  'Data Science',
-  'Information Technology',
-  'Graphic Design',
-  'Digital Marketing',
-] as const
-
-export type Category = typeof CATEGORIES[number]
+export type Category = string
 
 export interface ICategory {
   _id: string

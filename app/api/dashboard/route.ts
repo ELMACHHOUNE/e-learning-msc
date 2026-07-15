@@ -15,7 +15,11 @@ export async function GET() {
   await connectToDatabase()
 
   if (role === 'admin') {
-    const [totalUsers, totalInstructors, totalStudents, totalCourses, totalGuilds, users, guilds] = await Promise.all([
+    const [
+      totalUsers, totalInstructors, totalStudents, totalCourses, totalGuilds,
+      users, guilds,
+      usersByRoleAgg, coursesByCategoryAgg, courseStatusAgg, guildsByCourseAgg,
+    ] = await Promise.all([
       User.countDocuments(),
       User.countDocuments({ role: 'instructor' }),
       User.countDocuments({ role: 'student' }),
@@ -26,11 +30,62 @@ export async function GET() {
         .populate('courseId', 'title')
         .populate('instructorId', 'name')
         .sort({ createdAt: -1 }).limit(5).lean(),
+      User.aggregate([
+        { $group: { _id: '$role', value: { $sum: 1 } } },
+        { $project: { name: '$_id', value: 1, _id: 0 } },
+      ]),
+      Course.aggregate([
+        { $match: { category: { $exists: true, $nin: [null, ''] } } },
+        { $group: { _id: '$category', count: { $sum: 1 } } },
+        { $project: { name: '$_id', count: 1, _id: 0 } },
+        { $sort: { count: -1 } },
+      ]),
+      Course.aggregate([
+        {
+          $group: {
+            _id: null,
+            active: { $sum: { $cond: [{ $or: [{ $eq: ['$active', true] }, { $eq: ['$active', undefined] }] }, 1, 0] } },
+            inactive: { $sum: { $cond: [{ $eq: ['$active', false] }, 1, 0] } },
+          },
+        },
+        { $project: { _id: 0 } },
+      ]),
+      Guild.aggregate([
+        { $group: { _id: '$courseId', count: { $sum: 1 } } },
+        {
+          $lookup: {
+            from: 'courses',
+            localField: '_id',
+            foreignField: '_id',
+            as: 'course',
+          },
+        },
+        { $unwind: { path: '$course', preserveNullAndEmptyArrays: true } },
+        {
+          $project: {
+            course: { $ifNull: ['$course.title', 'Unknown'] },
+            count: 1,
+            _id: 0,
+          },
+        },
+        { $sort: { count: -1 } },
+      ]),
     ])
+
+    const courseStatus = courseStatusAgg[0] ?? { active: totalCourses, inactive: 0 }
 
     return NextResponse.json({
       role: 'admin',
       stats: { totalUsers, totalInstructors, totalStudents, totalCourses, totalGuilds },
+      charts: {
+        usersByRole: usersByRoleAgg.map((r: any) => ({ name: r.name.charAt(0).toUpperCase() + r.name.slice(1), value: r.value })),
+        coursesByCategory: coursesByCategoryAgg,
+        courseStatus: [
+          { name: 'Active', value: courseStatus.active },
+          { name: 'Inactive', value: courseStatus.inactive },
+        ],
+        guildsByCourse: guildsByCourseAgg.map((g: any) => ({ name: g.course, value: g.count })),
+      },
       recentUsers: users.map((u: any) => ({ id: u._id.toString(), name: u.name, email: u.email, role: u.role })),
       recentGuilds: guilds.map((g: any) => ({
         id: g._id.toString(),

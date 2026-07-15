@@ -6,11 +6,23 @@ import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 import { Badge, Progress } from '@/components/ui'
 import LogoSpinner from '@/components/shared/logo-spinner'
-import { Users, BookOpen, Layers, ArrowUpRight, GraduationCap, UserPlus, Shield } from 'lucide-react'
+import { Users, BookOpen, Layers, ArrowUpRight, GraduationCap, UserPlus, Shield, BarChart3 } from 'lucide-react'
+import {
+  UsersByRoleChart,
+  CoursesByCategoryChart,
+  CourseStatusChart,
+  GuildsByCourseChart,
+} from '@/components/dashboard/admin-charts'
 
 interface DashboardData {
   role: string
   stats: Record<string, number>
+  charts?: {
+    usersByRole: { name: string; value: number }[]
+    coursesByCategory: { name: string; count: number }[]
+    courseStatus: { name: string; value: number }[]
+    guildsByCourse: { name: string; value: number }[]
+  }
   recentUsers?: { id: string; name: string; email: string; role: string }[]
   recentGuilds?: { id: string; name: string; courseTitle: string; instructorName: string; studentCount: number }[]
   guilds?: { id: string; name: string; courseTitle: string; currentSession: number; totalSessions: number; skillsTotal: number; skillsAchieved: number; studentCount?: number; instructorName?: string }[]
@@ -78,55 +90,22 @@ function AdminDashboard({ data }: { data: DashboardData }) {
         })}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-xxl">
-        <section>
-          <div className="flex items-center justify-between mb-lg">
-            <h2 className="text-heading-sm text-ink font-700">Recent Users</h2>
-            <Link href="/admin" className="flex items-center gap-1 text-button-md text-ink underline no-underline">
-              Manage Users <ArrowUpRight className="w-4 h-4" />
-            </Link>
+      {data.charts && (
+        <section className="mb-xxl">
+          <div className="flex items-center gap-2 mb-lg">
+            <BarChart3 className="w-4 h-4 text-mute" />
+            <h2 className="text-heading-sm text-ink font-700">Analytics</h2>
           </div>
-          <div className="bg-canvas border border-hairline overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-hairline bg-surface-soft">
-                  <th className="text-left px-lg py-md text-caption text-charcoal font-600">Name</th>
-                  <th className="text-left px-lg py-md text-caption text-charcoal font-600">Email</th>
-                  <th className="text-right px-lg py-md text-caption text-charcoal font-600">Role</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(data.recentUsers ?? []).map((u) => (
-                  <tr key={u.id} className="border-b border-hairline hover:bg-surface-soft/50">
-                    <td className="px-lg py-md text-body-sm text-ink">{u.name}</td>
-                    <td className="px-lg py-md text-body-sm text-mute">{u.email}</td>
-                    <td className="px-lg py-md text-right">
-                      <Badge variant={u.role === 'admin' ? 'new' : u.role === 'instructor' ? 'info' : 'default'}>{u.role}</Badge>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-lg">
+            <UsersByRoleChart data={data.charts.usersByRole} />
+            <CoursesByCategoryChart data={data.charts.coursesByCategory} />
+            <CourseStatusChart data={data.charts.courseStatus} />
+            <GuildsByCourseChart data={data.charts.guildsByCourse} />
           </div>
         </section>
+      )}
 
-        <section>
-          <div className="flex items-center justify-between mb-lg">
-            <h2 className="text-heading-sm text-ink font-700">Recent Guilds</h2>
-            <Link href="/admin" className="flex items-center gap-1 text-button-md text-ink underline no-underline">
-              Manage Guilds <ArrowUpRight className="w-4 h-4" />
-            </Link>
-          </div>
-          <div className="space-y-lg">
-            {(data.recentGuilds ?? []).map((g) => (
-              <div key={g.id} className="bg-canvas border border-hairline p-xl">
-                <h3 className="text-heading-xs text-ink font-700 mb-sm">{g.name}</h3>
-                <p className="text-body-sm text-mute">{g.courseTitle} &middot; {g.instructorName} &middot; {g.studentCount} students</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      </div>
+
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-lg mt-xxl">
         <Link href="/admin" className="no-underline">
