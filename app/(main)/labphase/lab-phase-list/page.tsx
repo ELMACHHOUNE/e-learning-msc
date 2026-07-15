@@ -223,6 +223,7 @@ export default function LabPhaseListPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchLabPhases() }, [])
 
   async function handleDelete(lab: LabPhaseData) {

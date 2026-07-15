@@ -127,7 +127,6 @@ export function Navbar() {
                 </div>
               )
             }
-            const Icon = link.icon!
             return (
               <Link
                 key={link.href}

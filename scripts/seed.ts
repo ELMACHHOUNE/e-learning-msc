@@ -26,7 +26,7 @@ async function main() {
   console.log(`✓ ${categoryDocs.length} categories created`)
 
   // ── Admin ──
-  const admin = await User.create({
+  await User.create({
     name: 'Admin',
     email: 'admin@elearning.msc',
     password,

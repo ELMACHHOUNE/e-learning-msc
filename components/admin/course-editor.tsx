@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { motion } from 'framer-motion'
 import { Button, Badge } from '@/components/ui'
 import { ImageUpload } from '@/components/ui/image-upload'
 import LogoSpinner from '@/components/shared/logo-spinner'
@@ -65,13 +64,6 @@ function createModule(): Module {
   return { id: generateId(), title: '', chapters: [createChapter()] }
 }
 
-function serializeModules(modules: Module[]): string {
-  try {
-    const raw = JSON.stringify(modules, null, 2)
-    return btoa(unescape(encodeURIComponent(raw)))
-  } catch { return '' }
-}
-
 function deserializeModules(encoded: string): Module[] {
   try {
     const raw = decodeURIComponent(escape(atob(encoded)))
@@ -106,15 +98,6 @@ const lessonTypeLabels: Record<LessonType, string> = {
   lesson: 'Lesson',
   checkpoint: 'Checkpoint',
   workshop: 'Workshop',
-}
-
-function encodeImageToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = () => resolve(reader.result as string)
-    reader.onerror = reject
-    reader.readAsDataURL(file)
-  })
 }
 
 export default function CourseEditor({ courseId }: { courseId: string }) {

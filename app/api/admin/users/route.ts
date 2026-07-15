@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { auth, requireRole } from '@/lib/auth'
+import { requireRole } from '@/lib/auth'
 import { connectToDatabase } from '@/lib/db'
 import User from '@/models/User'
 

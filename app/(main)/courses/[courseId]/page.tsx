@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useParams } from 'next/navigation'
 import { SidebarNavigation } from '@/components/shared/sidebar-navigation'
 import { Badge } from '@/components/ui'
 import { BookOpen, FileText, ChevronLeft, ChevronRight } from 'lucide-react'
@@ -9,8 +8,6 @@ import { BookOpen, FileText, ChevronLeft, ChevronRight } from 'lucide-react'
 type ContentTab = 'courses' | 'assessment' | 'resources'
 
 export default function CourseDetailPage() {
-  const params = useParams()
-  const courseId = params.courseId as string
   const [activeTab, setActiveTab] = useState<ContentTab>('courses')
 
   return (
@@ -65,7 +62,7 @@ export default function CourseDetailPage() {
               <div className="bg-primary/10 border-l-4 border-primary p-lg mb-lg">
                 <p className="text-body-md text-ink font-600">Key Insight</p>
                 <p className="text-body-sm text-body mt-xs">
-                  The best engineers don't just write code — they solve problems. Focus on
+                  The best engineers don&rsquo;t just write code — they solve problems. Focus on
                   understanding the problem before jumping to implementation.
                 </p>
               </div>

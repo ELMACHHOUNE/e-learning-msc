@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { Button, Avatar } from '@/components/ui'
-import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight } from 'lucide-react'
 
 const timeSlots = [
   '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',

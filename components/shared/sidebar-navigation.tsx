@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, Search, BookOpen, CheckCircle, FileText, Video } from 'lucide-react'
+import { ChevronDown, Search, CheckCircle, FileText, Video } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
 

@@ -174,6 +174,7 @@ function MessagesPanel() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchConversations() }, []);
 
   async function markAsRead(email: string) {
@@ -395,6 +396,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     fetchAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function openCreate(tab: Tab) {

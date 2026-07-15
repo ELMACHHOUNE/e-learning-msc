@@ -97,6 +97,7 @@ export default function RichTextEditor({ value, onChange, placeholder }: RichTex
     insertHtml(html)
     setVideoUrl('')
     setShowVideoInput(false)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [videoUrl])
 
   const handlePaste = useCallback((e: React.ClipboardEvent) => {

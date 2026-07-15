@@ -1,7 +1,7 @@
 'use client'
 
-import { Button, Badge, Avatar } from '@/components/ui'
-import { Video, Clock, Calendar } from 'lucide-react'
+import { Button, Badge } from '@/components/ui'
+import { Video, Clock } from 'lucide-react'
 
 const sessions = [
   { id: '1', title: 'Module 3: Data Structures', guild: 'Achilles Vengeance', time: 'Today, 2:00 PM', participants: 24, status: 'upcoming' as const },

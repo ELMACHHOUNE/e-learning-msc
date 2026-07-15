@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Badge, Progress } from '@/components/ui'
+import { Badge } from '@/components/ui'
 import LogoSpinner from '@/components/shared/logo-spinner'
-import { Users, BookOpen, Layers, ArrowUpRight, GraduationCap, UserPlus, Shield, BarChart3 } from 'lucide-react'
+import { Users, BookOpen, Layers, ArrowUpRight, GraduationCap, BarChart3 } from 'lucide-react'
 import {
   UsersByRoleChart,
   CoursesByCategoryChart,

@@ -1,7 +1,7 @@
 'use client'
 
 import { Badge } from '@/components/ui'
-import { ArrowUpRight, DollarSign, TrendingUp, Calendar } from 'lucide-react'
+import { DollarSign, TrendingUp, Calendar } from 'lucide-react'
 
 const earningsData = [
   { month: 'Jan', amount: 3200 },

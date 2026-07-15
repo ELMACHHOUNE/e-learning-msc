@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { MessageCircle, X, Send } from 'lucide-react'
 import { useSession } from 'next-auth/react'
@@ -24,42 +24,28 @@ export function ChatSupport() {
   const [sending, setSending] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
 
-  const fetchMessages = useCallback(async () => {
-    try {
-      const res = await fetch('/api/support/messages')
-      if (res.ok) {
+  useEffect(() => {
+    if (!session) return
+    let cancelled = false
+    async function load() {
+      try {
+        const res = await fetch('/api/support/messages')
+        if (cancelled || !res.ok) return
         const data = await res.json()
         setMessages(data.messages ?? [])
         if (data.unreadCount !== undefined) setUnreadCount(data.unreadCount)
-      }
-    } catch {}
-  }, [])
-
-  useEffect(() => {
-    if (open) {
-      fetchMessages()
-      markAsRead()
+        if (open) await fetch('/api/support/messages', { method: 'PATCH' })
+      } catch {}
     }
-  }, [open, fetchMessages])
-
-  useEffect(() => {
-    if (!open && session) {
-      fetchMessages()
-    }
-  }, [open, session, fetchMessages])
+    load()
+    return () => { cancelled = true }
+  }, [open, session])
 
   useEffect(() => {
     if (listRef.current) {
       listRef.current.scrollTop = listRef.current.scrollHeight
     }
   }, [messages])
-
-  async function markAsRead() {
-    try {
-      await fetch('/api/support/messages', { method: 'PATCH' })
-      setUnreadCount(0)
-    } catch {}
-  }
 
   async function sendMessage() {
     const text = input.trim()

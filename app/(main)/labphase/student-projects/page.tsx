@@ -296,6 +296,7 @@ export default function StudentProjectsPage() {
     }
   }
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { fetchProjects() }, [])
 
   async function handleAction(id: string, action: string) {

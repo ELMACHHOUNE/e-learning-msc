@@ -23,7 +23,7 @@ export function confirm(opts: ConfirmOptions) {
 export function ConfirmDialog() {
   const [options, setOptions] = useState<ConfirmOptions | null>(null)
   const [loading, setLoading] = useState(false)
-  const [mounted, setMounted] = useState(false)
+  const [mounted] = useState(() => typeof document !== 'undefined')
   const optionsRef = useRef<ConfirmOptions | null>(null)
 
   const close = () => {
@@ -32,7 +32,6 @@ export function ConfirmDialog() {
   }
 
   useEffect(() => {
-    setMounted(true)
     showConfirmFn = (opts) => {
       setOptions(opts)
       optionsRef.current = opts

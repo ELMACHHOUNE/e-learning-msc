@@ -36,10 +36,9 @@ export function toast(alert: Omit<AlertData, 'id'>) {
 
 export function AlertContainer() {
   const [alerts, setAlerts] = useState<AlertData[]>([])
-  const [mounted, setMounted] = useState(false)
+  const [mounted] = useState(() => typeof document !== 'undefined')
 
   useEffect(() => {
-    setMounted(true)
     addAlertFn = (a) => {
       const id = Math.random().toString(36).substring(2, 8)
       setAlerts((prev) => [...prev, { ...a, id }])

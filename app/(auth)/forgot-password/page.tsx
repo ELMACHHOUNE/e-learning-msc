@@ -42,7 +42,7 @@ export default function ForgotPasswordPage() {
             <>
               <h2 className="text-heading-lg text-ink font-700 mb-xs">Forgot password?</h2>
               <p className="text-body-md text-mute mb-xxl">
-                No worries. Enter your email and we'll send you reset instructions.
+                No worries. Enter your email and we&rsquo;ll send you reset instructions.
               </p>
 
               <form onSubmit={handleSubmit} className="space-y-lg">
@@ -67,7 +67,7 @@ export default function ForgotPasswordPage() {
             >
               <h2 className="text-heading-lg text-ink font-700 mb-xs">Check your email</h2>
               <p className="text-body-md text-mute mb-xxl">
-                If an account exists with that email, we've sent password reset instructions.
+                If an account exists with that email, we&rsquo;ve sent password reset instructions.
               </p>
               <Button
                 type="button"

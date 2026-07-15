@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, BookOpen, Layers, Clock, Calendar } from "lucide-react";
+import { ArrowLeft, BookOpen, Layers, Calendar } from "lucide-react";
 import { connectToDatabase } from "@/lib/db";
 import Course from "@/models/Course";
 
