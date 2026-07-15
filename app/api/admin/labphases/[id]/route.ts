@@ -32,7 +32,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (instructions) lab.instructions = instructions
   if (duration) lab.duration = duration
   if (image !== undefined) lab.image = image
-  if (category !== undefined) lab.category = category
+  lab.category = category || undefined
 
   if (role === 'admin' && body.status) {
     lab.status = body.status

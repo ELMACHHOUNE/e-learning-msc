@@ -71,7 +71,7 @@ export async function POST(req: Request) {
     instructions,
     duration,
     image,
-    category,
+    category: category || undefined,
     status,
     createdBy: userId,
   })

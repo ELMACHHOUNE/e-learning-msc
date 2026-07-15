@@ -28,7 +28,7 @@ const CourseSchema = new Schema<CourseDocument>(
     active: { type: Boolean, default: true },
     durationInMonths: { type: Number, required: true },
     totalSessions: { type: Number, required: true },
-    category: { type: String, enum: ['Data Science', 'Information Technology', 'Graphic Design', 'Digital Marketing'] },
+    category: { type: String },
     content: [ModuleSchema],
   },
   { timestamps: true }

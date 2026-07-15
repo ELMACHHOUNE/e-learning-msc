@@ -12,7 +12,7 @@ const LabPhaseSchema = new Schema<LabPhaseDocument>(
     instructions: { type: String, required: true },
     duration: { type: String, required: true },
     image: { type: String },
-    category: { type: String, enum: ['Data Science', 'Information Technology', 'Graphic Design', 'Digital Marketing'] },
+    category: { type: String },
     status: { type: String, enum: ['pending', 'approved', 'rejected'], default: 'approved' },
     createdBy: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     rejectionReason: { type: String },
