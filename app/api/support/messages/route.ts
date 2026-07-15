@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const user = session.user as { name?: string; email?: string; id?: string; role?: string }
+  const user = session.user
   const { searchParams } = new URL(req.url)
   const filterEmail = searchParams.get('email')
 
@@ -17,7 +17,7 @@ export async function GET(req: Request) {
     const query = filterEmail ? { email: filterEmail } : {}
     const messages = await Message.find(query).sort({ createdAt: 1 }).lean()
 
-    const grouped: Record<string, { name: string; email: string; unread: number; messages: any[] }> = {}
+    const grouped: Record<string, { name: string; email: string; unread: number; messages: { id: string; name: string; email: string; message: string; isAdmin?: boolean; read?: boolean; createdAt: string | Date }[] }> = {}
     for (const m of messages) {
       const key = m.email
       if (!grouped[key]) {
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Message is required' }, { status: 400 })
   }
 
-  const user = session.user as { name?: string; email?: string; id?: string; role?: string }
+  const user = session.user
 
   const canTarget = user.role === 'admin' || user.role === 'instructor'
   const isAdmin = user.role === 'admin'
@@ -110,7 +110,7 @@ export async function PATCH(req: Request) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const user = session.user as { name?: string; email?: string; id?: string; role?: string }
+  const user = session.user
   await connectToDatabase()
 
   if (user.role === 'admin') {

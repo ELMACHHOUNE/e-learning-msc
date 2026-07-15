@@ -71,12 +71,12 @@ interface GuildData {
   skillsAchieved: number;
 }
 
-const tabs: { id: Tab; label: string; icon: typeof Users }[] = [
+const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
   { id: "users", label: "User Management", icon: Users },
   { id: "courses", label: "Course Creator", icon: BookOpen },
-  { id: "categories", label: "Categories", icon: Filter as any },
+  { id: "categories", label: "Categories", icon: Filter },
   { id: "guilds", label: "Guild Assignment", icon: Layers },
-  { id: "messages", label: "Support Messages", icon: MessageCircle as any },
+  { id: "messages", label: "Support Messages", icon: MessageCircle },
 ];
 
 function Modal({
@@ -154,9 +154,24 @@ function Modal({
   );
 }
 
+interface MessageData {
+  id: string
+  name: string
+  message: string
+  createdAt: string
+  isAdmin?: boolean
+}
+
+interface ConversationData {
+  email: string
+  name: string
+  unread: number
+  messages: MessageData[]
+}
+
 function MessagesPanel() {
-  const [conversations, setConversations] = useState<any[]>([]);
-  const [selected, setSelected] = useState<any>(null);
+  const [conversations, setConversations] = useState<ConversationData[]>([]);
+  const [selected, setSelected] = useState<ConversationData | null>(null);
   const [loading, setLoading] = useState(true);
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
@@ -186,7 +201,7 @@ function MessagesPanel() {
     fetchConversations()
   }
 
-  async function selectConversation(conv: any) {
+  async function selectConversation(conv: ConversationData) {
     setSelected(conv)
     await markAsRead(conv.email)
   }
@@ -210,7 +225,7 @@ function MessagesPanel() {
       })
       if (res.ok) {
         const saved = await res.json()
-        setSelected((prev: any) => ({ ...prev, messages: [...prev.messages, saved] }))
+        setSelected((prev: ConversationData | null) => prev ? { ...prev, messages: [...prev.messages, saved] } : prev)
       }
     } catch {} finally {
       setSending(false)
@@ -253,7 +268,7 @@ function MessagesPanel() {
           <span className="text-caption text-mute">{selected.email}</span>
         </div>
         <div className="flex-1 overflow-y-auto border border-hairline bg-canvas p-xl space-y-lg mb-lg">
-          {selected.messages.map((msg: any) => (
+          {selected.messages.map((msg: MessageData) => (
             <div key={msg.id} className={`flex flex-col ${msg.name?.startsWith('Admin (') ? 'items-end' : 'items-start'}`}>
               <span className="text-caption text-mute mb-xs">
                 {msg.name?.startsWith('Admin (') ? 'Admin' : selected.name} &middot; {new Date(msg.createdAt).toLocaleString()}
@@ -318,7 +333,7 @@ function MessagesPanel() {
                 <p className="text-body-md text-mute truncate">{lastMsg.message}</p>
                 <div className="flex items-center gap-md mt-sm">
                   <span className="text-caption text-mute">{conv.messages.length} messages</span>
-                  {conv.messages.some((m: any) => m.isAdmin) ? (
+                  {conv.messages.some((m: MessageData) => m.isAdmin) ? (
                     <span className="text-caption text-success font-600">Replied</span>
                   ) : (
                     <span className="text-caption text-mute">Unanswered</span>
@@ -456,12 +471,12 @@ export default function AdminPage() {
       setFormCourse({
         title: c.title,
         description: c.description,
-        coverImage: (c as any).coverImage ?? "",
-        price: (c as any).price ?? 0,
-        active: (c as any).active ?? true,
+        coverImage: c.coverImage ?? "",
+        price: c.price ?? 0,
+        active: c.active ?? true,
         durationInMonths: c.durationInMonths,
         totalSessions: c.totalSessions,
-        category: (c as any).category ?? "",
+        category: c.category ?? "",
       });
       setModal("course");
     }
@@ -816,10 +831,10 @@ export default function AdminPage() {
                 transition={{ delay: i * 0.05 }}
                 className="bg-canvas border border-hairline p-xxl flex items-center gap-6"
               >
-                {(course as any).coverImage && (
+                {course.coverImage && (
                   <div className="w-24 h-16 shrink-0 overflow-hidden bg-surface-soft border border-hairline">
                     <img
-                      src={(course as any).coverImage}
+                      src={course.coverImage}
                       alt=""
                       className="w-full h-full object-cover"
                     />
@@ -834,17 +849,17 @@ export default function AdminPage() {
                   </p>
                   <div className="flex items-center gap-3 mt-sm">
                     <span className="text-caption text-primary font-700">
-                      {(course as any).price ? `${(course as any).price} MAD` : 'Free'}
+                      {course.price ? `${course.price} MAD` : 'Free'}
                     </span>
                     <span className={cn(
                       'inline-flex items-center gap-1.5 text-caption uppercase font-bold tracking-[0.1em]',
-                      (course as any).active !== false ? 'text-success' : 'text-error'
+                      course.active !== false ? 'text-success' : 'text-error'
                     )}>
                       <span className={cn(
                         'w-1.5 h-1.5 rounded-full',
-                        (course as any).active !== false ? 'bg-success' : 'bg-error'
+                        course.active !== false ? 'bg-success' : 'bg-error'
                       )} />
-                      {(course as any).active !== false ? 'Active' : 'Inactive'}
+                      {course.active !== false ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 </div>
@@ -957,13 +972,9 @@ export default function AdminPage() {
                     </h3>
                     <p className="text-body-sm text-mute mt-xs">
                       Course:{" "}
-                      {guild.course && "title" in guild.course
-                        ? (guild.course as any).title
-                        : guild.courseId}{" "}
+                      {guild.course?.title ?? guild.courseId}{" "}
                       &middot; Instructor:{" "}
-                      {guild.instructor && "name" in guild.instructor
-                        ? (guild.instructor as any).name
-                        : guild.instructorId}{" "}
+                      {guild.instructor?.name ?? guild.instructorId}{" "}
                       &middot; {guild.studentIds.length} students
                     </p>
                   </div>

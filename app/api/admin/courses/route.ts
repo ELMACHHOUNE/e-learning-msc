@@ -23,6 +23,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
   await connectToDatabase()
-  const course = await Course.create({ title, description, coverImage, price, active, durationInMonths, totalSessions, category: category || undefined, content: (content ?? []) as any })
+  const course = await Course.create({ title, description, coverImage, price, active, durationInMonths, totalSessions, category: category || undefined, content: (content ?? []) as Record<string, unknown>[] })
   return NextResponse.json({ id: course._id.toString(), title: course.title })
 }

@@ -7,8 +7,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const userId = (session.user as any).id
-  const role = (session.user as any).role
+  const userId = session.user.id
+  const role = session.user.role
   const { id } = await params
 
   await connectToDatabase()
@@ -61,8 +61,8 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const userId = (session.user as any).id
-  const role = (session.user as any).role
+  const userId = session.user.id
+  const role = session.user.role
   const { id } = await params
 
   await connectToDatabase()

@@ -7,8 +7,8 @@ export async function GET() {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const userId = (session.user as any).id
-  const role = (session.user as any).role
+  const userId = session.user.id
+  const role = session.user.role
 
   if (role !== 'admin' && role !== 'instructor' && role !== 'student') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -32,7 +32,7 @@ export async function GET() {
   }
 
   return NextResponse.json({
-    labphases: labphases.map((l: any) => ({
+    labphases: labphases.map((l) => ({
       id: l._id.toString(),
       title: l.title,
       description: l.description,
@@ -41,7 +41,7 @@ export async function GET() {
       image: l.image,
       category: l.category,
       status: l.status,
-      createdBy: l.createdBy ? { id: l.createdBy._id?.toString() ?? l.createdBy.toString(), name: (l.createdBy as any).name ?? 'Unknown' } : null,
+      createdBy: l.createdBy ? { id: l.createdBy._id?.toString() ?? l.createdBy.toString(), name: (l.createdBy as { name?: string }).name ?? 'Unknown' } : null,
       rejectionReason: l.rejectionReason,
       createdAt: l.createdAt,
     })),
@@ -51,8 +51,8 @@ export async function GET() {
 export async function POST(req: Request) {
   await requireRole('admin', 'instructor')
   const session = await auth()
-  const userId = (session?.user as any).id
-  const role = (session?.user as any).role
+  const userId = session!.user.id
+  const role = session!.user.role
 
   const body = await req.json()
   const { title, description, instructions, duration, image, category } = body

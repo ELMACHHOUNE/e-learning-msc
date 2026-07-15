@@ -202,7 +202,7 @@ function ApproveModal({
 
 export default function LabPhaseListPage() {
   const { data: session } = useSession()
-  const role = (session?.user as any)?.role
+  const role = session?.user?.role
   const [labphases, setLabphases] = useState<LabPhaseData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -216,8 +216,8 @@ export default function LabPhaseListPage() {
       if (!res.ok) throw new Error('Failed to fetch')
       const data = await res.json()
       setLabphases(data.labphases)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
       setLoading(false)
     }
@@ -331,12 +331,12 @@ export default function LabPhaseListPage() {
                         <Edit3 className="w-4 h-4" />
                       </button>
                     )}
-                    {role === 'instructor' && lab.createdBy?.id === (session?.user as any)?.id && lab.status === 'pending' && (
+                    {role === 'instructor' && lab.createdBy?.id === session?.user?.id && lab.status === 'pending' && (
                       <button onClick={() => { setEditLab(lab); setShowModal(true) }} className="w-8 h-8 flex items-center justify-center bg-transparent border border-hairline-strong rounded-xs cursor-pointer text-charcoal hover:text-ink transition-colors">
                         <Edit3 className="w-4 h-4" />
                       </button>
                     )}
-                    {(canManage || (role === 'instructor' && lab.createdBy?.id === (session?.user as any)?.id)) && (
+                    {(canManage || (role === 'instructor' && lab.createdBy?.id === session?.user?.id)) && (
                       <button onClick={() => handleDelete(lab)} className="w-8 h-8 flex items-center justify-center bg-transparent border border-hairline-strong rounded-xs cursor-pointer text-mute hover:text-error transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>

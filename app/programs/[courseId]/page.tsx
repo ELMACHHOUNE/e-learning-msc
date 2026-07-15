@@ -17,9 +17,9 @@ export default async function ProgramDetailPage({
   if (!course) notFound();
 
   const totalLessons = course.content.reduce(
-    (sum: number, m: any) =>
+    (sum: number, m: { chapters: { lessons: unknown[] }[] }) =>
       sum + m.chapters.reduce(
-        (s: number, c: any) => s + (c.lessons?.length ?? 0),
+        (s: number, c: { lessons: unknown[] }) => s + (c.lessons?.length ?? 0),
         0,
       ),
     0,
@@ -124,7 +124,7 @@ export default async function ProgramDetailPage({
           </h2>
 
           <div className="grid gap-4">
-            {course.content.map((module: any, mi: number) => (
+            {course.content.map((module: { title: string; chapters: { title: string; lessons: { type: string; title: string }[] }[] }, mi: number) => (
               <div key={mi} className="border border-hairline bg-canvas overflow-hidden">
                 <div className="bg-surface-soft px-6 py-4 border-b border-hairline">
                   <div className="flex items-center justify-between">
@@ -132,18 +132,18 @@ export default async function ProgramDetailPage({
                       Module {mi + 1}: {module.title}
                     </h3>
                     <span className="text-caption text-mute">
-                      {module.chapters.reduce((s: number, c: any) => s + (c.lessons?.length ?? 0), 0)} lessons
+                      {module.chapters.reduce((s: number, c: { lessons: unknown[] }) => s + (c.lessons?.length ?? 0), 0)} lessons
                     </span>
                   </div>
                 </div>
                 <div className="divide-y divide-hairline">
-                  {module.chapters.map((chapter: any, ci: number) => (
+                  {module.chapters.map((chapter: { title: string; lessons: { type: string; title: string }[] }, ci: number) => (
                     <div key={ci} className="px-6 py-3">
                       <p className="text-body-sm font-600 text-charcoal mb-2">
                         {chapter.title}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {chapter.lessons?.map((lesson: any, li: number) => (
+                        {chapter.lessons?.map((lesson: { type: string; title: string }, li: number) => (
                           <span
                             key={li}
                             className={`text-caption uppercase tracking-[0.08em] font-bold px-2 py-0.5 rounded-[2px] ${

@@ -74,8 +74,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (user) {
         const typedToken = token as typeof token & AuthToken
         typedToken.id = String(user.id)
-        typedToken.role = (user as { role?: AuthToken['role'] }).role
-        typedToken.picture = (user as any).image
+        typedToken.role = user.role
+        typedToken.picture = user.image ?? undefined
       }
       return token
     },
@@ -89,8 +89,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         if (!typedSessionUser.image && typedToken.id) {
           try {
             await connectToDatabase()
-            const u = await User.findById(typedToken.id).select('avatar').lean()
-            if (u && (u as any).avatar) typedSessionUser.image = String((u as any).avatar)
+            const u = await User.findById(typedToken.id).select('avatar').lean() as { avatar?: string } | null
+            if (u?.avatar) typedSessionUser.image = String(u.avatar)
           } catch {}
         }
       }
@@ -101,12 +101,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
 export async function getCurrentUser() {
   const session = await auth()
-  return session?.user as { id: string; name: string; email: string; image?: string; role: 'admin' | 'instructor' | 'student' } | undefined
+  return session?.user
 }
 
 export async function requireRole(...roles: ('admin' | 'instructor' | 'student')[]) {
   const session = await auth()
-  const user = session?.user as { id: string; role: 'admin' | 'instructor' | 'student' } | undefined
+  const user = session?.user
   if (!user) throw new Error('Unauthorized')
   if (roles.length > 0 && !roles.includes(user.role)) {
     throw new Error('Forbidden')

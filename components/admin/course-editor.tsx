@@ -71,18 +71,18 @@ function deserializeModules(encoded: string): Module[] {
   } catch { return [] }
 }
 
-function normalizeContent(raw: any[]): Module[] {
-  return raw.map((m: any) => ({
-    id: m.id ?? m._id?.toString() ?? generateId(),
-    title: m.title,
-    chapters: (m.chapters ?? []).map((ch: any) => ({
-      id: ch.id ?? ch._id?.toString() ?? generateId(),
-      title: ch.title,
-      lessons: (ch.lessons ?? []).map((l: any) => ({
-        id: l.id ?? l._id?.toString() ?? generateId(),
-        title: l.title,
-        content: l.content ?? '',
-        type: l.type ?? 'lesson',
+function normalizeContent(raw: Record<string, unknown>[]): Module[] {
+  return raw.map((m: Record<string, unknown>) => ({
+    id: (m.id ?? (m._id as string)?.toString?.() ?? generateId()) as string,
+    title: m.title as string,
+    chapters: ((m.chapters as Record<string, unknown>[]) ?? []).map((ch: Record<string, unknown>) => ({
+      id: (ch.id ?? (ch._id as string)?.toString?.() ?? generateId()) as string,
+      title: ch.title as string,
+      lessons: ((ch.lessons as Record<string, unknown>[]) ?? []).map((l: Record<string, unknown>) => ({
+        id: (l.id ?? (l._id as string)?.toString?.() ?? generateId()) as string,
+        title: l.title as string,
+        content: (l.content as string) ?? '',
+        type: (l.type as LessonType) ?? 'lesson',
       })),
     })),
   }))

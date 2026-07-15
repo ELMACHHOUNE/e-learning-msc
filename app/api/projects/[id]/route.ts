@@ -9,8 +9,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const userId = (session.user as any).id
-  const role = (session.user as any).role
+  const userId = session.user.id
+  const role = session.user.role
   const { id } = await params
 
   const body = await req.json()
@@ -84,12 +84,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     // Previous steps must be validated first
     if (stepIndex > 0) {
       const prevStep = steps[stepIndex - 1]
-      if (!(project as any)[prevStep]?.validated) {
+      if (!(project as unknown as Record<ProjectStep, { url: string; validated: boolean }>)[prevStep]?.validated) {
         return NextResponse.json({ error: `Previous step "${prevStep}" must be validated first` }, { status: 400 })
       }
     }
 
-    ;(project as any)[step].url = url
+    ;(project as unknown as Record<ProjectStep, { url: string; validated: boolean }>)[step].url = url
     project.status = 'in_progress'
     await project.save()
 
@@ -115,7 +115,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: 'Score must be between 0 and 10' }, { status: 400 })
     }
 
-    const stepEntry = (project as any)[step]
+    const stepEntry = (project as unknown as Record<ProjectStep, { url: string; score?: number; validated: boolean }>)[step]
     if (!stepEntry?.url) {
       return NextResponse.json({ error: 'Student has not submitted this step yet' }, { status: 400 })
     }
@@ -126,19 +126,19 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 
     // Check if all steps are validated
     const allValidated = ['presentation', 'gitRepo', 'deployment'].every(
-      (s) => (project as any)[s]?.validated
+      (s) => (project as unknown as Record<ProjectStep, { validated: boolean }>)[s as ProjectStep]?.validated
     )
     if (allValidated) {
-      const presentationScore = (project as any).presentation.score ?? 0
-      const gitScore = (project as any).gitRepo.score ?? 0
-      const deploymentScore = (project as any).deployment.score ?? 0
+      const presentationScore = (project as unknown as Record<ProjectStep, { score?: number }>).presentation.score ?? 0
+      const gitScore = (project as unknown as Record<ProjectStep, { score?: number }>).gitRepo.score ?? 0
+      const deploymentScore = (project as unknown as Record<ProjectStep, { score?: number }>).deployment.score ?? 0
       const average = ((presentationScore + gitScore + deploymentScore) / 30) * 100
       project.finalGrade = Math.round(average)
       project.status = 'completed'
       await project.save()
     }
 
-    const allDone = ['presentation', 'gitRepo', 'deployment'].every((s) => (project as any)[s]?.validated)
+    const allDone = ['presentation', 'gitRepo', 'deployment'].every((s) => (project as unknown as Record<ProjectStep, { validated: boolean }>)[s as ProjectStep]?.validated)
 
     return NextResponse.json({
       success: true,

@@ -31,7 +31,7 @@ export function Navbar() {
   const pathname = usePathname()
   const { data: session } = useSession()
   const { theme, setTheme } = useTheme()
-  const role = (session?.user as any)?.role
+  const role = session?.user?.role
 
   const navLinks: NavLink[] = [
     { href: '/dashboard', label: 'Dashboard', icon: GraduationCap },

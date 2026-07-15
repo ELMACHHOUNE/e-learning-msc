@@ -18,12 +18,12 @@ const COLORS = {
   surfaceSoft: '#f7f7f7',
 }
 
-function CustomTooltip({ active, payload, label }: any) {
+function CustomTooltip({ active, payload, label }: { active?: boolean; payload?: { name: string; value: number; color: string }[]; label?: string }) {
   if (!active || !payload?.length) return null
   return (
     <div className="bg-canvas border border-hairline-strong px-3 py-2 text-xs shadow-md">
       {label && <p className="text-charcoal font-600 mb-0.5">{label}</p>}
-      {payload.map((entry: any, i: number) => (
+      {payload.map((entry: { name: string; value: number; color: string }, i: number) => (
         <p key={i} className="text-mute" style={{ color: entry.color }}>
           {entry.name}: {entry.value}
         </p>

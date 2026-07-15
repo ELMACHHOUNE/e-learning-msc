@@ -223,7 +223,7 @@ function ComponentC_Capabilities() {
   );
 }
 
-function ComponentD_Courses({ courses }: { courses: Record<string, any>[] }) {
+function ComponentD_Courses({ courses }: { courses: { _id: { toString(): string }; title: string; description: string; coverImage?: string; price?: number; durationInMonths: number; totalSessions: number }[] }) {
   return (
     <section className="bg-canvas py-20 md:py-28">
       <div className="max-w-[1440px] mx-auto px-6">

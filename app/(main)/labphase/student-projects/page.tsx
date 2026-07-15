@@ -65,7 +65,7 @@ function ApplyModal({ onClose, onSave }: { onClose: () => void; onSave: () => vo
         if (dashRes.ok) {
           const dashData = await dashRes.json()
           if (dashData.guilds?.length > 0) {
-            const g = dashData.guilds.find((g: any) => g.currentSession >= g.totalSessions) ?? dashData.guilds[0]
+            const g = dashData.guilds.find((g: { currentSession: number; totalSessions: number }) => g.currentSession >= g.totalSessions) ?? dashData.guilds[0]
             if (g.courseCategory) setMyCategory(g.courseCategory)
           }
         }
@@ -152,7 +152,7 @@ function StepModal({
   onClose: () => void
   onSave: () => void
 }) {
-  const [url, setUrl] = useState((project as any)[step]?.url ?? '')
+  const [url, setUrl] = useState(project[step]?.url ?? '')
   const [saving, setSaving] = useState(false)
 
   async function handleSubmit() {
@@ -217,7 +217,7 @@ function ValidateModal({
 }) {
   const [score, setScore] = useState(0)
   const [saving, setSaving] = useState(false)
-  const current = (project as any)[step] as StepData
+  const current = project[step]
 
   async function handleValidate() {
     if (score < 0 || score > 10) {
@@ -276,7 +276,7 @@ function ValidateModal({
 
 export default function StudentProjectsPage() {
   const { data: session } = useSession()
-  const role = (session?.user as any)?.role
+  const role = session?.user?.role
   const [projects, setProjects] = useState<ProjectData[]>([])
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -410,9 +410,9 @@ export default function StudentProjectsPage() {
                     <p className="text-caption text-mute uppercase tracking-widest font-600 mb-md">Validation Steps</p>
                     <div className="grid gap-md">
                       {stepsOrder.map((step, idx) => {
-                        const current = (project as any)[step] as StepData
-                        const isCurrentStep = idx === 0 || stepsOrder.slice(0, idx).every((s) => (project as any)[s]?.validated)
-                        const canSubmit = isStudent && project.studentId === (session?.user as any)?.id && !current.validated && current.url === '' && isCurrentStep && project.status !== 'completed'
+                        const current = project[step]
+                        const isCurrentStep = idx === 0 || stepsOrder.slice(0, idx).every((s) => project[s]?.validated)
+                        const canSubmit = isStudent && project.studentId === session?.user?.id && !current.validated && current.url === '' && isCurrentStep && project.status !== 'completed'
                         const canValidate = isInstructor && current.url && !current.validated
 
                         return (

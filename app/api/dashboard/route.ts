@@ -9,8 +9,8 @@ export async function GET() {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const userId = (session.user as any).id
-  const role = (session.user as any).role
+  const userId = session.user.id
+  const role = session.user.role
 
   await connectToDatabase()
 
@@ -78,20 +78,20 @@ export async function GET() {
       role: 'admin',
       stats: { totalUsers, totalInstructors, totalStudents, totalCourses, totalGuilds },
       charts: {
-        usersByRole: usersByRoleAgg.map((r: any) => ({ name: r.name.charAt(0).toUpperCase() + r.name.slice(1), value: r.value })),
+        usersByRole: usersByRoleAgg.map((r) => ({ name: (r.name as string).charAt(0).toUpperCase() + (r.name as string).slice(1), value: r.value as number })),
         coursesByCategory: coursesByCategoryAgg,
         courseStatus: [
           { name: 'Active', value: courseStatus.active },
           { name: 'Inactive', value: courseStatus.inactive },
         ],
-        guildsByCourse: guildsByCourseAgg.map((g: any) => ({ name: g.course, value: g.count })),
+        guildsByCourse: guildsByCourseAgg.map((g) => ({ name: (g as { course: string; count: number }).course, value: (g as { course: string; count: number }).count })),
       },
-      recentUsers: users.map((u: any) => ({ id: u._id.toString(), name: u.name, email: u.email, role: u.role })),
-      recentGuilds: guilds.map((g: any) => ({
-        id: g._id.toString(),
+      recentUsers: users.map((u) => ({ id: (u._id as { toString(): string }).toString(), name: u.name, email: u.email, role: u.role })),
+      recentGuilds: guilds.map((g) => ({
+        id: (g._id as { toString(): string }).toString(),
         name: g.name,
-        courseTitle: (g.courseId as any)?.title ?? 'Unknown',
-        instructorName: (g.instructorId as any)?.name ?? 'Unknown',
+        courseTitle: (g.courseId as { title?: string })?.title ?? 'Unknown',
+        instructorName: (g.instructorId as { name?: string })?.name ?? 'Unknown',
         studentCount: (g.studentIds ?? []).length,
       })),
     })
@@ -101,21 +101,21 @@ export async function GET() {
     const guilds = await Guild.find({ instructorId: userId })
       .populate('courseId', 'title totalSessions active category')
       .lean()
-    const activeGuilds = guilds.filter((g: any) => (g.courseId as any)?.active !== false)
-    const totalStudents = activeGuilds.reduce((sum: number, g: any) => sum + (g.studentIds ?? []).length, 0)
-    const totalSessions = activeGuilds.reduce((sum: number, g: any) => sum + g.currentSession, 0)
-    const courses = [...new Set(activeGuilds.map((g: any) => (g.courseId as any)?._id?.toString()).filter(Boolean))]
+    const activeGuilds = guilds.filter((g) => (g.courseId as { active?: boolean })?.active !== false)
+    const totalStudents = activeGuilds.reduce((sum: number, g) => sum + ((g as { studentIds: unknown[] }).studentIds ?? []).length, 0)
+    const totalSessions = activeGuilds.reduce((sum: number, g) => sum + (g as { currentSession: number }).currentSession, 0)
+    const courses = [...new Set(activeGuilds.map((g) => (g.courseId as { _id?: { toString(): string } })?._id?.toString()).filter(Boolean))]
 
     return NextResponse.json({
       role: 'instructor',
       stats: { totalGuilds: activeGuilds.length, totalStudents, totalSessions, totalCourses: courses.length },
-      guilds: activeGuilds.map((g: any) => ({
-        id: g._id.toString(),
-        name: g.name,
-        courseTitle: (g.courseId as any)?.title ?? 'Unknown',
-        currentSession: g.currentSession,
-        totalSessions: (g.courseId as any)?.totalSessions ?? 0,
-        courseCategory: (g.courseId as any)?.category ?? '',
+      guilds: activeGuilds.map((g) => ({
+        id: (g._id as { toString(): string }).toString(),
+        name: (g as { name: string }).name,
+        courseTitle: (g.courseId as { title?: string })?.title ?? 'Unknown',
+        currentSession: (g as { currentSession: number }).currentSession,
+        totalSessions: (g.courseId as { totalSessions?: number })?.totalSessions ?? 0,
+        courseCategory: (g.courseId as { category?: string })?.category ?? '',
         skillsTotal: g.skillsTotal,
         skillsAchieved: g.skillsAchieved,
         studentCount: (g.studentIds ?? []).length,
@@ -128,20 +128,20 @@ export async function GET() {
     .populate('courseId', 'title totalSessions active category')
     .populate('instructorId', 'name')
     .lean()
-  const activeGuilds = guilds.filter((g: any) => (g.courseId as any)?.active !== false)
-  const courses = [...new Set(activeGuilds.map((g: any) => (g.courseId as any)?._id?.toString()).filter(Boolean))]
+  const activeGuilds = guilds.filter((g) => (g.courseId as { active?: boolean })?.active !== false)
+  const courses = [...new Set(activeGuilds.map((g) => (g.courseId as { _id?: { toString(): string } })?._id?.toString()).filter(Boolean))]
 
   return NextResponse.json({
     role: 'student',
     stats: { totalGuilds: activeGuilds.length, totalCourses: courses.length },
-    guilds: activeGuilds.map((g: any) => ({
-      id: g._id.toString(),
-      name: g.name,
-      courseTitle: (g.courseId as any)?.title ?? 'Unknown',
-      instructorName: (g.instructorId as any)?.name ?? 'Unknown',
-      currentSession: g.currentSession,
-      totalSessions: (g.courseId as any)?.totalSessions ?? 0,
-      courseCategory: (g.courseId as any)?.category ?? '',
+    guilds: activeGuilds.map((g) => ({
+      id: (g._id as { toString(): string }).toString(),
+      name: (g as { name: string }).name,
+      courseTitle: (g.courseId as { title?: string })?.title ?? 'Unknown',
+      instructorName: (g.instructorId as { name?: string })?.name ?? 'Unknown',
+      currentSession: (g as { currentSession: number }).currentSession,
+      totalSessions: (g.courseId as { totalSessions?: number })?.totalSessions ?? 0,
+      courseCategory: (g.courseId as { category?: string })?.category ?? '',
       skillsTotal: g.skillsTotal,
       skillsAchieved: g.skillsAchieved,
     })),

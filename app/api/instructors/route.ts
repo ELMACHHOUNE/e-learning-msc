@@ -14,28 +14,28 @@ export async function GET() {
     .lean()
 
   const enriched = await Promise.all(
-    instructors.map(async (inst: any) => {
-      const guilds = await Guild.find({ instructorId: inst._id })
+    instructors.map(async (inst) => {
+      const guilds = await Guild.find({ instructorId: (inst._id as { toString(): string }).toString() })
         .populate('courseId', 'title')
         .lean()
 
       const totalStudents = new Set(
-        guilds.flatMap((g: any) => (g.studentIds ?? []).map((id: any) => id.toString()))
+        guilds.flatMap((g) => ((g as { studentIds?: unknown[] }).studentIds ?? []).map((id) => (id as { toString(): string }).toString()))
       ).size
 
       return {
-        id: inst._id.toString(),
-        name: inst.name,
-        email: inst.email,
-        phone: inst.phone,
-        avatar: inst.avatar,
-        role: inst.role,
-        createdAt: inst.createdAt,
-        guilds: guilds.map((g: any) => ({
-          id: g._id.toString(),
-          name: g.name,
-          courseTitle: (g.courseId as any)?.title ?? 'Unknown',
-          studentCount: (g.studentIds ?? []).length,
+        id: (inst._id as { toString(): string }).toString(),
+        name: (inst as { name: string }).name,
+        email: (inst as { email: string }).email,
+        phone: (inst as { phone?: string }).phone,
+        avatar: (inst as { avatar?: string }).avatar,
+        role: (inst as { role: string }).role,
+        createdAt: (inst as { createdAt: Date }).createdAt,
+        guilds: guilds.map((g) => ({
+          id: (g._id as { toString(): string }).toString(),
+          name: (g as { name: string }).name,
+          courseTitle: (g.courseId as { title?: string })?.title ?? 'Unknown',
+          studentCount: ((g as { studentIds?: unknown[] }).studentIds ?? []).length,
         })),
         totalStudents,
         totalGuilds: guilds.length,

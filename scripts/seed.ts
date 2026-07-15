@@ -4,7 +4,7 @@ import User from '@/models/User'
 import Course from '@/models/Course'
 import Guild from '@/models/Guild'
 import SessionLog from '@/models/SessionLog'
-import LabPhase from '@/models/LabPhase'
+import LabPhase, { type LabPhaseDocument } from '@/models/LabPhase'
 import Category from '@/models/Category'
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/e-learning-msc'
@@ -410,7 +410,7 @@ async function main() {
     { title: 'Phase 3: Backend Development', description: 'Node.js, Express, Databases — build your first API', instructions: 'Design and implement a RESTful API for a blogging platform.\n\nRequirements:\n- Use Express.js with middleware\n- Implement CRUD operations for posts and users\n- Use MongoDB with Mongoose for data persistence\n- Add authentication with JWT\n- Write API documentation', duration: '6 weeks', status: 'approved', createdBy: adminUser?._id ?? instructorUsers[0]._id },
     { title: 'Phase 4: Full-Stack Project', description: 'Capstone project with full CI/CD pipeline', instructions: 'Build a complete full-stack application from scratch.\n\nRequirements:\n- Frontend: React with TypeScript\n- Backend: Node.js with Express\n- Database: MongoDB\n- Authentication and authorization\n- Testing (unit + integration)\n- CI/CD pipeline (GitHub Actions)\n- Deploy to production', duration: '8 weeks', status: 'pending', createdBy: instructorUsers[0]._id },
   ]
-  const labphases = await LabPhase.insertMany(labPhasesData as any)
+  const labphases = await LabPhase.insertMany(labPhasesData as unknown as LabPhaseDocument[])
   console.log(`✓ ${labphases.length} lab phases created`)
 
   console.log('\n── Seed complete ──')

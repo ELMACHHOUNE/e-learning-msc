@@ -8,17 +8,17 @@ export async function GET() {
   await connectToDatabase()
   const guilds = await Guild.find().populate('courseId instructorId studentIds').sort({ createdAt: -1 })
   return NextResponse.json(guilds.map((g) => ({
-    id: g._id.toString(),
-    name: g.name,
-    courseId: g.courseId?._id?.toString() ?? g.courseId?.toString(),
-    course: g.courseId,
-    instructorId: g.instructorId?._id?.toString() ?? g.instructorId?.toString(),
-    instructor: g.instructorId,
-    studentIds: (g.studentIds ?? []).map((s: any) => s._id?.toString() ?? s.toString()),
-    students: g.studentIds ?? [],
-    currentSession: g.currentSession,
-    skillsTotal: g.skillsTotal,
-    skillsAchieved: g.skillsAchieved,
+    id: (g._id as { toString(): string }).toString(),
+    name: (g as { name: string }).name,
+    courseId: ((g as unknown as { courseId: { _id?: { toString(): string }; toString(): string } }).courseId?._id?.toString() ?? (g as unknown as { courseId: { toString(): string } }).courseId?.toString()),
+    course: (g as unknown as { courseId: unknown }).courseId,
+    instructorId: ((g as unknown as { instructorId: { _id?: { toString(): string }; toString(): string } }).instructorId?._id?.toString() ?? (g as unknown as { instructorId: { toString(): string } }).instructorId?.toString()),
+    instructor: (g as unknown as { instructorId: unknown }).instructorId,
+    studentIds: ((g as unknown as { studentIds?: unknown[] }).studentIds ?? []).map((s) => ((s as { _id?: { toString(): string }; toString(): string })._id?.toString() ?? (s as { toString(): string }).toString())),
+    students: (g as unknown as { studentIds?: unknown[] }).studentIds ?? [],
+    currentSession: (g as unknown as { currentSession: number }).currentSession,
+    skillsTotal: (g as unknown as { skillsTotal: number }).skillsTotal,
+    skillsAchieved: (g as unknown as { skillsAchieved: number }).skillsAchieved,
   })))
 }
 
