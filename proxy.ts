@@ -1,8 +1,9 @@
 import { auth } from '@/lib/auth'
+import { NextResponse } from 'next/server'
 
 export default auth((req) => {
   if (!req.auth) {
-    return Response.redirect('/login?callbackUrl=%2Fdashboard')
+    return NextResponse.redirect(new URL('/login?callbackUrl=%2Fdashboard', req.url))
   }
 })
 

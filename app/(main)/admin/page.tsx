@@ -348,14 +348,17 @@ function MessagesPanel() {
   )
 }
 
+type LoadingTab = Tab | null
+
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const [searchQuery, setSearchQuery] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [loadingTab, setLoadingTab] = useState<LoadingTab>('users');
   const [users, setUsers] = useState<UserData[]>([]);
   const [courses, setCourses] = useState<CourseData[]>([]);
   const [guilds, setGuilds] = useState<GuildData[]>([]);
   const [categories, setCategories] = useState<CategoryData[]>([]);
+  const loadedTabs = useRef<Set<string>>(new Set())
 
   const [modal, setModal] = useState<"user" | "course" | "guild" | "category" | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
@@ -389,33 +392,67 @@ export default function AdminPage() {
   const [allStudents, setAllStudents] = useState<UserData[]>([]);
   const [studentSearch, setStudentSearch] = useState("");
 
-  function fetchCategories() {
-    fetch("/api/admin/categories")
+  function refetchTab(tab: Tab) {
+    loadedTabs.current.delete(tab)
+    setLoadingTab(tab)
+    fetch(`/api/admin/dashboard?tab=${tab}`, { cache: 'no-store' })
       .then((r) => r.json())
-      .then((data) => setCategories(data.categories ?? []))
-      .catch(() => {})
-  }
-
-  function fetchAll() {
-    fetch("/api/admin/dashboard", { cache: 'no-store' })
-      .then((r) => r.json())
-      .then((data) => {
-        setUsers(data.users ?? [])
-        setCourses(JSON.parse(JSON.stringify((data.courses ?? []).map((c: CourseData) => ({
-          ...c,
-          coverImage: c.coverImage && (c.coverImage.startsWith('http://') || c.coverImage.startsWith('https://') || c.coverImage.startsWith('/')) ? c.coverImage.slice(0) : ''
-        })))))
-        setGuilds(data.guilds ?? [])
+      .then((data: Record<string, unknown>) => {
+        if (tab === 'users') setUsers(data.users as UserData[] ?? [])
+        if (tab === 'courses') {
+          setCourses((data.courses as CourseData[] ?? []).map((c) => ({
+            ...c,
+            coverImage: c.coverImage && (c.coverImage.startsWith('http://') || c.coverImage.startsWith('https://') || c.coverImage.startsWith('/')) ? c.coverImage : ''
+          })))
+          if (data.categories) setCategories(data.categories as CategoryData[])
+        }
+        if (tab === 'guilds') setGuilds(data.guilds as GuildData[] ?? [])
+        if (tab === 'categories') {
+          const cats = data.categories as CategoryData[]
+          if (cats) setCategories(cats)
+        }
+        loadedTabs.current.add(tab)
       })
-      .catch(() => {})
-      .finally(() => setLoading(false));
-    fetchCategories();
+      .catch(() => console.error(`Failed to refetch ${tab} data`))
+      .finally(() => setLoadingTab(null))
   }
 
   useEffect(() => {
-    fetchAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    const tab = activeTab
+    let cancelled = false
+
+    async function loadData() {
+      if (tab === 'messages') return
+      if (loadedTabs.current.has(tab)) return
+      setLoadingTab(tab)
+      try {
+        const res = await fetch(`/api/admin/dashboard?tab=${tab}`, { cache: 'no-store' })
+        const data: Record<string, unknown> = await res.json()
+        if (cancelled) return
+        if (tab === 'users') setUsers(data.users as UserData[] ?? [])
+        if (tab === 'courses') {
+          setCourses((data.courses as CourseData[] ?? []).map((c) => ({
+            ...c,
+            coverImage: c.coverImage && (c.coverImage.startsWith('http://') || c.coverImage.startsWith('https://') || c.coverImage.startsWith('/')) ? c.coverImage : ''
+          })))
+          if (data.categories) setCategories(data.categories as CategoryData[])
+        }
+        if (tab === 'guilds') setGuilds(data.guilds as GuildData[] ?? [])
+        if (tab === 'categories') {
+          const cats = data.categories as CategoryData[]
+          if (cats) setCategories(cats)
+        }
+        loadedTabs.current.add(tab)
+      } catch {
+        if (!cancelled) console.error(`Failed to load ${tab} data`)
+      } finally {
+        if (!cancelled) setLoadingTab(null)
+      }
+    }
+
+    loadData()
+    return () => { cancelled = true }
+  }, [activeTab])
 
   function openCreate(tab: Tab) {
     setEditId(null);
@@ -535,7 +572,8 @@ export default function AdminPage() {
       return [{ id: saved.id, name: saved.name, email: saved.email, phone: saved.phone, role: saved.role, avatar: undefined }, ...prev]
     });
     setModal(null);
-    fetchAll();
+    loadedTabs.current.delete('users')
+    refetchTab('users');
   }
 
   async function saveCourse() {
@@ -560,7 +598,8 @@ export default function AdminPage() {
       }
       return [{ id: saved.id, title: saved.title, description: saved.description ?? '', coverImage: saved.coverImage ?? '', price: saved.price, active: saved.active ?? true, durationInMonths: saved.durationInMonths ?? 0, totalSessions: saved.totalSessions ?? 0, createdAt: new Date().toISOString() }, ...prev]
     });
-    fetchAll();
+    loadedTabs.current.delete('courses')
+    refetchTab('courses');
   }
 
   async function saveGuild() {
@@ -578,7 +617,8 @@ export default function AdminPage() {
     }
     toast({ variant: 'success', title: editId ? 'Guild updated' : 'Guild created' });
     setModal(null);
-    fetchAll();
+    loadedTabs.current.delete('guilds')
+    refetchTab('guilds');
   }
 
   async function saveCategory() {
@@ -598,7 +638,9 @@ export default function AdminPage() {
     }
     toast({ variant: 'success', title: 'Category created' });
     setModal(null);
-    fetchCategories();
+    loadedTabs.current.delete('categories')
+    loadedTabs.current.delete('courses')
+    refetchTab('categories');
   }
 
   async function deleteCategory(id: string) {
@@ -615,7 +657,9 @@ export default function AdminPage() {
           return;
         }
         toast({ variant: 'success', title: 'Category deleted' });
-        fetchCategories();
+        loadedTabs.current.delete('categories')
+        loadedTabs.current.delete('courses')
+        refetchTab('categories');
       },
     });
   }
@@ -634,7 +678,8 @@ export default function AdminPage() {
           return;
         }
         toast({ variant: 'success', title: `${type} deleted` });
-        fetchAll();
+        loadedTabs.current.delete(type as string)
+        refetchTab(type as Tab);
       },
     });
   }
@@ -713,7 +758,7 @@ export default function AdminPage() {
               <Plus className="w-4 h-4 mr-1" /> Add User
             </Button>
           </div>
-          {loading ? (
+          {loadingTab === 'users' ? (
             <div className="bg-canvas border border-hairline flex items-center justify-center py-xxxl">
               <div className="flex flex-col items-center gap-lg">
                 <div className="animate-spin" style={{ animationDuration: '2s' }}>
@@ -815,7 +860,7 @@ export default function AdminPage() {
               <Plus className="w-4 h-4" /> Create Course
             </Link>
           </div>
-          {loading ? (
+          {loadingTab === 'courses' ? (
             <div className="bg-canvas border border-hairline flex items-center justify-center py-xxxl">
               <div className="flex flex-col items-center gap-lg">
                 <div className="animate-spin" style={{ animationDuration: '2s' }}>
@@ -949,7 +994,7 @@ export default function AdminPage() {
               <Plus className="w-4 h-4 mr-1" /> Create Guild
             </Button>
           </div>
-          {loading ? (
+          {loadingTab === 'guilds' ? (
             <div className="bg-canvas border border-hairline flex items-center justify-center py-xxxl">
               <div className="flex flex-col items-center gap-lg">
                 <div className="animate-spin" style={{ animationDuration: '2s' }}>
