@@ -401,7 +401,10 @@ export default function AdminPage() {
       .then((r) => r.json())
       .then((data) => {
         setUsers(data.users ?? [])
-        setCourses(data.courses ?? [])
+        setCourses(JSON.parse(JSON.stringify((data.courses ?? []).map((c: CourseData) => ({
+          ...c,
+          coverImage: c.coverImage && (c.coverImage.startsWith('http://') || c.coverImage.startsWith('https://') || c.coverImage.startsWith('/')) ? c.coverImage.slice(0) : ''
+        })))))
         setGuilds(data.guilds ?? [])
       })
       .catch(() => {})
@@ -834,7 +837,7 @@ export default function AdminPage() {
                 {course.coverImage && (
                   <div className="w-24 h-16 shrink-0 overflow-hidden bg-surface-soft border border-hairline">
                     <img
-                      src={course.coverImage}
+                      ref={el => { if (el && course.coverImage && (course.coverImage.startsWith('/') || course.coverImage.startsWith('http://') || course.coverImage.startsWith('https://'))) el.src = course.coverImage }}
                       alt=""
                       className="w-full h-full object-cover"
                     />

@@ -215,7 +215,10 @@ export default function LabPhaseListPage() {
       const res = await fetch('/api/admin/labphases')
       if (!res.ok) throw new Error('Failed to fetch')
       const data = await res.json()
-      setLabphases(data.labphases)
+      setLabphases(JSON.parse(JSON.stringify((data.labphases ?? []).map((l: LabPhaseData) => ({
+        ...l,
+        image: l.image && (l.image.startsWith('http://') || l.image.startsWith('https://') || l.image.startsWith('/')) ? l.image.slice(0) : ''
+      })))))
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : 'An error occurred')
     } finally {
@@ -300,7 +303,7 @@ export default function LabPhaseListPage() {
                   <div className="flex items-start gap-lg flex-1 min-w-0">
                     {lab.image ? (
                       <div className="w-20 h-20 shrink-0 overflow-hidden bg-surface-soft border border-hairline">
-                        <img src={lab.image} alt="" className="w-full h-full object-cover" />
+                        <img ref={el => { if (el && lab.image && (lab.image.startsWith('/') || lab.image.startsWith('http://') || lab.image.startsWith('https://'))) el.src = lab.image }} alt="" className="w-full h-full object-cover" />
                       </div>
                     ) : (
                       <div className="w-20 h-20 shrink-0 bg-surface-soft flex items-center justify-center border border-hairline">

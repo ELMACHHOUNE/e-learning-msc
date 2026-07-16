@@ -11,6 +11,12 @@ export async function GET(req: Request) {
   const { searchParams } = new URL(req.url)
   const filterEmail = searchParams.get('email')
 
+  if (filterEmail && typeof filterEmail === 'string') {
+    if (filterEmail.startsWith('$') || filterEmail.length > 320 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(filterEmail)) {
+      return NextResponse.json({ error: 'Invalid email parameter' }, { status: 400 })
+    }
+  }
+
   await connectToDatabase()
 
   if (user.role === 'admin' || user.role === 'instructor') {

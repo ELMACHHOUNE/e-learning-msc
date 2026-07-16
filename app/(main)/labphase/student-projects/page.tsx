@@ -289,7 +289,15 @@ export default function StudentProjectsPage() {
       const res = await fetch('/api/projects')
       if (res.ok) {
         const data = await res.json()
-        setProjects(data.projects)
+        setProjects(JSON.parse(JSON.stringify((data.projects ?? []).map((p: ProjectData) => {
+          const safeUrl = (u: string) => u && (u.startsWith('http://') || u.startsWith('https://')) ? u.slice(0) : ''
+          return {
+            ...p,
+            presentation: { ...p.presentation, url: safeUrl(p.presentation?.url) },
+            gitRepo: { ...p.gitRepo, url: safeUrl(p.gitRepo?.url) },
+            deployment: { ...p.deployment, url: safeUrl(p.deployment?.url) },
+          }
+        }))))
       }
     } catch {} finally {
       setLoading(false)
@@ -424,7 +432,7 @@ export default function StudentProjectsPage() {
                               <div className="min-w-0">
                                 <p className="text-body-sm text-ink font-600">{stepMeta[step].label}</p>
                                 {current.url ? (
-                                  <a href={current.url} target="_blank" rel="noopener noreferrer" className="text-caption text-ink underline break-all inline-flex items-center gap-1">
+                                  <a ref={el => { if (el && current.url && (current.url.startsWith('http://') || current.url.startsWith('https://'))) el.href = current.url }} target="_blank" rel="noopener noreferrer" className="text-caption text-ink underline break-all inline-flex items-center gap-1">
                                     {current.url} <ExternalLink className="w-3 h-3 shrink-0" />
                                   </a>
                                 ) : (

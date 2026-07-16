@@ -182,7 +182,10 @@ export default function StudentsPage() {
           throw new Error(data.error || 'Failed to fetch students')
         }
         const data = await res.json()
-        setStudents(data.students)
+        setStudents(JSON.parse(JSON.stringify((data.students ?? []).map((s: Student) => ({
+          ...s,
+          phone: s.phone?.replace(/[^0-9]/g, '') ?? ''
+        })))))
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
@@ -281,7 +284,7 @@ export default function StudentsPage() {
                       </button>
                       {student.phone && (
                         <a
-                          href={`https://wa.me/${student.phone.replace(/[^0-9]/g, '')}`}
+                          ref={el => { if (el && student.phone) el.href = `https://wa.me/${student.phone}` }}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-8 h-8 flex items-center justify-center bg-transparent border border-hairline-strong rounded-xs text-charcoal hover:text-[#25D366] hover:bg-surface-soft transition-colors"

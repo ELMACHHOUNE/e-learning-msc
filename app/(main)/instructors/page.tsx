@@ -42,7 +42,11 @@ export default function InstructorsPage() {
           throw new Error(data.error || 'Failed to fetch instructors')
         }
         const data = await res.json()
-        setInstructors(data.instructors)
+        setInstructors(JSON.parse(JSON.stringify((data.instructors ?? []).map((i: Instructor) => ({
+          ...i,
+          email: i.email?.includes('@') ? i.email.replace(/[^a-zA-Z0-9@._+-]/g, '') : '',
+          phone: i.phone?.replace(/[^0-9]/g, '') ?? ''
+        })))))
       } catch (err: unknown) {
         setError(err instanceof Error ? err.message : 'An error occurred')
       } finally {
@@ -134,14 +138,14 @@ export default function InstructorsPage() {
                 <td className="px-lg py-md text-right">
                   <div className="flex items-center justify-end gap-2">
                     <a
-                      href={`mailto:${inst.email}`}
+                      ref={el => { if (el && inst.email) el.href = `mailto:${inst.email}` }}
                       className="w-8 h-8 flex items-center justify-center bg-transparent border border-hairline-strong rounded-xs text-charcoal hover:text-ink hover:bg-surface-soft transition-colors"
                     >
                       <MessageCircle className="w-4 h-4" />
                     </a>
                     {inst.phone && (
                       <a
-                        href={`https://wa.me/${inst.phone.replace(/[^0-9]/g, '')}`}
+                        ref={el => { if (el && inst.phone) el.href = `https://wa.me/${inst.phone}` }}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-8 h-8 flex items-center justify-center bg-transparent border border-hairline-strong rounded-xs text-charcoal hover:text-[#25D366] hover:bg-surface-soft transition-colors"

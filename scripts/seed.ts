@@ -18,7 +18,12 @@ async function main() {
   await db.dropDatabase()
   console.log('Database dropped.\n')
 
-  const password = await bcrypt.hash('password123', 12)
+  const SEED_PASSWORD = process.env.SEED_PASSWORD
+  if (!SEED_PASSWORD) {
+    console.error('SEED_PASSWORD environment variable is required. Set it before running the seed script.')
+    process.exit(1)
+  }
+  const password = await bcrypt.hash(SEED_PASSWORD, 12)
 
   // ── Categories ──
   const categoryNames = ['Data Science', 'Information Technology', 'Graphic Design', 'Digital Marketing']
