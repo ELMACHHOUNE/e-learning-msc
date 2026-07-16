@@ -119,6 +119,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={interTight.variable}
+      suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
       <body

@@ -36,9 +36,11 @@ export function toast(alert: Omit<AlertData, 'id'>) {
 
 export function AlertContainer() {
   const [alerts, setAlerts] = useState<AlertData[]>([])
-  const [mounted] = useState(() => typeof document !== 'undefined')
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setMounted(true)
     addAlertFn = (a) => {
       const id = Math.random().toString(36).substring(2, 8)
       setAlerts((prev) => [...prev, { ...a, id }])
@@ -49,7 +51,7 @@ export function AlertContainer() {
     return () => { addAlertFn = null }
   }, [])
 
-  if (!mounted || typeof document === 'undefined') return null
+  if (!mounted) return null
 
   return createPortal(
     <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none w-full max-w-[384px]">
