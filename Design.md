@@ -1,358 +1,404 @@
 ## Overview
 
-Renault's marketing surfaces are unapologetically high-contrast: a
-white canvas for browsing, a black canvas for product storytelling, and a
-single Sunlight Yellow accent (`{colors.primary}` — `#ffed00`) reserved for
-the most consequential actions. The brand's modernised flat diamond logo sets
-the tone — geometric, confident, slightly industrial — and the system follows
-suit. Square corners dominate, hairline borders are rare, and elevation is
-expressed through colour blocking rather than shadow.
+e-learning-msc is a three-role (admin, instructor, student) learning management system built with Next.js 16 App Router. The visual identity is high-contrast and academic: a white canvas for content surfaces, a black canvas for header/footer storytelling bands, and a single Sunlight Yellow accent (`#ffed00`) reserved for primary actions, badges, and the avatar fallback. Square corners dominate, elevation is expressed through colour blocking rather than shadow, and the typography is monolithic — Inter Tight everywhere, with display weights at 700 and body at 400.
 
-The typography is monolithic. Every text on the site is set in **NouvelR**,
-Renault's bespoke display family, with a strong preference for weight 700 at
-display sizes (with a tight `lineHeight: 0.95`) and weight 400 for body. There
-is no secondary serif, no decorative italic, no script — the discipline is
-the signature.
-
-Page rhythm cycles between three surface modes: a **white catalogue mode** for
-listings and configurators (`{colors.canvas}` with hairline-thin
-`{colors.hairline}` dividers), a **black storytelling mode** for hero
-sections, lifestyle imagery, and the lower half of campaign pages, and brief
-**yellow accent moments** (`{colors.primary}` tiles, "NEW" badges, R5-coded
-yellow paint shots) that punctuate the otherwise neutral palette.
+The page rhythm cycles between two surface modes: a **white catalogue mode** for content grids, forms, and dashboards (`canvas` with `hairline` dividers), and a **black storytelling mode** for hero sections, the footer, and program headers (`surface-dark` with `on-dark` text). Yellow accent moments (primary CTAs, "NEW" badges) punctuate the otherwise neutral palette.
 
 **Key Characteristics:**
 
-- Two-tone canvas system — `{colors.canvas}` (white) for browsing, `{colors.surface-dark}` (black) for storytelling — switched in full-bleed bands rather than subtle gradations.
-- A single brand accent — `{colors.primary}` Sunlight Yellow — used scarcely on primary CTAs, "NEW" badges, R5 hero photography, and configurator dot indicators.
-- **NouvelR everywhere**, with `{typography.display-xl}` headlines at 56px / weight 700 / `lineHeight: 0.95` so condensed multi-line headlines stack cleanly.
-- Square geometry: `{rounded.xs}` (2px) on buttons, `{rounded.none}` on tiles and product cards, `{rounded.pill}` reserved exclusively for sub-nav chips and decorative badges.
-- Photography-first product tiles — vehicle photos full-bleed inside otherwise neutral cards, with copy stacked beneath rather than overlaid.
-- Page-level rhythm cycles white → black → yellow accent → black, with the wordmark and footer always closing on `{colors.surface-dark}`.
+- Two-tone canvas system — `canvas` (white) for browsing, `surface-dark` (black) for storytelling bands — switched in full-bleed sections rather than subtle gradations.
+- A single brand accent — `primary` Sunlight Yellow — used sparingly on primary CTAs, "NEW" badges, avatar initials, and progress bars.
+- **Inter Tight everywhere**, with `display-xl` headlines at 56px / weight 700 / `line-height: 0.95` so condensed multi-line headlines stack cleanly.
+- Square geometry: `radius-xs` (2px) on buttons, `radius-none` on cards and tiles, `radius-pill` reserved exclusively for badges and sub-nav pills.
+- Role-aware navigation: the navbar adapts links based on the authenticated user's role (admin sees Admin + Instructors; non-admin sees Teach dropdown).
+- Dark mode via `next-themes` with entirely overridden colour tokens — every surface, text, and border token has a dark variant.
 
 ## Colors
 
 ### Brand & Accent
 
-- **Sunlight Yellow** (`{colors.primary}` — `#ffed00`): the brand accent. Reserved for primary CTAs, "NEW" / "yeni" badges, configurator dot indicators, and full-bleed promotional tiles. Never decorative.
-- **Sunlight Yellow Pressed** (`{colors.primary-deep}` — `#e6d200`): the active/pressed state of `{colors.primary}` buttons and tiles.
-- **On-Primary** (`{colors.on-primary}` — `#000000`): label colour on top of `{colors.primary}` surfaces. Yellow always pairs with black text — never white.
+- **Sunlight Yellow** (`primary` — `#ffed00`): the brand accent. Reserved for primary CTAs, "NEW" badges, avatar initials, progress bar fills, and the yellow card variant. Never decorative.
+- **Sunlight Yellow Pressed** (`primary-deep` — `#e6d200`): the active/pressed state of `primary` buttons (`#cfba00` in dark mode).
+- **On-Primary** (`on-primary` — `#000000`): label colour on top of `primary` surfaces. Yellow always pairs with black text — never white.
 
 ### Surface
 
-- **Canvas** (`{colors.canvas}` — `#ffffff`): the default page background and card surface.
-- **Surface Soft** (`{colors.surface-soft}` — `#f7f7f7`): subtle elevation step for grouped configurator rows and inactive form fields.
-- **Surface Dark** (`{colors.surface-dark}` — `#000000`): the alternate canvas, used for hero bands, footer, and full-bleed storytelling sections.
-- **Surface Deep** (`{colors.surface-deep}` — `#111111`): a one-step-up elevation inside `{colors.surface-dark}` regions for inset cards and form panels.
-- **Hairline** (`{colors.hairline}` — `#f2f2f2`): the soft 1px divider between rows on white surfaces.
-- **Hairline Strong** (`{colors.hairline-strong}` — `#000000`): full-strength dividers on white, plus all card / button outlines.
-- **Divider Dark** (`{colors.divider-dark}` — `rgba(255,255,255,0.16)`): the corresponding low-contrast divider used inside `{colors.surface-dark}` regions.
+- **Canvas** (`canvas` — `#ffffff` / dark: `#111113`): the default page background and card surface.
+- **Surface Soft** (`surface-soft` — `#f7f7f7` / dark: `#1c1c1f`): subtle elevation step for toolbar backgrounds, alert headers, and hover states.
+- **Surface Dark** (`surface-dark` — `#000000`): the alternate canvas for hero bands, footer, and full-bleed storytelling sections. Unchanged in dark mode.
+- **Surface Deep** (`surface-deep` — `#111111` / dark: `#0a0a0c`): a one-step-up elevation inside `surface-dark` regions for inset cards.
+- **Hairline** (`hairline` — `#f2f2f2` / dark: `#26262b`): the soft 1px divider between rows and borders on light surfaces.
+- **Hairline Strong** (`hairline-strong` — `#000000` / dark: `#3a3a40`): full-strength dividers and card/button outlines.
+- **Divider Dark** (`divider-dark` — `rgba(255,255,255,0.16)` / dark: `rgba(255,255,255,0.08)`): low-contrast divider inside `surface-dark` regions.
 
 ### Text
 
-- **Ink** (`{colors.ink}` — `#000000`): primary text colour on white surfaces. The same value also drives logos, icons, and outline borders — black is structural, not decorative.
-- **Body** (`{colors.body}` — `#222222`): secondary body text where pure black would feel too heavy in long paragraphs.
-- **Charcoal** (`{colors.charcoal}` — `#333333`): captions, metadata, and small labels.
-- **Mute** (`{colors.mute}` — `#666666`): supporting text and inactive nav labels.
-- **Ash** (`{colors.ash}` — `#8a8a8a`): placeholder text, disabled labels.
-- **Stone** (`{colors.stone}` — `#c4c4c4`): disabled-state foreground.
-- **On-Dark** (`{colors.on-dark}` — `#ffffff`): primary text on `{colors.surface-dark}` surfaces.
-- **On-Dark Mute** (`{colors.on-dark-mute}` — `rgba(255,255,255,0.72)`): secondary text in dark regions; preserves the brand's high-contrast feel without resorting to mid-grey.
+- **Ink** (`ink` — `#000000` / dark: `#e4e4e7`): primary text colour on light surfaces. Black is structural — it also drives icons, logos, and outline borders.
+- **Body** (`body` — `#222222` / dark: `#c0c0c6`): secondary body text where pure black feels too heavy in long paragraphs.
+- **Charcoal** (`charcoal` — `#333333` / dark: `#a1a1aa`): captions, metadata, and small labels.
+- **Mute** (`mute` — `#666666` / dark: `#787885`): supporting text and inactive nav labels.
+- **Ash** (`ash` — `#8a8a8a` / dark: `#565661`): placeholder text, disabled labels.
+- **Stone** (`stone` — `#c4c4c4` / dark: `#303036`): disabled-state foreground.
+- **On-Dark** (`on-dark` — `#ffffff`): primary text on `surface-dark` surfaces.
+- **On-Dark Mute** (`on-dark-mute` — `rgba(255,255,255,0.72)` / dark: `rgba(255,255,255,0.6)`): secondary text in dark regions.
 
 ### Semantic
 
-- **Error** (`{colors.error}` — `#be6464`): muted desaturated red used for inline form errors. Notably warmer than typical pure-red error states.
-- **Warning** (`{colors.warning}` — `#f0ad4e`): amber alert.
-- **Success** (`{colors.success}` — `#8dc572`): muted green confirmation.
-- **Info** (`{colors.info}` — `#337ab7`): a desaturated mid-blue used in informational chips.
-- **Link** (`{colors.link}` — `#0000ee`): the unstyled-anchor default kept for fallback inline text links — production links inherit `{colors.ink}` and rely on underline/weight rather than colour.
+- **Error** (`error` — `#be6464` / dark: `#d4818c`): muted desaturated red for inline form errors, danger buttons, and destructive actions.
+- **Warning** (`warning` — `#f0ad4e` / dark: `#d4a84b`): amber alert for confirmation dialogs.
+- **Success** (`success` — `#8dc572` / dark: `#89c47a`): muted green for success states and completion indicators.
+- **Info** (`info` — `#337ab7` / dark: `#6aacd9`): desaturated mid-blue for informational chips and badges.
+- **Link** (`link` — `#0000ee` / dark: `#82b0f5`): fallback underline colour for inline text links — production links inherit `ink` and rely on underline/weight rather than colour.
 
 ## Typography
 
 ### Font Family
 
-The entire system is set in **NouvelR**, Renault's proprietary display
-family, used across navigation, headlines, body, captions, and button
-labels. The family carries a slightly geometric, semi-condensed personality
-with tall x-heights and squared apexes that pair naturally with the diamond
-logomark.
+The entire system is set in **Inter Tight**, a geometric sans-serif with tall x-heights and squared apexes that pair naturally with the platform's high-contrast, academic tone. Inter Tight is loaded via `next/font/google` with `display: swap` and assigned to the `--font-sans` CSS variable.
 
-When NouvelR cannot be licensed, suitable open-source substitutes include
-**Inter Tight**, **Manrope**, or **HK Grotesk Semi Condensed** — all share
-the geometric-with-warmth feel and adapt cleanly to weights 400 / 600 / 700.
-Tighten `lineHeight` on display sizes to ~0.95 to match the original; do not
-relax it.
+Suitable open-source substitutes include **Manrope** or **HK Grotesk Semi Condensed** — all share the geometric character. Tighten `lineHeight` on display sizes to 0.95 to maintain the condensed look.
 
 ### Hierarchy
 
-| Token                     | Size   | Weight | Line Height | Letter Spacing | Use                                                                  |
-| ------------------------- | ------ | ------ | ----------- | -------------- | -------------------------------------------------------------------- |
-| `{typography.display-xl}` | 56px   | 700    | 0.95        | 0              | Hero headlines, campaign titles ("E-TECH ELEKTRİKLİ", "REVOLUTION"). |
-| `{typography.display-lg}` | 40px   | 700    | 0.95        | 0              | Secondary section titles.                                            |
-| `{typography.display-md}` | 32px   | 700    | 0.95        | 0              | Page-level H1 on sub-pages and configurator panels.                  |
-| `{typography.heading-lg}` | 24px   | 700    | 0.95        | 0              | Section headers, card titles.                                        |
-| `{typography.heading-md}` | 20px   | 700    | 0.95        | 0              | Sub-section headers, prominent labels.                               |
-| `{typography.heading-sm}` | 18px   | 700    | 1.0         | 0              | Tile titles, list group headers.                                     |
-| `{typography.subtitle}`   | 19.2px | 600    | 1.3         | 0              | Lead paragraphs, hero subtitles.                                     |
-| `{typography.body-lg}`    | 18px   | 400    | 1.5         | 0              | Long-form body.                                                      |
-| `{typography.body-md}`    | 16px   | 400    | 1.4         | 0              | Default body and form fields.                                        |
-| `{typography.body-sm}`    | 14px   | 400    | 1.57        | 0              | Captions, metadata.                                                  |
-| `{typography.button-lg}`  | 16px   | 700    | 1.0         | 0              | Large CTAs in hero bands.                                            |
-| `{typography.button-md}`  | 14.4px | 700    | 1.0         | 0.144px        | Default button label across the system.                              |
-| `{typography.button-sm}`  | 13px   | 600    | 1.2         | 0.13px         | Sub-nav pills, small in-card actions.                                |
-| `{typography.caption}`    | 12px   | 400    | 1.4         | 0              | Footer disclosure, regulatory text.                                  |
-| `{typography.overline}`   | 10px   | 700    | 1.45        | 0              | Short uppercase labels above titles.                                 |
+| Token            | Size   | Weight | Line Height | Letter Spacing | Use                                            |
+| ---------------- | ------ | ------ | ----------- | -------------- | ---------------------------------------------- |
+| `display-xl`     | 56px   | 700    | 0.95        | 0              | Hero headlines, landing page titles.           |
+| `display-lg`     | 40px   | 700    | 0.95        | 0              | Secondary section titles, program headers.     |
+| `display-md`     | 32px   | 700    | 0.95        | 0              | Page-level H1 on sub-pages and course headers. |
+| `heading-lg`     | 24px   | 700    | 0.95        | 0              | Section headers, card titles.                  |
+| `heading-md`     | 20px   | 700    | 0.95        | 0              | Sub-section headers, prominent labels.         |
+| `heading-sm`     | 18px   | 700    | 1.0         | 0              | Tile titles, list group headers, nav logo.     |
+| `subtitle`       | 19.2px | 600    | 1.3         | 0              | Lead paragraphs, hero subtitles.               |
+| `body-lg`        | 18px   | 400    | 1.5         | 0              | Long-form body.                                |
+| `body-md`        | 16px   | 400    | 1.4         | 0              | Default body and form fields.                  |
+| `body-sm`        | 14px   | 400    | 1.57        | 0              | Captions, metadata.                            |
+| `button-lg`      | 16px   | 700    | 1.0         | 0              | Large CTAs in hero bands.                      |
+| `button-md`      | 14.4px | 700    | 1.0         | 0.144px        | Default button label across the system.        |
+| `button-sm`      | 13px   | 600    | 1.2         | 0.13px         | Sub-nav pills, small in-card actions.          |
+| `caption`        | 12px   | 400    | 1.4         | 0              | Footer disclosure, regulatory text, timestamps.|
+| `overline`       | 10px   | 700    | 1.45        | 0              | Short uppercase labels above titles.           |
 
 ### Principles
 
-- Display sizes always weight 700, always at `lineHeight: 0.95`. The tightness is what makes the brand feel confident rather than corporate.
+- Display sizes always weight 700, always at `line-height: 0.95`. The tightness is what makes the brand feel confident rather than corporate.
 - Body copy stays at weight 400 — never 500. The contrast between body and display is part of the system.
-- Button labels carry a tiny positive letter-spacing (`0.144px` on `{typography.button-md}`) — almost imperceptible, but it adds the small bit of mechanical precision the brand wants on CTAs.
+- Button labels carry a tiny positive letter-spacing (`0.144px` on `button-md`) — almost imperceptible, but adds mechanical precision on CTAs.
 - No italics, no script, no decorative ligatures.
-
-### Note on Font Substitutes
-
-NouvelR is licensed; substitutes (Inter Tight / Manrope / HK Grotesk Semi
-Condensed) preserve the geometric character but typically render with
-slightly looser line heights at display sizes — clamp display
-`lineHeight` to 0.95 explicitly to match the source.
 
 ## Layout
 
 ### Spacing System
 
 - **Base unit**: 4px, with the working scale built on multiples of 4 and 8.
-- **Tokens**: `{spacing.xxs}` 4px · `{spacing.xs}` 8px · `{spacing.sm}` 12px · `{spacing.md}` 16px · `{spacing.lg}` 20px · `{spacing.xl}` 24px · `{spacing.xxl}` 32px · `{spacing.xxxl}` 40px · `{spacing.section}` 80px.
-- Section padding (full-bleed band → next band): `{spacing.section}` (80px) on desktop, collapsing to `{spacing.xxxl}` (40px) on mobile.
-- Promo-tile internal padding: `{spacing.xxl}` (32px) all sides on desktop.
-- Configurator row vertical padding: `{spacing.xl}` (24px) top/bottom with hairline divider between rows.
+- **Tokens**: `xxs` 4px · `xs` 8px · `sm` 12px · `md` 16px · `lg` 20px · `xl` 24px · `xxl` 32px · `xxxl` 40px · `section` 80px.
+- Section padding (full-bleed band to next band): `section` (80px) on desktop, collapsing to `xxxl` (40px) on mobile.
+- Card internal padding: `xxl` (32px) all sides.
+- Navbar height: 64px (`h-16`), sticky at the top.
 
 ### Grid & Container
 
-- **Max content width** ≈ 1440px. Beyond that, content remains centred and the dark/light bands extend full-bleed.
-- **Promo grid** on the homepage: a 2-column tile grid on desktop, dropping to 1-up on mobile. Each tile is square-cornered (`{rounded.none}`) with the photography or solid colour as the background.
-- **Vehicle range grids**: 3 to 4 cars per row at desktop, collapsing 2-up at tablet and 1-up at small mobile.
-- **Configurator** uses a fixed left visualisation pane (~60% width) with a right-hand scrolling option list (~40% width) on desktop.
+- **Max content width**: 1440px centred. Dark/light bands extend full-bleed beyond the container.
+- **Admin tabs, course grids**: responsive columns collapsing 3→2→1 across breakpoints.
+- **Sidebar layout** (course detail): fixed left sidebar (~280px) for module/chapter/lesson navigation with right content pane.
+
+### Application Shell
+
+The app uses Next.js route groups to compose layouts:
+
+- **Root layout** (`app/layout.tsx`): Inter Tight font, `ThemeProvider` (next-themes), `SessionProvider`, `AlertContainer`, `ConfirmDialog`.
+- **Auth group** (`app/(auth)/layout.tsx`): minimal wrapper — no navbar, no chat — for `/login` and `/forgot-password`.
+- **Main group** (`app/(main)/layout.tsx`): `Navbar` + `ChatSupport` wrapping all authenticated pages.
 
 ### Whitespace Philosophy
 
 - Whitespace is structural, not decorative. Sections are separated by colour-blocking (white → black) rather than soft padding ramps.
-- Inside cards and configurator rows, padding is generous but never airy — the brand is mass-market, so density is acceptable.
-- Hairline `{colors.hairline}` dividers on white surfaces create the sense of catalogue precision; on dark surfaces, `{colors.divider-dark}` carries the same role.
+- Inside cards and data tables, padding is generous but never airy — the platform serves dense information, so moderate density is acceptable.
+- Hairline `hairline` dividers on white surfaces create catalogue precision; on dark surfaces, `divider-dark` carries the same role.
+- Card headers use a `surface-soft` background with an `hairline` bottom border to visually separate the header from content.
 
 ## Elevation & Depth
 
-| Level                        | Treatment                                                                                        | Use                                                           |
-| ---------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------- |
-| 0 — flat                     | No shadow, no border                                                                             | Default page surface, full-bleed bands.                       |
-| 1 — outline                  | 1px solid `{colors.hairline-strong}` or `{colors.hairline}`                                      | Promo tiles on light, vehicle cards, configurator panels.     |
-| 2 — colour-blocked elevation | Surface colour shift (e.g. `{colors.canvas}` card sitting inside a `{colors.surface-soft}` band) | Configurator detail cards, related-content rows.              |
-| 3 — dark inversion           | Card swaps to `{colors.surface-dark}` against a `{colors.canvas}` band                           | "Ticari araç" hero promo tiles, lifestyle storytelling cards. |
+| Level                     | Treatment                                                                               | Use                                                              |
+| ------------------------- | --------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| 0 — flat                  | No shadow, no border                                                                    | Default page surface, full-bleed bands.                          |
+| 1 — outline               | 1px solid `hairline-strong` or `hairline`                                               | Cards, buttons, input borders, toolbar groups.                   |
+| 2 — colour-blocked        | Surface colour shift (e.g. `surface-soft` toolbar on `canvas` background)               | Rich text editor toolbar, alert headers, dialog headers.         |
+| 3 — dark inversion        | Card swaps to `surface-dark` against a `canvas` band                                    | Footer, hero bands, dark promo cards.                            |
+| 4 — overlay (modal)       | `shadow-[0_20px_60px_rgba(0,0,0,0.2)]` + scrim `bg-black/45`                           | Toast alerts, confirmation dialogs, dropdown menus.              |
 
-Drop shadows are extracted from the system but rarely visible on the marketing
-surfaces. When they appear, they are very subtle (~10% opacity, 2–4px blur)
-and used on floating elements like the configurator's sticky summary bar.
-
-### Decorative Depth
-
-- The R5 hero band uses an atmospheric mesh-gradient backdrop — purple-to-pink-to-yellow glow behind the car silhouette — that acts as the only true atmospheric depth in the system. Everywhere else, depth is structural (colour-blocking + outlines), not atmospheric.
-- E-TECH electric powertrain pages use a luminous magenta-to-violet gradient behind cutaway diagrams, reserved for the electric sub-brand.
+Drop shadows are rare. When they appear, they use a strong 20px blur at 20% opacity on floating elements like toasts, dialogs, and dropdowns — creating a sharp, modern overlay feel rather than a soft card shadow.
 
 ## Shapes
 
 ### Border Radius Scale
 
-| Token            | Value  | Use                                                              |
-| ---------------- | ------ | ---------------------------------------------------------------- |
-| `{rounded.none}` | 0px    | Tiles, vehicle cards, dividers, banner bands, full-bleed images. |
-| `{rounded.xs}`   | 2px    | Default buttons (primary yellow, secondary black, outline).      |
-| `{rounded.sm}`   | 3px    | Tab panels, small chips.                                         |
-| `{rounded.md}`   | 4px    | Form labels, inline tags.                                        |
-| `{rounded.pill}` | 46px   | Sub-nav pills, "yeni" / "NEW" badges, decorative carousel chips. |
-| `{rounded.full}` | 9999px | Configurator colour swatches, avatar dots.                       |
+| Token          | Value | Use                                                                   |
+| -------------- | ----- | --------------------------------------------------------------------- |
+| `radius-none`  | 0px   | Cards, promo tiles, image containers, input fields, navbar.           |
+| `radius-xs`    | 2px   | All button variants, image upload borders.                            |
+| `radius-sm`    | 3px   | Rich text editor toolbar buttons.                                     |
+| `radius-md`    | 4px   | Form labels, inline tags, alert container corners.                    |
+| `radius-pill`  | 46px  | Badges (all variants), sub-nav pills.                                 |
+| `radius-full`  | 9999px | Avatars, circular colour swatches, loading spinners.                  |
 
-### Photography Geometry
+### Photography & Imagery Geometry
 
-- Vehicle photography is **always square-cornered** (`{rounded.none}`). No rounded vehicle hero shots, no soft-edged car cards.
-- Aspect ratios cluster around **16:9** (hero bands), **1:1** (square promo tiles), and **4:3** (vehicle range cards). Lifestyle imagery sometimes runs **2:1 wide** for full-bleed bands.
-- Avatars and small profile cues — when present — use `{rounded.full}` circles to contrast with the otherwise square geometry.
+- Cover images and program photography are **always square-cornered** (`radius-none`). No rounded hero shots or soft-edged course cards.
+- Aspect ratios cluster around **16:9** (hero bands, course covers), **1:1** (avatar thumbnails), and **2:1** (landing page promo bands).
+- Avatars use `radius-full` circles to contrast with the otherwise square geometry. Initials fallback on a yellow `primary` background.
 
 ## Components
 
 ### Buttons
 
+The button system has five variants, all sharing `radius-xs` (2px) and `text-button-md` typography. Three sizes: `default` (h-12), `sm` (h-9), `lg` (h-14).
+
 **`button-primary`** — yellow CTA
 
-- Background `{colors.primary}`, label `{colors.on-primary}`, type `{typography.button-md}`, padding `14px 24px`, `rounded: {rounded.xs}`.
-- The single most important action on a page (e.g. "Hemen randevu al", "Hesapla", "Konfigüratörü başlat").
-- Pressed state lives in `button-primary-pressed` (background `{colors.primary-deep}`).
+- Background `primary`, label `on-primary`, `text-button-md`, padding `14px 24px`, `radius-xs`.
+- The single most important action on a page (e.g. "Get Started", "Submit", "Save Changes").
+- Hover/active: background `primary-deep`.
 
 **`button-secondary-dark`** — solid black CTA
 
-- Background `{colors.surface-dark}`, label `{colors.on-dark}`, type `{typography.button-md}`, `rounded: {rounded.xs}`.
-- Equal-weight secondary action paired with `{component.button-primary}`, or the primary action when used on a yellow tile background.
+- Background `surface-dark`, label `on-dark`, `text-button-md`, `radius-xs`.
+- Equal-weight secondary action paired with `button-primary`, or the primary action on a yellow tile background.
+- Hover: opacity 90%, active: opacity 80%.
 
-**`button-outline-dark`** — outlined CTA on light
+**`button-outline-dark`** — outlined CTA on light surfaces
 
-- Background `{colors.canvas}`, label `{colors.ink}`, 1px solid `{colors.hairline-strong}`, type `{typography.button-md}`, `rounded: {rounded.xs}`.
-- Tertiary action; appears alongside primary/secondary for "Detayları gör", "Modeller", etc.
+- Background `canvas`, label `ink`, 1px solid `hairline-strong`, `text-button-md`, `radius-xs`.
+- Tertiary action; appears alongside primary/secondary for "View Details", "Cancel", etc.
+- Hover: background `surface-soft`.
 
-**`button-outline-light`** — outlined CTA on dark
+**`button-outline-light`** — outlined CTA on dark surfaces
 
-- Background `{colors.surface-dark}`, label `{colors.on-dark}`, 1px solid `{colors.on-dark}`, type `{typography.button-md}`, `rounded: {rounded.xs}`.
-- The dark-canvas counterpart to `{component.button-outline-dark}`.
+- Background `surface-dark`, label `on-dark`, 1px solid `on-dark`, `text-button-md`, `radius-xs`.
+- The dark-canvas counterpart to `button-outline-dark`.
 
 **`button-pill`** — sub-nav chip
 
-- Background `{colors.canvas}`, label `{colors.ink}`, 1px solid `{colors.hairline-strong}`, type `{typography.button-sm}`, `rounded: {rounded.pill}`, height 36px.
-- The only place the system uses a pill — for top-level filter chips ("Servis & randevu", "Sahiplik dönemi geçişi", "Kampanyalar") and configurator tab switches.
+- Background `canvas`, label `ink`, 1px solid `hairline-strong`, `text-button-sm`, `radius-pill`, height 36px.
+- The only place the system uses a pill shape — for filter chips and tab switches.
 
 **`button-icon-square`** — small icon button
 
-- Background `{colors.canvas}`, 1px solid `{colors.hairline-strong}`, `rounded: {rounded.xs}`, 40×40px square.
-- Carousel arrows, share, language switcher.
+- Background `canvas`, 1px solid `hairline-strong`, `radius-xs`, 40×40px square.
+- Carousel arrows, close buttons, utility icon triggers.
 
 ### Cards & Containers
 
-**`promo-tile-light`** — white promo tile
+Three card variants share `radius-none` and `xxl` (32px) internal padding.
 
-- Background `{colors.canvas}`, text `{colors.ink}`, type `{typography.heading-lg}`, padding `{spacing.xxl}`, `rounded: {rounded.none}`.
-- Used in the homepage 2-up grid for "Hybrid araç modelleri", "binek araç satış kampanyaları" tiles.
+**`card-light`** — default card
 
-**`promo-tile-dark`** — black promo tile
+- Background `canvas`, text `ink`.
+- Used for: dashboard stat cards, course cards, admin data panels, form containers.
+- Sub-components: `CardHeader` (with `surface-soft` background + `hairline` bottom border + `xxl` horizontal / no bottom padding), `CardContent` (`xxl` padding all sides).
 
-- Background `{colors.surface-dark}`, text `{colors.on-dark}`, type `{typography.heading-lg}`, padding `{spacing.xxl}`, `rounded: {rounded.none}`.
-- Lifestyle / commercial-vehicle storytelling tiles ("ticari araç satış kampanyaları").
+**`card-dark`** — dark card
 
-**`promo-tile-yellow`** — accent promo tile
+- Background `surface-dark`, text `on-dark`.
+- Used for: dark promo tiles, footer content cards, storytelling panels.
 
-- Background `{colors.primary}`, text `{colors.on-primary}`, type `{typography.heading-lg}`, padding `{spacing.xxl}`, `rounded: {rounded.none}`.
-- The single "PARLAK SARI" / "Sunlight Yellow" attention tile that anchors a campaign band. Reserved — usually one per page maximum.
+**`card-yellow`** — accent card
 
-**`vehicle-card`** — car listing card
+- Background `primary`, text `on-primary`.
+- Used sparingly for: one accent tile per page, featured callout sections.
+- Yellow always pairs with black text — never white.
 
-- Background `{colors.canvas}`, full-bleed product photography on top, text below, `rounded: {rounded.none}`, no outer border.
-- Includes vehicle name (`{typography.heading-md}`), variant subtitle (`{typography.body-sm}`), and a single trailing arrow icon.
+### Badges
 
-**`hero-banner`** — full-bleed hero
+Six variants, all using `radius-pill`, `text-button-md`, padding `3.5px 14px`.
 
-- Background `{colors.surface-dark}` with full-bleed photo or atmospheric gradient, content stacked left, type `{typography.display-xl}` for the title.
-- "SCENIC E-TECH ELEKTRİKLİ" hero on the homepage.
+| Variant    | Style                                    | Use                                           |
+| ---------- | ---------------------------------------- | --------------------------------------------- |
+| `new`      | `bg-primary text-on-primary`             | "NEW" badges, featured labels.                |
+| `default`  | `bg-surface-soft text-charcoal`          | Role indicators, status labels.               |
+| `success`  | `bg-success/10 text-success`             | "Completed", "Approved" statuses.             |
+| `warning`  | `bg-warning/10 text-warning`             | "Pending", "In Progress" statuses.            |
+| `error`    | `bg-error/10 text-error`                 | "Rejected", "Failed" statuses.                |
+| `info`     | `bg-info/10 text-info`                   | Informational chips.                          |
 
-### Inputs & Forms
+### Avatar
 
-**`text-input`** — default input
+- Sizes: `sm` (32px), `md` (40px), `lg` (48px).
+- Always `radius-full` (circle).
+- If `src` provided: image with `object-cover`. If not: initials extraction (max 2 characters) on `primary` background with `on-primary` text, weight 700.
+- Used in navbar profile trigger, student/instructor lists, chat messages.
 
-- Background `{colors.canvas}`, text `{colors.ink}`, type `{typography.body-md}`, 1px bottom border `{colors.hairline-strong}`, `rounded: {rounded.none}`, padding `{spacing.sm} {spacing.md}`, height 48px.
-- Inputs intentionally minimal — borderless on top and sides, single hairline at the bottom — keeping the catalogue feel.
+### Progress
 
-### Configurator
+- Track: `h-2`, `bg-surface-soft`, `radius-none`.
+- Fill: `h-full`, `bg-primary`, animated `duration-300`.
+- Optional label below showing `value/max (percentage%)` in `caption`/`mute`.
 
-**`configurator-row`** — option list row
+### Alerts (Toast)
 
-- Background `{colors.canvas}`, separator hairline `{colors.hairline}` between rows, padding `{spacing.xl}` top/bottom, type `{typography.body-md}`.
-- Right-side scrolling list on the configurator: "kasa tipi", "motor seçimi", "versiyon seçimi", "renk seçenekleri", etc.
+Portal-based notification system via `toast()` function. Renders into `document.body` with `framer-motion` animations.
 
-**`configurator-swatch`** — circular colour pick
+- Position: fixed top-right, max-width 384px, gap 8px.
+- Animation: slide in from right (opacity + x + scale).
+- Auto-dismiss after 4 seconds.
+- Structure: header row (icon + uppercase bold title + close button) on `surface-soft` background, optional body message below.
+- Icons per variant: `success` → CheckCircle (text-success), `error` → AlertCircle (text-error), `warning` → AlertCircle (text-warning), `info` → Info (text-info).
+- Shadow: `shadow-[0_20px_60px_rgba(0,0,0,0.2)]` for strong overlay presence.
 
-- Background `{colors.surface-soft}` (or the actual car colour), `rounded: {rounded.full}`, 56×56px.
-- Used for paint colour selection. Active state adds a 1px solid `{colors.hairline-strong}` ring.
+### ConfirmDialog
+
+Portal-based confirmation modal via `confirm()` function. Renders into `document.body`.
+
+- Scrim: `bg-black/45`, centred grid.
+- Dialog: `canvas` background, `hairline` border, `shadow-[0_20px_60px_rgba(0,0,0,0.2)]`, max-width 28rem.
+- Header: `surface-soft` background, `hairline` bottom border, uppercase title + close button.
+- Body: icon container (40×40px, `hairline-strong` border, `surface-soft` background) + title + optional message.
+  - Danger variant: Trash2 icon in `error` colour, confirm button `bg-error text-white`.
+  - Default variant: AlertTriangle icon in `warning`, confirm button `bg-ink text-canvas`.
+- Footer: `hairline` top border, cancel (outline) + confirm (solid) buttons.
+- Loading state: spinner inside confirm button, disabled during async execution.
+- Body scroll locked while open.
+
+### ImageUpload
+
+Combined drag-and-drop + file picker + URL paste for cover images.
+
+- Aspect ratio configurable (default `aspect-[16/9]`).
+- Upload zone: 2px dashed border, `border-hairline-strong` idle → `border-ink` on drag.
+- Preview mode: fill container with hover overlay (Change / Remove buttons).
+- URL input section with hairline "or paste URL" divider.
+- Encodes files to Base64 data URIs.
+- Supports both `onChange` (value string) and `onFile` (base64) callbacks.
+
+### RichTextEditor
+
+Full WYSIWYG editor using `contentEditable` + `document.execCommand`. Designed for course lesson content creation.
+
+- Toolbar (on `surface-soft`): Bold, Italic, Underline; Font Size selector; Text Color picker; Alignment (left/center/right); Lists (bullet/numbered); Image insert; Video insert.
+- Editor area: min-h-[300px], max-h-[600px], scrollable, `text-body-md`, `text-ink`, placeholder via `data-placeholder` attribute.
+- Image insert: inline modal with file upload preview + URL paste. Inserts centered `<img>` with `max-width:100%`.
+- Video insert: YouTube URL detection (auto-embeds as responsive iframe) or direct `<video>` source.
+- Paste handling: strips formatting, inserts as plain text.
+
+### Input
+
+- Height: 48px (`h-12`). Border: single bottom hairline (`border-b border-hairline-strong`, `radius-none`).
+- Focus: bottom border thickens to 2px (`focus-visible:border-b-2`) and switches to `ink`.
+- Error: bottom border + caption text in `error` colour.
+- Placeholder: `text-ash`.
+- Optional label above in `text-body-sm text-charcoal`.
+- Disabled: cursor not-allowed, opacity 50%.
 
 ### Navigation
 
-**`nav-bar`** — top nav (desktop)
+**`navbar`** — top navigation bar
 
-- Background `{colors.canvas}`, type `{typography.button-md}`, height 60px, hairline `{colors.hairline}` bottom border.
-- Left: diamond logomark. Centre: top-level nav ("Modeller", "Hizmetler", "Renault Yaşamı", "MyRenault"). Right: language switcher + login icon.
+- Background `canvas`, `hairline` bottom border, height 64px (`h-16`), sticky at top (`sticky top-0 z-50`).
+- Left: app icon (28×28px) + "e-learning-msc" in `heading-sm` uppercase.
+- Centre: role-aware desktop nav links (hidden below `lg` breakpoint):
+  - Admin sees: Dashboard, Admin, Instructors, Students, LabPhase dropdown, My Courses.
+  - Non-admin sees: Dashboard, Teach dropdown, Students/My Students, LabPhase dropdown, My Courses.
+  - Teach dropdown: Attendance, One-to-One, Earnings, Online Sessions.
+  - LabPhase dropdown: Lab Phase List, Student Projects.
+- Right: role badge, theme toggle (Sun/Moon), avatar profile dropdown (Account Settings, Logout).
+- Mobile: `< `lg` breakpoint (1024px) collapses centre nav into hamburger menu; logo and right controls remain visible.
+- Dropdowns: `framer-motion` slide-down animation, `canvas` background, `hairline` border, minimum 180px width.
+- Outside click closes profile dropdown.
 
-**`nav-bar`** (mobile)
+**`sidebar-navigation`** — course content sidebar
 
-- Same height 60px, collapses centre nav into a hamburger icon. Logo stays left, login stays right.
+- Course content tree: modules → chapters → lessons.
+- Each lesson shows its type icon (FileText for lesson, CheckCircle for checkpoint, Video for workshop).
+- Search/filter capability.
+- Expandable/collapsible sections with `framer-motion` layout animations.
 
-**`sub-nav-pill`** — pill-style sub-nav
+**`chat-support`** — floating support widget
 
-- Pill chips set in a horizontal scroll bar between hero and content body (e.g. "Servis & randevu", "Sahiplik dönemi geçişi", "Kampanyalar"), `{component.button-pill}` styling.
+- Fixed position bottom-right.
+- Unread message counter badge.
+- Slide in/out animation via `framer-motion`.
+- Message history with mark-as-read functionality.
 
 ### Signature Components
 
-**`badge-new`** — "yeni" badge
+**`logo-spinner`** — loading indicator
 
-- Background `{colors.primary}`, label `{colors.on-primary}`, type `{typography.button-md}`, `rounded: {rounded.full}`, padding `6px 14px`.
-- Anchored on the bottom-left of new vehicle cards.
+- Animated spinning app logo with "Loading..." text.
+- Used in the splash/loader page.
 
-**`footer`** — global footer
+**`footer`** — landing page footer
 
-- Background `{colors.surface-dark}`, text `{colors.on-dark}`, type `{typography.body-sm}`, padding `64px 24px`.
-- Three-column legal/quick-links/locale grid above a single-line copyright row separated by `{colors.divider-dark}`.
+- Background `surface-dark`, text `on-dark` and `on-dark-mute`, padding `xxl` or `section`.
+- Column layout for links, copyright line at bottom with `divider-dark` separator.
+
+## Layout Patterns
+
+### Route Groups
+
+```
+app/
+├── layout.tsx           # Root: ThemeProvider + SessionProvider + Alert + Confirm
+├── (auth)/layout.tsx    # Minimal layout (no navbar)
+└── (main)/layout.tsx    # Navbar + ChatSupport wrapper
+```
+
+### Page Structure
+
+- **Landing page** (`/`): Server component. Hero section, e-learning description, capabilities grid, featured courses, footer.
+- **Program listing** (`/programs`): Server component. Full-bleed video hero, program cards.
+- **Program detail** (`/programs/[courseId]`): Server component. Curriculum outline, course info.
+- **Login** (`/login`): Client component. Credentials form + OAuth providers (Google, GitHub). Minimal auth layout.
+- **Dashboard** (`/dashboard`): Client component. Role-based: admin sees charts + management widgets; instructor sees guilds + attendance; student sees enrolled courses.
+- **Admin portal** (`/admin`): Client component. Five-tab interface: Users, Courses, Guilds, Messages, Categories. Each tab has its own CRUD table.
+- **Course editor** (`/admin/courses/new`, `/admin/courses/[id]`): Client component. Full hierarchical content builder with RichTextEditor.
+- **Course detail** (`/courses/[courseId]`): Client component. Sidebar navigation + content tabs (modules/chapters/lessons).
+
+### Responsive Breakpoints
+
+| Breakpoint   | Width     | Key Changes                                                                    |
+| ------------ | --------- | ------------------------------------------------------------------------------ |
+| Desktop      | ≥ 1280px  | Full layout, multi-column grids, side-by-side sidebars.                        |
+| Tablet       | 768–1279px | Reduced columns, sub-nav pills become horizontal scroll.                       |
+| Mobile       | ≤ 767px   | Nav collapses to hamburger, all grids 1-up, section padding reduces to 40px.  |
+
+## Data Flow
+
+- **Server Components** (landing, programs): Direct Mongoose queries via `connectToDatabase()`.
+- **Client Components** (dashboard, admin, courses): Fetch via API routes (`fetch('/api/...')`) + React state.
+- **API Routes**: Server-only, use `auth()` + `requireRole()` for authorization.
+- **Authentication**: NextAuth v5 (JWT strategy, 60-min max age). Custom callbacks inject `id` and `role` into token/session.
+- **Middleware**: Protects authenticated routes; redirects unauthenticated users to `/login`.
+
+## Design Tokens Reference
+
+All tokens are defined in `app/globals.css` using Tailwind v4 `@theme` directive. Use Tailwind utility classes directly (e.g. `bg-primary`, `text-body`, `rounded-xs`, `p-xxl`). The `cn()` utility from `@/lib/utils` composes `clsx` + `tailwind-merge` for conditional class merging.
 
 ## Do's and Don'ts
 
 ### Do
 
-- Reserve `{colors.primary}` exclusively for primary CTAs, "yeni"/"NEW" badges, and at most one accent promo tile per band — `{component.promo-tile-yellow}` is intentionally rare.
-- Pair `{colors.primary}` only with `{colors.on-primary}` text. Yellow + white is forbidden.
-- Set everything in **NouvelR** — no secondary serif, no script, no decorative italic.
-- Hold display headlines at `{typography.display-xl}` weight 700 with `lineHeight: 0.95` so they stack tightly on multi-line wraps.
-- Use `{rounded.xs}` (2px) on every standard button — the near-flat corner is part of the brand.
-- Switch full bands between `{colors.canvas}` and `{colors.surface-dark}` for storytelling rhythm. Avoid mid-greys as section backgrounds.
-- Show vehicle photography full-bleed inside `{component.vehicle-card}` with copy stacked beneath, never overlaid.
-- Use `{component.sub-nav-pill}` (`{rounded.pill}`) only for sub-nav and small filter rows — never for primary CTAs.
+- Reserve `primary` (yellow) exclusively for primary CTAs, "NEW" badges, avatar initials, and progress bars.
+- Pair `primary` only with `on-primary` text. Yellow + white is forbidden.
+- Set everything in **Inter Tight** (via the `font-sans` class) — no secondary serif, no script, no decorative italic.
+- Hold display headlines at weight 700 with `line-height: 0.95` so they stack tightly on multi-line wraps.
+- Use `radius-xs` (2px) on every standard button — the near-flat corner is part of the brand identity.
+- Switch full bands between `canvas` and `surface-dark` for storytelling rhythm. Avoid mid-greys as section backgrounds.
+- Use `radius-pill` only for badges and sub-nav pills — never for primary CTAs.
+- Use uppercase + bold for card headers, dialog titles, and alert titles to maintain consistent hierarchy.
+- Prefix the root layout with Tailwind v4 `@import "tailwindcss"` syntax (no `@tailwind` directives).
 
 ### Don't
 
-- Don't introduce a secondary accent colour. Yellow is the only brand accent; semantic colours (`{colors.error}`, `{colors.success}`, `{colors.warning}`) are functional, not decorative.
-- Don't round vehicle cards or promo tiles. Square-cornered photography is core to the brand expression.
+- Don't introduce a secondary accent colour. Yellow is the only brand accent; semantic colours (error, success, warning, info) are functional, not decorative.
+- Don't round cards or promo tiles. Square corners are core to the brand expression.
 - Don't soften body weights to 500 or 600 — the system relies on the 400 / 700 contrast.
-- Don't apply `{colors.primary}` to body text or large surfaces beyond the single accent tile per band.
-- Don't add atmospheric gradient washes outside the dedicated R5 / E-TECH hero contexts.
-- Don't pair light grey text on white. Body text steps through `{colors.body}`, `{colors.charcoal}`, `{colors.mute}` — `{colors.ash}` and `{colors.stone}` are reserved for placeholders and disabled states.
-- Don't add drop shadows to vehicle cards or promo tiles — the system is shadow-free at the catalogue level.
-
-## Responsive Behavior
-
-### Breakpoints
-
-| Name         | Width       | Key Changes                                                                                                                        |
-| ------------ | ----------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| Desktop XL   | ≥ 1440px    | Full max-width container, 3–4 column vehicle grid, 2-up promo tile grid.                                                           |
-| Desktop      | 1280–1439px | Same layout, container shrinks to viewport with `{spacing.xl}` side padding.                                                       |
-| Tablet Large | 1024–1279px | Vehicle grid drops to 3-up, configurator left/right panes resize to 55/45.                                                         |
-| Tablet       | 768–1023px  | Promo tile grid collapses to 2-up, sub-nav pills become horizontal scroll.                                                         |
-| Mobile Large | 426–767px   | Vehicle grid 2-up, configurator switches to stacked panes (visualisation on top, options below), nav collapses to hamburger.       |
-| Mobile       | ≤ 425px     | All grids 1-up, hero `{typography.display-xl}` clamps to ~40px, section padding `{spacing.section}` collapses to `{spacing.xxxl}`. |
-
-### Touch Targets
-
-- All buttons ship at minimum 44×44px on mobile; default `{component.button-primary}` is 48px tall, comfortably exceeding WCAG AAA.
-- `{component.sub-nav-pill}` (36px) is bumped to 40px tall on mobile via increased vertical padding.
-- `{component.button-icon-square}` (40px) sits at the WCAG AA minimum and remains tappable, but should grow to 44px when used as a primary navigation control.
-
-### Collapsing Strategy
-
-- Top-level nav collapses to hamburger at < 1024px; the logo and login icon stay anchored.
-- 2-up promo grid collapses to 1-up at < 768px; tile padding shrinks from `{spacing.xxl}` to `{spacing.lg}`.
-- Configurator switches from side-by-side to stacked at < 1024px, with the visualisation pinned to the top of the viewport on scroll.
-- Display headlines clamp: `{typography.display-xl}` 56px → 40px → 32px across the breakpoint ladder.
-- Sub-nav pills convert from a wrap row to a horizontal scroll-rail at < 768px.
-
-### Image Behavior
-
-- Vehicle photography is served at 1.5× and 2× DPR; below 768px, the system swaps to a portrait-oriented composition where art direction allows.
-- Hero atmospheric gradients (R5, E-TECH) load lazily after primary content; they are not blocking.
-- Lifestyle / commercial photography in `{component.promo-tile-dark}` keeps the same 16:9 framing across breakpoints, cropping inward rather than letterboxing.
+- Don't apply `primary` to body text or large surfaces beyond CTAs, badges, and the yellow card variant.
+- Don't pair light grey text on white. Body text steps through `body`, `charcoal`, `mute` — `ash` and `stone` are reserved for placeholders and disabled states.
+- Don't add drop shadows to cards or tiles — the system is shadow-free at the surface level; use colour blocking instead.
 
 ## Iteration Guide
 
-1. Focus on ONE component at a time. Most components share `{rounded.xs}`, `{colors.canvas}` / `{colors.surface-dark}`, and NouvelR — only the role-specific tokens (`{colors.primary}`, `{component.promo-tile-yellow}`) shift between variants.
-2. Reference component names and tokens directly (`{colors.primary}`, `{component.button-primary-pressed}`, `{rounded.pill}`) — do not paraphrase.
-3. Run `npx @google/design.md lint DESIGN.md` after edits; the orphaned-tokens warning will catch unused entries before they ship.
-4. Add new variants as separate entries (`-pressed`, `-disabled`, `-outline`) — do not bury them in prose.
-5. Default body type to `{typography.body-md}`; reach for `{typography.subtitle}` only on hero subtitles and lead paragraphs.
-6. Keep `{colors.primary}` scarce — if more than one yellow element appears per viewport, ask whether one of them should drop to `{colors.surface-dark}` or `{colors.canvas}` instead.
-
-## Known Gaps
-
-- Active/pressed visual states are not consistently observable in static surfaces; `button-primary-pressed` documents the extracted darkened-yellow value, but no other component has a pressed variant promoted to the YAML.
-- Drop-shadow values exist in the extracted tokens but are rarely surfaced visually; only the configurator's sticky summary bar uses them on the captured pages.
-- The MyRenault application surfaces (logged-in product) are out of scope for this extraction — only the public marketing canvas is documented.
-- Form-field focus styling is not extracted; the system likely relies on a thicker bottom border at `{colors.ink}`, but this is not visually confirmed on the captured pages.
+1. Focus on ONE component at a time. Most components share `radius-xs`, `canvas`/`surface-dark`, and Inter Tight — only the role-specific tokens (`primary`, card variants) shift.
+2. When adding new components, follow the existing patterns: use `cn()` for class composition, `framer-motion` for animations, Tailwind utility tokens from the `@theme` block.
+3. Default body type to `text-body-md`; reach for `text-subtitle` only on hero subtitles and lead paragraphs.
+4. Keep `primary` scarce — if more than one yellow element appears per viewport, ask whether one should drop to `surface-dark` or `canvas`.
+5. When adding a new page, place it in the appropriate route group (auth/main). If it needs auth protection, add its path to the middleware matcher in `proxy.ts`.

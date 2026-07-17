@@ -1,138 +1,243 @@
-Master Developer Prompt: Full-Stack Next.js E-Learning Platform (e-learning-msc)
+# e-learning-msc — Full-Stack Next.js E-Learning Platform
 
-1. Project Overview & Context
-   You are building a premium, modern, full-stack B2B/B2C E-Learning management system named e-learning-msc using Next.js 14+ (App Router). The application handles multi-tenant-like role spaces for three primary roles: Admin, Instructor, and Student.
+## 1. Project Overview
 
-The design architecture must strictly adhere to the premium design system guidelines specified in the root Design.md file (inspired by the clean, high-end corporate identity found in https://getdesign.md/renault/design-md).
+A premium three-role (admin, instructor, student) learning management system built with **Next.js 16 (App Router)**. The platform handles cohort-based education with modules, guilds, attendance tracking, lab phase project workflows, and role-aware dashboards.
 
-Core Tech Stack:
-Framework: Next.js (App Router, Server Actions, API Routes where necessary).
+### Core Tech Stack
 
-Styling: Tailwind CSS, Shadcn UI / Radix UI primitives, Aceternity UI, and Magic UI for high-fidelity animations and premium micro-interactions.
+| Layer          | Technology                                     |
+| -------------- | ---------------------------------------------- |
+| Framework      | Next.js 16 (App Router, API Routes, Middleware) |
+| Styling        | Tailwind CSS v4 (`@import "tailwindcss"`)       |
+| UI Components  | Custom-built primitives in `components/ui/`     |
+| Icons          | lucide-react                                   |
+| Database / ORM | MongoDB with Mongoose                          |
+| Authentication | NextAuth v5 (Credentials + Google + GitHub)    |
+| Forms          | react-hook-form + @hookform/resolvers + zod    |
+| Tables         | @tanstack/react-table                          |
+| Charts         | recharts                                       |
+| Animation      | framer-motion                                  |
+| Themes         | next-themes (dark/light)                       |
+| Font           | Inter Tight (next/font)                        |
 
-Icons: lucide-react.
+### Design System
 
-Database / ORM: MongoDB with Mongoose (or Prisma configured for MongoDB).
+The visual identity is defined in `Design.md` and implemented via Tailwind v4 `@theme` tokens in `globals.css`. Key characteristics:
 
-Authentication: NextAuth.js / Auth.js supporting Email/Password credentials and OAuth (Google/GitHub), implementing role-based routing guards.
+- **High-contrast, academic tone**: white canvas (`canvas`) for content, black canvas (`surface-dark`) for storytelling bands.
+- **Single accent colour**: Sunlight Yellow (`primary` #ffed00) reserved for CTAs, badges, avatar initials, progress bars.
+- **Typography**: Inter Tight exclusively — display weights at 700 (`line-height: 0.95`), body at 400.
+- **Geometry**: Square corners (`radius-none`) on cards, `radius-xs` (2px) on buttons, `radius-pill` only on badges.
+- **Dark mode**: Every colour token overridden via `.dark` class CSS custom properties.
 
-Tables: @tanstack/react-table for highly performant, filterable, and paginated data grids.
+## 2. Architecture
 
-2. Architecture & Database Schema
-   Generate the database schemas (MongoDB/Mongoose models) ensuring strict TypeScript typing across these core entities:
+### Route Groups
 
-User: id, name, email, password (hashed), avatar, role ('admin' | 'instructor' | 'student'), createdAt.
+```
+app/
+├── layout.tsx              # Root: Inter Tight font, ThemeProvider, SessionProvider, AlertContainer, ConfirmDialog
+├── globals.css             # Tailwind v4 + design tokens + dark mode overrides
+├── page.tsx                # Landing page (server component)
+├── loading.tsx             # Root loading state
+├── not-found.tsx           # 404 page
+├── sitemap.ts / robots.ts  # SEO
+│
+├── loader/page.tsx         # Splash/loader screen
+├── programs/page.tsx       # Public program listing
+├── programs/[courseId]/page.tsx  # Public program detail
+│
+├── (auth)/                 # Minimal layout (no navbar/chat)
+│   ├── layout.tsx
+│   ├── login/page.tsx
+│   └── forgot-password/page.tsx
+│
+├── (main)/                 # Authenticated layout (Navbar + ChatSupport)
+│   ├── layout.tsx
+│   ├── dashboard/page.tsx
+│   ├── profile/page.tsx
+│   ├── courses/page.tsx
+│   ├── courses/[courseId]/page.tsx
+│   ├── admin/page.tsx
+│   ├── admin/courses/new/page.tsx
+│   ├── admin/courses/[id]/page.tsx
+│   ├── students/page.tsx
+│   ├── instructors/page.tsx
+│   ├── teach/attendance/page.tsx
+│   ├── teach/one-to-one/page.tsx
+│   ├── teach/earnings/page.tsx
+│   ├── teach/online-sessions/page.tsx
+│   ├── labphase/lab-phase-list/page.tsx
+│   └── labphase/student-projects/page.tsx
+│
+└── api/                    # API routes
+    ├── auth/[...nextauth]/route.ts
+    ├── dashboard/route.ts
+    ├── students/route.ts
+    ├── instructors/route.ts
+    ├── projects/route.ts
+    ├── projects/[id]/route.ts
+    ├── user/profile/route.ts
+    ├── support/messages/route.ts
+    └── admin/
+        ├── dashboard/route.ts
+        ├── users/route.ts
+        ├── users/[id]/route.ts
+        ├── courses/route.ts
+        ├── courses/[id]/route.ts
+        ├── guilds/route.ts
+        ├── guilds/[id]/route.ts
+        ├── categories/route.ts
+        ├── categories/[id]/route.ts
+        ├── labphases/route.ts
+        ├── labphases/[id]/route.ts
+        └── labphases/[id]/approve/route.ts
+```
 
-Course: id, title, description, durationInMonths (Number), totalSessions (Number), content (Array of Modules containing Chapters, Lessons, and MDX/Rich Text content).
+### Data Flow
 
-Guild / Group: id, name (e.g., "Achilles Vengeance"), courseId (Ref to Course), instructorId (Ref to User), studentIds (Array of Refs to User), currentSession (Number), skillsTotal (Number), skillsAchieved (Number).
+- **Server Components** (landing, programs): Direct Mongoose queries via `connectToDatabase()`.
+- **Client Components** (dashboard, admin, courses): Fetch via API routes (`fetch('/api/...')`) + React state.
+- **API Routes**: Server-only, use `auth()` + `requireRole()` for authorization.
+- **Middleware** (`proxy.ts`): Protects authenticated routes; redirects unauthenticated users to `/login`.
 
-Attendance / Session Log: id, guildId, sessionNumber, date, records (Array of { studentId, status: 'present' | 'absent' | 'late' }).
+### Authentication & Authorization
 
-3. Global Navigation, Layout & Common Components
-   Global Navigation Bar (Top Navbar)
-   Left Section: App Branding (e-learning-msc) + Navigation Links:
+- NextAuth v5 (JWT strategy, 60-min session max age).
+- Providers: credentials (email/password), Google OAuth, GitHub OAuth.
+- Custom JWT/session callbacks inject `id` and `role` into the token.
+- `requireRole(...)` helper enforces role-based access on API routes.
+- Three roles: `admin`, `instructor`, `student`.
+- Navbar adapts links based on role.
 
-Dashboard (/dashboard)
+## 3. Database Models (Mongoose)
 
-Teach (Dropdown Menu): Attendance, One-to-One, Earnings, Online Sessions.
+All models use the singleton pattern (`mongoose.models.X ?? mongoose.model<X>('X', Schema)`).
 
-My Students (/students)
+### User
+- `name`, `email` (unique, lowercase), `phone`, `password` (select: false), `avatar`, `role` (enum: admin/instructor/student)
+- Indexes: `createdAt`, `role + createdAt`
+- Timestamps: true
 
-LabPhase (Dropdown Menu): Lab Phase List, Student Projects.
+### Course
+- `title`, `description`, `coverImage`, `price`, `active` (default: true), `durationInMonths`, `totalSessions`, `category`, `content` (nested array)
+- Content structure: `Module[]` → each Module has `title` + `Chapter[]` → each Chapter has `title` + `Lesson[]` → each Lesson has `title`, `content` (rich HTML), `type` (lesson/checkpoint/workshop)
+- Index: `createdAt`
 
-My Courses (/courses)
+### Category
+- `name` (unique, trimmed)
+- Timestamps: true
 
-Right Section: Dark mode toggle widget + User Profile Avatar Component.
+### Guild
+- `name`, `courseId` (ref Course), `instructorId` (ref User), `studentIds[]` (ref User), `currentSession`, `skillsTotal`, `skillsAchieved`
+- Indexes: `createdAt`, `instructorId + createdAt`, `studentIds`
 
-Profile Dropdown Menu: Clicking the avatar opens a Shadcn drop-menu displaying user summary metadata, an "Account Settings" button, a "Switch Hackespace" selection tier, and a "Logout" option featuring a clean LogOut icon.
+### SessionLog
+- `guildId` (ref Guild), `sessionNumber`, `date`, `records[]` (embedded: `studentId`, `status`: present/absent/late)
+- Timestamps: true
 
-Global Intercom-Style Chat Support Button
-Fixed at the bottom right corner across all authenticated routes.
+### LabPhase
+- `title`, `description`, `instructions`, `duration`, `image`, `category`, `status` (pending/approved/rejected), `createdBy` (ref User), `rejectionReason`
+- Indexes: `createdAt`, `status + createdAt`, `createdBy + createdAt`
 
-Triggers an expanding premium slide-over or micro-modal component for live customer support, mimicking the GOMYCODE assistant layout.
+### ProjectApplication
+- `studentId` (ref User), `labPhaseId` (ref LabPhase), `guildId` (ref Guild), `status` (pending/approved/in_progress/completed/rejected)
+- Step validation sub-documents: `presentation` (url, score, validated), `gitRepo`, `deployment`, `finalGrade`
+- Indexes: `studentId + createdAt`, `labPhaseId`
 
-4. UI Page Specifications & Feature Breakdown
-   A. Authentication Pages (/login, /forgot-password)
-   Visuals: Premium minimalist split screen. Left side features an organic Magic UI/Aceternity grid animation or abstract geometric shape highlighting the platform's focus; right side contains the clean login block.
+### Message
+- `name`, `email`, `userId`, `message`, `isAdmin` (boolean), `read` (boolean)
+- Indexes: `createdAt`, `email + createdAt`
 
-Inputs: Credentials block with field validation for Email and Password. Include a "Forgot Password?" hyperlink.
+## 4. Key Pages & Features
 
-OAuth Integration: A clean horizontal divider leading to Google and GitHub authentication buttons using Radix primitives.
+### Public Pages
+- **Landing** (`/`): Hero, e-learning section, capabilities grid, featured courses, footer.
+- **Programs** (`/programs`): Full-bleed video hero, program cards.
+- **Program Detail** (`/programs/[courseId]`): Curriculum outline.
+- **Login** (`/login`): Credentials form + OAuth providers. Minimal auth layout.
+- **Forgot Password** (`/forgot-password`): Password reset request form.
 
-B. Main Dashboard (/dashboard)
-Replicate the exact modular structure from the provided reference dashboard image:
+### Authenticated Pages (all under `(main)` layout)
 
-Metric Grid Area:
+#### Dashboard (`/dashboard`)
+Role-based rendering:
+- **Admin**: User distribution chart (PieChart), courses by category (BarChart), course status, guilds per course.
+- **Instructor**: Guild progress cards, attendance overview, student count.
+- **Student**: Enrolled courses, guild progress, session tracking.
 
-Card 1 (Personal Performance Tracker): Left side displays standard percentage scores (e.g., Detractors, Passive, Promoters); right side features a high-end circular progress/radial rating badge displaying a composite score (e.g., 88/100).
+#### Admin Portal (`/admin`)
+Five-tab interface: Users, Courses, Guilds, Messages, Categories.
+- **Users tab**: Full CRUD table for all users.
+- **Courses tab**: Course listing with create/edit links.
+- **Guilds tab**: Guild CRUD with course/instructor assignment.
+- **Messages tab**: Support conversations grouped by email.
+- **Categories tab**: Category management.
 
-Card 2: Graduated Students Count.
+#### Course Management
+- **My Courses** (`/courses`): Enrolled courses listing.
+- **Course Detail** (`/courses/[courseId]`): Sidebar navigation (modules → chapters → lessons) + content tabs.
+- **Course Editor** (`/admin/courses/new`, `/admin/courses/[id]`): Hierarchical content builder with RichTextEditor.
+- **Public Program Listing** (`/programs`): All courses with video hero.
+- **Public Program Detail** (`/programs/[courseId]`): Course curriculum overview.
 
-Card 3: Active Total Students Count.
+#### Teach Section
+- **Attendance** (`/teach/attendance`): Session attendance grid per guild.
+- **One-to-One** (`/teach/one-to-one`): Session booking interface.
+- **Earnings** (`/teach/earnings`): Earnings analytics with bar chart.
+- **Online Sessions** (`/teach/online-sessions`): Session listing.
 
-Card 4: Total Managed Guilds.
+#### Lab Phase Section
+- **Lab Phase List** (`/labphase/lab-phase-list`): CRUD + approval workflow for lab phases.
+- **Student Projects** (`/labphase/student-projects`): Project applications with step validation (presentation → git repo → deployment → final grade).
 
-Card 5: Average Presence/Attendance Percentage Rate.
+#### Support
+- **Chat Widget**: Fixed bottom-right, message history, unread badge.
+- **Admin Messages Tab**: Conversation management in admin portal.
 
-Active Programs / Cohorts Section:
+#### Profile (`/profile`)
+Account settings: name, phone, avatar, password change.
 
-A full-width structured container displaying active courses (e.g., "15-Month Software Engineering program"). Shows key stats: active guilds, total students trained, and a "Preview Course" or "Track Details" link.
+## 5. UI Component Library
 
-Live Cohort Tracker Card (e.g., "Achilles Vengeance"):
+All custom-built — no external UI libraries.
 
-Displays current progress bar ("Session 54/194"), total skills tracking metrics ("5583 of 9210 Skills"), progress completion badge percentage, and stacked profile avatar indicators for enrolled members.
+| Component     | Location                  | Variants / Features                                             |
+| ------------- | ------------------------- | --------------------------------------------------------------- |
+| Button        | `components/ui/button.tsx` | primary, secondary-dark, outline-dark, outline-light, pill, icon-square; sizes: default/sm/lg |
+| Input         | `components/ui/input.tsx` | Label, error state, bottom-border style                          |
+| Badge         | `components/ui/badge.tsx` | new, default, success, warning, error, info                     |
+| Card          | `components/ui/card.tsx`  | light, dark, yellow; CardHeader + CardContent sub-components     |
+| Avatar        | `components/ui/avatar.tsx` | Image or initials fallback; sizes: sm/md/lg                     |
+| Progress      | `components/ui/progress.tsx` | Animated bar with optional label                                 |
+| Alert (Toast) | `components/ui/alert.tsx` | Portal-based `toast()`; success/error/warning/info; auto-dismiss |
+| ConfirmDialog | `components/ui/confirm-dialog.tsx` | Portal-based `confirm()`; danger/default variants         |
+| ImageUpload   | `components/ui/image-upload.tsx` | Drag-and-drop + file picker + URL paste; configurable aspect ratio |
+| RichTextEditor| `components/ui/rich-text-editor.tsx` | contentEditable WYSIWYG; bold/italic/underline, alignment, lists, images, videos |
+| Navbar        | `components/shared/navbar.tsx` | Role-aware links, theme toggle, avatar dropdown, mobile hamburger |
+| ChatSupport   | `components/shared/chat-support.tsx` | Floating widget, message history, unread badge          |
+| SidebarNavigation | `components/shared/sidebar-navigation.tsx` | Course content tree (modules → chapters → lessons) |
+| SessionProvider| `components/shared/session-provider.tsx` | NextAuth SessionProvider wrapper                      |
+| LogoSpinner   | `components/shared/logo-spinner.tsx` | Animated loading indicator                               |
 
-Sidebar Quick Elements (Right Column):
+## 6. Design Conventions
 
-Session Scheduler Widget: Highlighting current/upcoming active sessions with a prominent, styled "Join Session" primary button action.
+- All components use `'use client'` (except landing, programs, and loader pages which are server components with some client sub-components).
+- Class composition via `cn()` utility (`clsx` + `tailwind-merge`) from `@/lib/utils`.
+- Icons from `lucide-react`, animations from `framer-motion`.
+- Portal-based modals (`Alert`, `ConfirmDialog`) via `createPortal` into `document.body`.
+- Barrel exports in `components/ui/index.ts` and `components/shared/index.ts`.
+- Path alias `@/*` maps to project root.
+- All interactive elements use `cursor-pointer` explicitly.
+- Dark mode via `next-themes` with CSS custom property overrides.
 
-Tasks Board Widget: Zero-state placeholder tracker or checklist interface.
+## 7. Coding Directives
 
-My Students High-Performance List: A vertical stack listing student names, avatar thumbnails, current programs, and dynamic color-coded percentage status indicators (e.g., Green = 100%, Orange/Blue = Mid-tier, Red = Critical Risk).
-
-C. Dropdown Routes & Specialty Pages
-Teach Menu Pages:
-
-/teach/attendance: Interface leveraging TanStack Table to log student attendance records per session dynamically.
-
-/teach/one-to-one: Session booking calendar UI for individual student-instructor syncs.
-
-/teach/earnings & /teach/online-sessions: Financial trackers and virtual room entry links.
-
-LabPhase Menu Pages:
-
-/labphase/lab-phase-list & /labphase/student-projects: Project submission boards and milestone tracking views.
-
-D. Deep-Dive Course Experience View (/courses/[courseId])
-Replicate the comprehensive multi-layered documentation and learning workspace layout from the course reference image:
-
-Main Navigation Sidebar (Far Left): Thin iconic app drawer displaying: Overview, Course, Saved, Resources, One to One, Checkpoint, Workshop, Report Content.
-
-Sub-Navigation Sidebar (Secondary Left Panel): Collapsible panel containing a top dynamic search input bar (Search SuperSkill name...). Below, a fully hierarchical, interactive Accordion/Tree system displaying Course Modules (e.g., Introduction to Problem Solving, Practical Software Engineering, Front End UI UX Development). Modules expand to expose specific lesson nodes, checkpoint logs, and icon badges.
-
-Central Content Stage Canvas:
-
-Top Tab Navigation Bar toggling between Courses, Assessment, and These Resources Can Help You.
-
-Clean Rich-Text/MDX workspace displaying structural headers, typography blocks, bold highlight spans, inline links, and high-fidelity callout elements.
-
-Bottom Navigation Controls: A clean, sticky footer boundary containing clear Previous and Next navigation action buttons.
-
-E. Admin Portal & User Management /admin (Crucial Backend Mechanics)
-User Management Control Room: Built entirely using @tanstack/react-table with multi-tier sorting, global search queries, and filter badges. Allows full CRUD capabilities for creating and managing Student and Instructor accounts.
-
-Course Creator Engine: Multi-step wizard panel to design new training paths, establish explicit durations in months, dictate the exact required session volume, and compose nested module schemas.
-
-Guild Assignment Console: A drag-and-drop workspace where admins can bundle batches of student nodes into defined Guild groupings, map them cleanly onto an established target Course framework, and designate a primary Instructor handler.
-
-5. Coding Instructions & Code Quality Directives
-   Directory Layout: Follow standard Next.js clean App Router architectures (/app, /components/ui for primitives, /components/shared for compound business components, /models for database layer).
-
-Styling Rules: Ensure component token patterns cleanly synchronize with the aesthetic patterns dictated in Design.md. Use premium animations (framer-motion) responsibly for transitions, drop menus, and interactive triggers.
-
-TypeScript Execution: Zero use of any. Explicitly type all React functional components (React.FC or standard typed arguments), Server Action payloads, and API returns.
-
-Hydration & State Protection: Secure structural checkpoints ensuring layout uniformity between server render sequences and client-side component execution hydration points.
-
-Generate the initial structural setup, core components, and state management files based on these comprehensive instructions.
+- **TypeScript**: Strict typing throughout. No `any`. All props interfaces exported.
+- **No external UI libraries**: No Shadcn, Radix, Aceternity, or Magic UI. Build everything from the custom primitives.
+- **Design tokens**: Use Tailwind utility classes from the `@theme` block in `globals.css` (e.g. `bg-primary`, `text-body`, `rounded-xs`, `p-xxl`).
+- **API routes**: Always use `auth()` + `requireRole()` for protected endpoints.
+- **Server data fetching**: Use `connectToDatabase()` singleton for Mongoose connections.
+- **Client data fetching**: Use standard `fetch('/api/...')` with error handling.
+- **New pages** requiring auth: Add path to middleware matcher in `proxy.ts`.
