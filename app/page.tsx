@@ -34,6 +34,56 @@ export default async function LandingPage() {
           <ExpandableCardDemo />
         </div>
       </section>
+      <section className="bg-surface-dark py-20 md:py-28">
+        <div className="max-w-[1440px] mx-auto px-6">
+          <p className="text-[10px] font-bold text-on-dark uppercase mb-3 tracking-[0.2em]">GET IN TOUCH</p>
+          <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-on-dark mb-12">
+            LET&apos;S CONNECT
+          </h2>
+          <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
+            <div className="w-full md:w-1/2">
+              <Image
+                src="/images/world.svg"
+                alt="World map"
+                width={2000}
+                height={857}
+                className="w-full h-auto object-contain opacity-80"
+              />
+            </div>
+            <div className="w-full md:w-1/2 flex flex-col gap-8">
+              <div>
+                <h3 className="text-2xl font-bold uppercase text-on-dark mb-4 leading-[0.95]">
+                  CONTACT US
+                </h3>
+                <p className="text-[16px] font-normal leading-[1.6] text-on-dark-mute max-w-[500px]">
+                  We&apos;d love to hear from you. Reach out through any of the
+                  channels below and we&apos;ll get back to you promptly.
+                </p>
+              </div>
+              <div className="flex flex-col gap-4">
+                <a
+                  href="https://wa.me/212649455082"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 text-on-dark-mute hover:text-on-dark transition-colors no-underline"
+                >
+                  <MessageSquare className="w-5 h-5 text-primary" />
+                  <span className="text-[16px] font-normal">+212 649 455 082</span>
+                </a>
+                <a
+                  href="mailto:contact@e-learning-msc.com"
+                  className="inline-flex items-center gap-3 text-on-dark-mute hover:text-on-dark transition-colors no-underline"
+                >
+                  <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span className="text-[16px] font-normal">contact@e-learning-msc.com</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
       <ComponentE_Footer />
       <ComponentF_SupportWidget />
     </>
@@ -382,7 +432,7 @@ function ComponentF_SupportWidget() {
       href="https://wa.me/212649455082"
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-6 right-6 z-50 rounded-full h-12 w-12 bg-surface-dark border border-divider-dark flex items-center justify-center text-on-dark shadow-md hover:bg-surface-deep transition-all"
+      className="fixed bottom-6 right-6 z-50 rounded-full h-12 w-12 bg-primary-deep border border-divider-dark flex items-center justify-center text-on-dark shadow-md hover:bg-surface-deep transition-all"
       aria-label="Contact us on WhatsApp"
     >
       <MessageSquare className="w-5 h-5" />

@@ -96,7 +96,7 @@ export default function ExpandableCardDemo() {
                     layoutId={`button-${active.title}-${id}`}
                     href={active.ctaLink}
                     target="_blank"
-                    className="bg-ink text-on-primary text-button-md font-bold uppercase tracking-[0.144px] py-3 px-6 hover:opacity-70 transition-opacity no-underline"
+                    className="bg-primary-deep text-on-primary text-button-md font-bold uppercase tracking-[0.144px] py-3 px-6 hover:opacity-70 transition-opacity no-underline"
                   >
                     {active.ctaText}
                   </motion.a>
