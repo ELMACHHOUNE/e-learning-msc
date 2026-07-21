@@ -108,16 +108,8 @@ function getAuthInstance(): NextAuthInstance {
   return nextAuthInstance
 }
 
-export const handlers = {
-  GET: (req: Request) => getAuthInstance().handlers.GET(req),
-  POST: (req: Request) => getAuthInstance().handlers.POST(req),
-}
-
-export const auth = (...args: Parameters<NextAuthInstance['auth']>) => getAuthInstance().auth(...args)
-
-export const signIn = (...args: Parameters<NextAuthInstance['signIn']>) => getAuthInstance().signIn(...args)
-
-export const signOut = (...args: Parameters<NextAuthInstance['signOut']>) => getAuthInstance().signOut(...args)
+const instance = getAuthInstance()
+export const { handlers, auth, signIn, signOut } = instance
 
 export async function getCurrentUser() {
   const session = await auth()

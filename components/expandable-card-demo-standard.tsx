@@ -2,6 +2,7 @@
 
 import React, { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { ArrowRight } from "lucide-react";
 import { useOutsideClick } from "@/hooks/use-outside-click";
 
 export default function ExpandableCardDemo() {
@@ -38,13 +39,13 @@ export default function ExpandableCardDemo() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 h-full w-full z-10"
+            className="fixed inset-0 bg-black/60 h-full w-full z-10"
           />
         )}
       </AnimatePresence>
       <AnimatePresence>
         {active && typeof active === "object" ? (
-          <div className="fixed inset-0 grid place-items-center z-[100]">
+          <div className="fixed inset-0 grid place-items-center z-[100] p-6">
             <motion.button
               key={`button-${active.title}-${id}`}
               layout
@@ -54,7 +55,7 @@ export default function ExpandableCardDemo() {
                 opacity: 0,
                 transition: { duration: 0.05 },
               }}
-              className="flex absolute top-2 right-2 lg:hidden items-center justify-center bg-white  h-6 w-6"
+              className="flex absolute top-4 right-4 items-center justify-center bg-ink text-on-dark h-8 w-8 hover:opacity-70 transition-opacity"
               onClick={() => setActive(null)}
             >
               <CloseIcon />
@@ -62,30 +63,30 @@ export default function ExpandableCardDemo() {
             <motion.div
               layoutId={`card-${active.title}-${id}`}
               ref={ref}
-              className="w-full max-w-[500px] h-full md:h-fit md:max-h-[90%] flex flex-col bg-white dark:bg-neutral-900  overflow-hidden"
+              className="w-full max-w-[600px] h-full md:h-fit md:max-h-[90%] flex flex-col bg-canvas border border-hairline overflow-hidden"
             >
               <motion.div layoutId={`image-${active.title}-${id}`}>
                 <img
-                  width={200}
-                  height={200}
+                  width={600}
+                  height={338}
                   src={active.src}
                   alt={active.title}
-                  className="w-full h-80 lg:h-80  object-cover object-top"
+                  className="w-full aspect-[16/9] object-cover"
                 />
               </motion.div>
 
-              <div>
-                <div className="flex justify-between items-start p-4">
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-6">
                   <div>
                     <motion.h3
                       layoutId={`title-${active.title}-${id}`}
-                      className="font-bold text-neutral-700 dark:text-neutral-200"
+                      className="text-heading-sm text-ink font-700 uppercase leading-[1]"
                     >
                       {active.title}
                     </motion.h3>
                     <motion.p
                       layoutId={`description-${active.description}-${id}`}
-                      className="text-neutral-600 dark:text-neutral-400"
+                      className="text-body-sm text-mute mt-1"
                     >
                       {active.description}
                     </motion.p>
@@ -95,18 +96,18 @@ export default function ExpandableCardDemo() {
                     layoutId={`button-${active.title}-${id}`}
                     href={active.ctaLink}
                     target="_blank"
-                    className="px-4 py-3 text-sm  font-bold bg-green-500 text-white"
+                    className="bg-ink text-on-primary text-button-md font-bold uppercase tracking-[0.144px] py-3 px-6 hover:opacity-70 transition-opacity no-underline"
                   >
                     {active.ctaText}
                   </motion.a>
                 </div>
-                <div className="pt-4 relative px-4">
+                <div className="relative">
                   <motion.div
                     layout
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="text-neutral-600 text-xs md:text-sm lg:text-base h-40 md:h-fit pb-10 flex flex-col items-start gap-4 overflow-auto dark:text-neutral-400 [mask:linear-gradient(to_bottom,white,white,transparent)] [scrollbar-width:none] [-ms-overflow-style:none] [-webkit-overflow-scrolling:touch]"
+                    className="text-body-md text-body leading-[1.4] h-40 md:h-fit pb-10 overflow-auto [mask:linear-gradient(to_bottom,black,black,transparent)] [scrollbar-width:none]"
                   >
                     {typeof active.content === "function"
                       ? active.content()
@@ -118,48 +119,45 @@ export default function ExpandableCardDemo() {
           </div>
         ) : null}
       </AnimatePresence>
-      <ul className="max-w-2xl mx-auto w-full gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
         {cards.map((card) => (
           <motion.div
             layoutId={`card-${card.title}-${id}`}
             key={`card-${card.title}-${id}`}
             onClick={() => setActive(card)}
-            className="p-4 flex flex-col md:flex-row justify-between items-center hover:bg-neutral-50 dark:hover:bg-neutral-800  cursor-pointer"
+            className="border border-hairline bg-canvas flex flex-col group hover:border-ink transition-colors cursor-pointer"
           >
-            <div className="flex gap-4 flex-col md:flex-row">
+            <div className="relative w-full aspect-[16/9] overflow-hidden bg-surface-soft">
               <motion.div layoutId={`image-${card.title}-${id}`}>
                 <img
-                  width={100}
-                  height={100}
+                  width={400}
+                  height={225}
                   src={card.src}
                   alt={card.title}
-                  className="h-40 w-40 md:h-14 md:w-14 object-cover object-top"
+                  className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500"
                 />
               </motion.div>
-              <div>
-                <motion.h3
-                  layoutId={`title-${card.title}-${id}`}
-                  className="font-bold text-neutral-700 dark:text-olive-950 text-center md:text-left"
-                >
-                  {card.title}
-                </motion.h3>
-                <motion.p
-                  layoutId={`description-${card.description}-${id}`}
-                  className="text-body dark:text-neutral-400 text-center md:text-left"
-                >
-                  {card.description}
-                </motion.p>
+            </div>
+            <div className="p-6 flex flex-col flex-1">
+              <motion.h3
+                layoutId={`title-${card.title}-${id}`}
+                className="text-heading-sm text-ink font-700 uppercase leading-[1] mb-2"
+              >
+                {card.title}
+              </motion.h3>
+              <motion.p
+                layoutId={`description-${card.description}-${id}`}
+                className="text-body-sm text-mute mb-4"
+              >
+                {card.description}
+              </motion.p>
+              <div className="inline-flex items-center gap-2 text-button-md font-bold uppercase tracking-[0.144px] text-ink group-hover:opacity-70 transition-opacity mt-auto">
+                View Details <ArrowRight className="w-4 h-4" />
               </div>
             </div>
-            <motion.button
-              layoutId={`button-${card.title}-${id}`}
-              className="px-4 py-2 text-sm  font-bold bg-gray-100 hover:bg-green-500 hover:text-white text-black mt-4 md:mt-0"
-            >
-              {card.ctaText}
-            </motion.button>
           </motion.div>
         ))}
-      </ul>
+      </div>
     </>
   );
 }
@@ -182,7 +180,7 @@ export const CloseIcon = () => {
       strokeWidth="2"
       strokeLinecap="round"
       strokeLinejoin="round"
-      className="h-4 w-4 text-black"
+      className="h-5 w-5"
     >
       <path stroke="none" d="M0 0h24v24H0z" fill="none" />
       <path d="M18 6l-12 12" />
@@ -224,7 +222,7 @@ const cards = [
           React is the industry-standard library for building user interfaces.
           Version 19 introduces enhanced concurrent features, improved server
           components, and a streamlined hook API. This platform leverages
-          React's component model to create a cohesive, maintainable UI
+          React&apos;s component model to create a cohesive, maintainable UI
           architecture where each piece—from navigation to course cards—is a
           reusable building block.
         </p>
@@ -279,7 +277,7 @@ const cards = [
       return (
         <p>
           MongoDB provides a flexible, document-oriented database that scales
-          naturally with the platform's data model. Mongoose acts as the ODM
+          naturally with the platform&apos;s data model. Mongoose acts as the ODM
           layer, enforcing schema validation and providing a rich query API.
           Together they power the course catalog, user management, attendance
           tracking, and project submission pipelines that form the backbone of
