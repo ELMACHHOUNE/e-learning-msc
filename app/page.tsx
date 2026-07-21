@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ShieldAlert, Terminal, MessageSquare, User, ArrowRight } from "lucide-react";
 import { auth } from "@/lib/auth";
+import ExpandableCardDemo from "@/components/expandable-card-demo-standard";
 import { connectToDatabase } from "@/lib/db";
 import Course from "@/models/Course";
 
@@ -24,6 +25,15 @@ export default async function LandingPage() {
       <ComponentB1_ElearningSection />
       <ComponentC_Capabilities />
       <ComponentD_Courses courses={courses} />
+      <section className="py-20 md:py-28" style={{ backgroundColor: '#ededed' }}>
+        <div className="max-w-[1440px] mx-auto px-6">
+          <p className="text-[10px] font-bold text-ink uppercase mb-3 tracking-[0.2em]">TECHNOLOGY STACK</p>
+          <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-ink mb-12">
+            BUILT WITH MODERN TECHNOLOGIES
+          </h2>
+          <ExpandableCardDemo />
+        </div>
+      </section>
       <ComponentE_Footer />
       <ComponentF_SupportWidget />
     </>
@@ -368,13 +378,14 @@ function ComponentE_Footer() {
 
 function ComponentF_SupportWidget() {
   return (
-    <div className="fixed bottom-6 right-6 z-50">
-      <button
-        className="rounded-full h-12 w-12 bg-surface-dark border border-divider-dark flex items-center justify-center text-on-dark shadow-md hover:bg-surface-deep transition-all cursor-pointer"
-        aria-label="Open support chat"
-      >
-        <MessageSquare className="w-5 h-5" />
-      </button>
-    </div>
+    <a
+      href="https://wa.me/212649455082"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="fixed bottom-6 right-6 z-50 rounded-full h-12 w-12 bg-surface-dark border border-divider-dark flex items-center justify-center text-on-dark shadow-md hover:bg-surface-deep transition-all"
+      aria-label="Contact us on WhatsApp"
+    >
+      <MessageSquare className="w-5 h-5" />
+    </a>
   );
 }
