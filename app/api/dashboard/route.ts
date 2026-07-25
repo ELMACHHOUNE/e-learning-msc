@@ -39,17 +39,15 @@ export async function GET() {
         { $group: { _id: '$category', count: { $sum: 1 } } },
         { $project: { name: '$_id', count: 1, _id: 0 } },
         { $sort: { count: -1 } },
+        { $limit: 20 },
       ]),
-      Course.aggregate([
-        {
-          $group: {
-            _id: null,
-            active: { $sum: { $cond: [{ $or: [{ $eq: ['$active', true] }, { $eq: ['$active', undefined] }] }, 1, 0] } },
-            inactive: { $sum: { $cond: [{ $eq: ['$active', false] }, 1, 0] } },
-          },
-        },
-        { $project: { _id: 0 } },
-      ]),
+      (async () => {
+        const [active, inactive] = await Promise.all([
+          Course.countDocuments({ $or: [{ active: true }, { active: { $exists: false } }] }),
+          Course.countDocuments({ active: false }),
+        ])
+        return { active, inactive }
+      })(),
       Guild.aggregate([
         { $group: { _id: '$courseId', count: { $sum: 1 } } },
         {
@@ -72,7 +70,7 @@ export async function GET() {
       ]),
     ])
 
-    const courseStatus = courseStatusAgg[0] ?? { active: totalCourses, inactive: 0 }
+    const courseStatus = Array.isArray(courseStatusAgg) ? courseStatusAgg[0] ?? { active: totalCourses, inactive: 0 } : courseStatusAgg
 
     return NextResponse.json({
       role: 'admin',

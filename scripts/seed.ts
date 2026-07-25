@@ -2,6 +2,7 @@ import mongoose from 'mongoose'
 import bcrypt from 'bcryptjs'
 import User from '@/models/User'
 import Course from '@/models/Course'
+import CourseContent from '@/models/CourseContent'
 import Guild from '@/models/Guild'
 import SessionLog from '@/models/SessionLog'
 import LabPhase, { type LabPhaseDocument } from '@/models/LabPhase'
@@ -66,8 +67,8 @@ async function main() {
   )
   console.log(`✓ ${students.length} students created`)
 
-  // ── Courses with full content structure (no frontend-only `id` fields) ──
-  const coursesData: Array<{
+  // ── Courses with full content structure ──
+  const coursesContentData: Array<{
     title: string
     description: string
     active: boolean
@@ -362,8 +363,18 @@ async function main() {
     },
   ]
 
-  const courses = await Course.create(coursesData)
+  const courses = await Course.create(
+    coursesContentData.map(({ content, ...c }) => ({ ...c, moduleCount: content.length }))
+  )
   console.log(`✓ ${courses.length} courses created`)
+
+  await CourseContent.create(
+    courses.map((course, i) => ({
+      courseId: course._id,
+      content: coursesContentData[i].content,
+    }))
+  )
+  console.log(`✓ ${courses.length} course content entries created`)
 
   // ── Guilds ──
   const guildsData: Array<{

@@ -30,7 +30,8 @@ export interface ICourse {
   durationInMonths: number
   totalSessions: number
   category?: Category
-  content: IModule[]
+  content?: IModule[]
+  moduleCount?: number
   createdAt: Date | string
 }
 

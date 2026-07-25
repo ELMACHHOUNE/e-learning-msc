@@ -47,6 +47,7 @@ interface CourseData {
   totalSessions: number;
   category?: string;
   content?: unknown[];
+  moduleCount?: number;
   createdAt?: string;
 }
 interface CategoryData {

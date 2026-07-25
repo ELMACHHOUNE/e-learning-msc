@@ -21,7 +21,7 @@ export default async function ProgramsPage() {
             price: 1,
             durationInMonths: 1,
             totalSessions: 1,
-            moduleCount: { $size: '$content' },
+            moduleCount: { $ifNull: ['$moduleCount', { $size: { $ifNull: ['$content', []] } }] },
           },
         },
       ])

@@ -10,7 +10,7 @@ export default async function LandingPage() {
   const [session, courses] = await Promise.all([
     auth(),
     connectToDatabase().then(() =>
-      Course.find({ active: { $ne: false } })
+      Course.find({ $or: [{ active: true }, { active: { $exists: false } }] })
         .select('title description coverImage price durationInMonths totalSessions')
         .sort({ createdAt: -1 })
         .limit(6)

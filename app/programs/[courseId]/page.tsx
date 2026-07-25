@@ -4,6 +4,19 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, BookOpen, Layers, Calendar } from "lucide-react";
 import { connectToDatabase } from "@/lib/db";
 import Course from "@/models/Course";
+import CourseContent from "@/models/CourseContent";
+
+interface ContentModule {
+  title: string
+  chapters: Array<{
+    title: string
+    lessons: Array<{
+      title: string
+      content: string
+      type: 'lesson' | 'checkpoint' | 'workshop'
+    }>
+  }>
+}
 
 export default async function ProgramDetailPage({
   params,
@@ -13,13 +26,20 @@ export default async function ProgramDetailPage({
   const { courseId } = await params;
   await connectToDatabase();
 
-  const course = await Course.findOne({ _id: courseId, active: { $ne: false } }).lean();
+  const [course, courseContent] = await Promise.all([
+    Course.findOne({ _id: courseId, active: { $ne: false } })
+      .select('title description coverImage price active durationInMonths totalSessions category moduleCount createdAt')
+      .lean(),
+    CourseContent.findOne({ courseId }).lean(),
+  ]);
   if (!course) notFound();
 
-  const totalLessons = course.content.reduce(
-    (sum: number, m: { chapters: { lessons: unknown[] }[] }) =>
+  const content: ContentModule[] = courseContent?.content ?? [];
+  const moduleCount = course.moduleCount ?? content.length;
+  const totalLessons = content.reduce(
+    (sum, m) =>
       sum + m.chapters.reduce(
-        (s: number, c: { lessons: unknown[] }) => s + (c.lessons?.length ?? 0),
+        (s, c) => s + (c.lessons?.length ?? 0),
         0,
       ),
     0,
@@ -82,9 +102,9 @@ export default async function ProgramDetailPage({
           </div>
           <div className="w-px h-8 bg-hairline" />
           <div className="flex items-center gap-3">
-            <Layers className="w-5 h-5 text-mute" />
+              <Layers className="w-5 h-5 text-mute" />
             <div>
-              <p className="text-heading-sm text-ink font-700">{course.content.length}</p>
+              <p className="text-heading-sm text-ink font-700">{moduleCount}</p>
               <p className="text-caption text-mute">Modules</p>
             </div>
           </div>
@@ -124,7 +144,7 @@ export default async function ProgramDetailPage({
           </h2>
 
           <div className="grid gap-4">
-            {course.content.map((module: { title: string; chapters: { title: string; lessons: { type: string; title: string }[] }[] }, mi: number) => (
+            {content.map((module, mi) => (
               <div key={mi} className="border border-hairline bg-canvas overflow-hidden">
                 <div className="bg-surface-soft px-6 py-4 border-b border-hairline">
                   <div className="flex items-center justify-between">
@@ -132,18 +152,18 @@ export default async function ProgramDetailPage({
                       Module {mi + 1}: {module.title}
                     </h3>
                     <span className="text-caption text-mute">
-                      {module.chapters.reduce((s: number, c: { lessons: unknown[] }) => s + (c.lessons?.length ?? 0), 0)} lessons
+                      {module.chapters.reduce((s, c) => s + (c.lessons?.length ?? 0), 0)} lessons
                     </span>
                   </div>
                 </div>
                 <div className="divide-y divide-hairline">
-                  {module.chapters.map((chapter: { title: string; lessons: { type: string; title: string }[] }, ci: number) => (
+                  {module.chapters.map((chapter, ci) => (
                     <div key={ci} className="px-6 py-3">
                       <p className="text-body-sm font-600 text-charcoal mb-2">
                         {chapter.title}
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {chapter.lessons?.map((lesson: { type: string; title: string }, li: number) => (
+                        {chapter.lessons?.map((lesson, li) => (
                           <span
                             key={li}
                             className={`text-caption uppercase tracking-[0.08em] font-bold px-2 py-0.5 rounded-[2px] ${
@@ -179,7 +199,7 @@ export default async function ProgramDetailPage({
               Ready to Start This Journey?
             </p>
             <p className="text-body-md text-on-primary/80 mt-4">
-              {course.content.length} modules &middot; {totalLessons} lessons &middot; {course.totalSessions} sessions
+              {moduleCount} modules &middot; {totalLessons} lessons &middot; {course.totalSessions} sessions
             </p>
           </div>
           <a

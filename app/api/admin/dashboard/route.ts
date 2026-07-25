@@ -36,7 +36,7 @@ export async function GET(req: Request) {
 
   if (!tab || tab === 'courses') {
     const courses = await Course.find()
-      .select('-content')
+      .select('title description coverImage price active durationInMonths totalSessions category moduleCount createdAt')
       .sort({ createdAt: -1 })
       .limit(100)
       .lean()
@@ -50,6 +50,7 @@ export async function GET(req: Request) {
       durationInMonths: c.durationInMonths,
       totalSessions: c.totalSessions,
       category: c.category,
+      moduleCount: c.moduleCount,
       createdAt: c.createdAt,
     }))
   }

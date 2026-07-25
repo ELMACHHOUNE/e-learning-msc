@@ -20,7 +20,7 @@ export default function CoursesPage() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/admin/courses')
+    fetch('/api/courses')
       .then((r) => r.json())
       .then((data) => {
         if (Array.isArray(data)) setCourses(data)
