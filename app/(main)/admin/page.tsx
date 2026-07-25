@@ -497,7 +497,7 @@ export default function AdminPage() {
     }
   }
 
-  function openEdit(type: "user" | "course" | "guild", id: string) {
+  function openEdit(type: "user" | "course" | "guild" | "category", id: string) {
     setEditId(id);
     if (type === "user") {
       const u = users.find((x) => x.id === id);
@@ -538,6 +538,12 @@ export default function AdminPage() {
         studentIds: g.studentIds,
       });
       setModal("guild");
+    }
+    if (type === "category") {
+      const c = categories.find((x) => x.id === id);
+      if (!c) return;
+      setFormCategory({ name: c.name });
+      setModal("category");
     }
   }
 
@@ -625,8 +631,11 @@ export default function AdminPage() {
       toast({ variant: 'error', title: 'Category name is required' })
       return
     }
-    const res = await fetch("/api/admin/categories", {
-      method: "POST",
+    const isEdit = !!editId
+    const url = isEdit ? `/api/admin/categories/${editId}` : "/api/admin/categories";
+    const method = isEdit ? "PUT" : "POST";
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ name: formCategory.name.trim() }),
     });
@@ -635,7 +644,8 @@ export default function AdminPage() {
       toast({ variant: 'error', title: 'Failed to save category', message: err.error });
       return;
     }
-    toast({ variant: 'success', title: 'Category created' });
+    toast({ variant: 'success', title: isEdit ? 'Category updated' : 'Category created' });
+    setEditId(null);
     setModal(null);
     loadedTabs.current.delete('categories')
     loadedTabs.current.delete('courses')
@@ -962,12 +972,21 @@ export default function AdminPage() {
                       <td className="px-lg py-md text-body-sm text-mute">{cat.courses}</td>
                       <td className="px-lg py-md text-body-sm text-mute">{cat.labPhases}</td>
                       <td className="px-lg py-md text-right">
-                        <button
-                          onClick={() => deleteCategory(cat.id)}
-                          className="text-mute hover:text-error bg-transparent border-none cursor-pointer p-1"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            variant="outline-dark"
+                            size="sm"
+                            onClick={() => openEdit("category", cat.id)}
+                          >
+                            Edit
+                          </Button>
+                          <button
+                            onClick={() => deleteCategory(cat.id)}
+                            className="text-mute hover:text-error bg-transparent border-none cursor-pointer p-1"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1368,7 +1387,7 @@ export default function AdminPage() {
       <Modal
         open={modal === "category"}
         onClose={() => setModal(null)}
-        title="Create Category"
+        title={editId ? "Edit Category" : "Create Category"}
       >
         <div className="space-y-4">
           <div>
@@ -1379,7 +1398,6 @@ export default function AdminPage() {
               type="text"
               value={formCategory.name}
               onChange={(e) => setFormCategory((p) => ({ ...p, name: e.target.value }))}
-              placeholder="e.g. Cloud Computing"
               className="w-full border border-hairline-strong bg-canvas text-ink text-body-md px-4 py-2 rounded-[2px] outline-none focus:border-ink"
             />
           </div>
@@ -1388,7 +1406,7 @@ export default function AdminPage() {
               Cancel
             </Button>
             <Button variant="primary" onClick={saveCategory}>
-              <Save className="w-4 h-4 mr-1" /> Create
+              <Save className="w-4 h-4 mr-1" /> Save
             </Button>
           </div>
         </div>

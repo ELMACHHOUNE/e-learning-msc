@@ -7,7 +7,7 @@ import { Upload, Trash2 } from 'lucide-react'
 interface ImageUploadProps {
   value: string
   onChange: (url: string) => void
-  onFile?: (base64: string) => void
+  folder?: string
   aspectRatio?: string
   className?: string
 }
@@ -15,11 +15,12 @@ interface ImageUploadProps {
 export function ImageUpload({
   value,
   onChange,
-  onFile,
+  folder = 'general',
   aspectRatio = 'aspect-[16/9]',
   className = '',
 }: ImageUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
+  const [loading, setLoading] = useState(false)
   const [dragging, setDragging] = useState(false)
 
   function encodeFile(file: File): Promise<string> {
@@ -33,9 +34,23 @@ export function ImageUpload({
 
   async function handleFile(file: File) {
     if (!file.type.startsWith('image/')) return
+    setLoading(true)
     const b64 = await encodeFile(file)
-    if (onFile) onFile(b64)
-    onChange(b64)
+    try {
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: b64, folder }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        onChange(data.url)
+      }
+    } catch {
+      // Silently fail — the old image (if any) stays
+    } finally {
+      setLoading(false)
+    }
   }
 
   function handleDragOver(e: DragEvent) {
@@ -97,16 +112,27 @@ export function ImageUpload({
           onDrop={handleDrop}
           onClick={() => inputRef.current?.click()}
           className={`relative w-full ${aspectRatio} border-2 border-dashed transition-colors flex flex-col items-center justify-center gap-2 cursor-pointer ${
-            dragging
-              ? 'border-ink bg-surface-soft'
-              : 'border-hairline-strong bg-canvas hover:bg-surface-soft'
+            loading
+              ? 'opacity-50 pointer-events-none'
+              : dragging
+                ? 'border-ink bg-surface-soft'
+                : 'border-hairline-strong bg-canvas hover:bg-surface-soft'
           }`}
         >
-          <Upload className="w-8 h-8 text-mute" />
-          <p className="text-body-sm text-mute">
-            Drag & drop or click to upload
-          </p>
-          <p className="text-caption text-charcoal">PNG, JPG, WebP</p>
+          {loading ? (
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-6 h-6 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+              <p className="text-body-sm text-mute">Uploading…</p>
+            </div>
+          ) : (
+            <>
+              <Upload className="w-8 h-8 text-mute" />
+              <p className="text-body-sm text-mute">
+                Drag & drop or click to upload
+              </p>
+              <p className="text-caption text-charcoal">PNG, JPG, WebP</p>
+            </>
+          )}
         </div>
       )}
 

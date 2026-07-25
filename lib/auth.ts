@@ -76,12 +76,17 @@ function getAuthInstance(): NextAuthInstance {
         signIn: '/login',
       },
       callbacks: {
-        jwt({ token, user }) {
+        jwt({ token, user, trigger, session }) {
+          const typedToken = token as typeof token & AuthToken
           if (user) {
-            const typedToken = token as typeof token & AuthToken
             typedToken.id = String(user.id)
             typedToken.role = user.role
             typedToken.picture = user.image ?? undefined
+          }
+          if (trigger === 'update' && session) {
+            if (session.name) typedToken.name = session.name
+            if (session.image) typedToken.picture = session.image
+            if (session.email) typedToken.email = session.email
           }
           return token
         },

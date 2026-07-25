@@ -8,6 +8,14 @@ import { Camera, Save, Eye, EyeOff } from "lucide-react";
 import LogoSpinner from "@/components/shared/logo-spinner";
 import { toast } from "@/components/ui/alert";
 
+interface SessionUser {
+  id: string;
+  name: string;
+  email: string;
+  image?: string;
+  role: string;
+}
+
 function getSafeSessionImage(image?: string | null) {
   if (!image) return undefined;
   if (image.startsWith("data:")) return undefined;
@@ -25,7 +33,7 @@ interface ProfileData {
 }
 
 export default function ProfilePage() {
-  const { status, update } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -33,11 +41,14 @@ export default function ProfilePage() {
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [avatarPreview, setAvatarPreview] = useState<string | null>(null);
+  const [avatarUploading, setAvatarUploading] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const sessionUser = session?.user as SessionUser | undefined;
 
   useEffect(() => {
     if (status === "unauthenticated") {
@@ -52,18 +63,35 @@ export default function ProfilePage() {
           setProfile(data);
           setName(data.name);
           setPhone(data.phone ?? "");
-          setAvatarPreview(data.avatar ?? null);
+          if (data.avatar) setAvatarPreview(data.avatar);
         });
     }
   }, [status, router]);
 
-  const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setAvatarUploading(true);
     const reader = new FileReader();
-    reader.onload = () => {
-      setAvatarPreview(reader.result as string);
+    reader.onload = async () => {
+      const b64 = reader.result as string;
+      try {
+        const res = await fetch('/api/upload', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: b64, folder: 'avatars' }),
+        });
+        const data = await res.json();
+        if (data.url) {
+          setAvatarPreview(data.url);
+        }
+      } catch {
+        toast({ variant: 'error', title: 'Upload failed', message: 'Could not upload avatar' });
+      } finally {
+        setAvatarUploading(false);
+      }
     };
+    reader.onerror = () => setAvatarUploading(false);
     reader.readAsDataURL(file);
   };
 
@@ -76,7 +104,7 @@ export default function ProfilePage() {
     setSaving(true);
 
     const body: Record<string, unknown> = { name, phone };
-    if (avatarPreview && avatarPreview.startsWith("data:")) {
+    if (avatarPreview) {
       body.avatar = avatarPreview;
     }
     if (currentPassword && newPassword) {
@@ -107,7 +135,7 @@ export default function ProfilePage() {
     }
   };
 
-  if (status === "loading" || !profile) return <LogoSpinner />
+  if (status === "loading") return <LogoSpinner />
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -121,27 +149,33 @@ export default function ProfilePage() {
             Profile Picture
           </h2>
           <div className="flex items-center gap-6">
-            <div className="relative w-20 h-20 rounded-full overflow-hidden bg-surface-soft">
-              {avatarPreview ? (
-                <Image
-                  src={avatarPreview}
-                  alt="Avatar"
-                  fill
-                  sizes="80px"
-                  className="object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center bg-primary text-on-primary text-heading-sm font-700">
-                  {profile.name.charAt(0).toUpperCase()}
-                </div>
-              )}
-            </div>
+              <div className="relative w-20 h-20 rounded-full overflow-hidden bg-surface-soft">
+                {avatarPreview ? (
+                  <Image
+                    src={avatarPreview}
+                    alt="Avatar"
+                    fill
+                    sizes="80px"
+                    className="object-cover"
+                    unoptimized
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center bg-primary text-on-primary text-heading-sm font-700">
+                    {(profile?.name ?? sessionUser?.name ?? '?').charAt(0).toUpperCase()}
+                  </div>
+                )}
+              </div>
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 border border-hairline-strong bg-canvas text-ink text-button-sm font-bold uppercase py-2 px-4 rounded-xs hover:bg-surface-soft transition-colors cursor-pointer"
+              disabled={avatarUploading}
+              className="flex items-center gap-2 border border-hairline-strong bg-canvas text-ink text-button-sm font-bold uppercase py-2 px-4 rounded-xs hover:bg-surface-soft transition-colors disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
-              <Camera className="w-4 h-4" />
-              Upload Photo
+              {avatarUploading ? (
+                <div className="w-4 h-4 border-2 border-ink border-t-transparent rounded-full animate-spin" />
+              ) : (
+                <Camera className="w-4 h-4" />
+              )}
+              {avatarUploading ? 'Uploading…' : 'Upload Photo'}
             </button>
             <input
               ref={fileInputRef}
@@ -176,7 +210,7 @@ export default function ProfilePage() {
               </label>
               <input
                 type="email"
-                value={profile.email}
+                value={profile?.email ?? sessionUser?.email ?? ''}
                 disabled
                 className="w-full border border-hairline bg-surface-soft text-mute text-body-md px-4 py-2.5 rounded-xs cursor-not-allowed"
               />
@@ -199,7 +233,7 @@ export default function ProfilePage() {
               <input
                 type="text"
                 value={
-                  profile.role.charAt(0).toUpperCase() + profile.role.slice(1)
+                  (profile?.role ?? sessionUser?.role ?? '').charAt(0).toUpperCase() + (profile?.role ?? sessionUser?.role ?? '').slice(1)
                 }
                 disabled
                 className="w-full border border-hairline bg-surface-soft text-mute text-body-md px-4 py-2.5 rounded-xs cursor-not-allowed"
