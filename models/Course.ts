@@ -35,6 +35,8 @@ const CourseSchema = new Schema<CourseDocument>(
 )
 
 CourseSchema.index({ createdAt: -1 })
+CourseSchema.index({ category: 1 })
+CourseSchema.index({ active: 1, createdAt: -1 })
 
 const Course: Model<CourseDocument> = mongoose.models.Course ?? mongoose.model<CourseDocument>('Course', CourseSchema)
 

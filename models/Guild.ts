@@ -27,6 +27,7 @@ const GuildSchema = new Schema<GuildDocument>(
 GuildSchema.index({ createdAt: -1 })
 GuildSchema.index({ instructorId: 1, createdAt: -1 })
 GuildSchema.index({ studentIds: 1 })
+GuildSchema.index({ courseId: 1 })
 
 const Guild: Model<GuildDocument> = mongoose.models.Guild ?? mongoose.model<GuildDocument>('Guild', GuildSchema)
 

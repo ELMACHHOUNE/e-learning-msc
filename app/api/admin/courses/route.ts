@@ -6,8 +6,12 @@ import Course from '@/models/Course'
 export async function GET() {
   await requireRole('admin')
   await connectToDatabase()
-  const courses = await Course.find().sort({ createdAt: -1 })
-  return NextResponse.json(courses.map((c) => ({ id: c._id.toString(), title: c.title, description: c.description, coverImage: c.coverImage, price: c.price, active: c.active, durationInMonths: c.durationInMonths, totalSessions: c.totalSessions, category: c.category, content: c.content, createdAt: c.createdAt })))
+  const courses = await Course.find()
+    .select('-content')
+    .sort({ createdAt: -1 })
+    .limit(100)
+    .lean()
+  return NextResponse.json(courses.map((c) => ({ id: c._id.toString(), title: c.title, description: c.description, coverImage: c.coverImage, price: c.price, active: c.active, durationInMonths: c.durationInMonths, totalSessions: c.totalSessions, category: c.category, createdAt: c.createdAt })))
 }
 
 export async function POST(req: Request) {

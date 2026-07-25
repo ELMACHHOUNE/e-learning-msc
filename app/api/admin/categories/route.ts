@@ -5,11 +5,23 @@ import Category from '@/models/Category'
 import Course from '@/models/Course'
 import LabPhase from '@/models/LabPhase'
 
-export async function GET() {
+export async function GET(req: Request) {
   await requireRole('admin')
   await connectToDatabase()
 
+  const { searchParams } = new URL(req.url)
+  const simple = searchParams.get('simple') === 'true'
+
   const categories = await Category.find().sort({ name: 1 }).lean()
+
+  if (simple) {
+    return NextResponse.json({
+      categories: categories.map((c) => ({
+        id: c._id.toString(),
+        name: c.name,
+      })),
+    })
+  }
 
   const courseCounts = await Course.aggregate([
     { $group: { _id: '$category', count: { $sum: 1 } } },

@@ -6,7 +6,13 @@ import Guild from '@/models/Guild'
 export async function GET() {
   await requireRole('admin')
   await connectToDatabase()
-  const guilds = await Guild.find().populate('courseId instructorId studentIds').sort({ createdAt: -1 })
+  const guilds = await Guild.find()
+    .populate('courseId', 'title')
+    .populate('instructorId', 'name')
+    .populate('studentIds', 'name')
+    .sort({ createdAt: -1 })
+    .limit(100)
+    .lean()
   return NextResponse.json(guilds.map((g) => ({
     id: (g._id as { toString(): string }).toString(),
     name: (g as { name: string }).name,

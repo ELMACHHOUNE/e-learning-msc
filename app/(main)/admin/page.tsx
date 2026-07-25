@@ -485,14 +485,13 @@ export default function AdminPage() {
         studentIds: [],
       });
       setStudentSearch("");
-      fetch("/api/admin/users")
-        .then((r) => r.json())
-        .then((data) => {
-          setAllInstructors(
-            data.filter((u: UserData) => u.role === "instructor"),
-          );
-          setAllStudents(data.filter((u: UserData) => u.role === "student"));
-        });
+      Promise.all([
+        fetch("/api/admin/users?role=instructor").then((r) => r.json()),
+        fetch("/api/admin/users?role=student").then((r) => r.json()),
+      ]).then(([instructors, students]) => {
+        setAllInstructors(instructors);
+        setAllStudents(students);
+      });
       setModal("guild");
     }
   }
@@ -523,14 +522,13 @@ export default function AdminPage() {
     if (type === "guild") {
       const g = guilds.find((x) => x.id === id);
       if (!g) return;
-      fetch("/api/admin/users")
-        .then((r) => r.json())
-        .then((data) => {
-          setAllInstructors(
-            data.filter((u: UserData) => u.role === "instructor"),
-          );
-          setAllStudents(data.filter((u: UserData) => u.role === "student"));
-        });
+      Promise.all([
+        fetch("/api/admin/users?role=instructor").then((r) => r.json()),
+        fetch("/api/admin/users?role=student").then((r) => r.json()),
+      ]).then(([instructors, students]) => {
+        setAllInstructors(instructors);
+        setAllStudents(students);
+      });
       setStudentSearch("");
       setFormGuild({
         name: g.name,

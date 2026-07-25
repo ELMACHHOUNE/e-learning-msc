@@ -7,7 +7,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   await requireRole('admin')
   const { id } = await params
   await connectToDatabase()
-  const course = await Course.findById(id)
+  const course = await Course.findById(id).lean()
   if (!course) return NextResponse.json({ error: 'Not found' }, { status: 404 })
   return NextResponse.json({
     id: course._id.toString(),

@@ -21,32 +21,43 @@ export async function GET() {
     const students = await User.find({ role: 'student' })
       .select('-password')
       .sort({ createdAt: -1 })
+      .limit(200)
       .lean()
 
-    const enriched = await Promise.all(
-      students.map(async (s) => {
-        const guilds = await Guild.find({ studentIds: (s._id as { toString(): string }).toString() })
-          .populate('courseId', 'title')
-          .populate('instructorId', 'name')
-          .lean()
+    const studentIds = students.map((s) => s._id.toString())
+    const guilds = await Guild.find({ studentIds: { $in: studentIds } })
+      .populate('courseId', 'title')
+      .populate('instructorId', 'name')
+      .lean()
 
-        return {
-          id: (s._id as { toString(): string }).toString(),
-          name: (s as { name: string }).name,
-          email: (s as { email: string }).email,
-          phone: (s as { phone?: string }).phone,
-          avatar: (s as { avatar?: string }).avatar,
-          role: (s as { role: string }).role,
-          createdAt: (s as { createdAt: Date }).createdAt,
-          guilds: guilds.map((g) => ({
-            id: (g._id as { toString(): string }).toString(),
-            name: (g as { name: string }).name,
-            courseTitle: (g.courseId as { title?: string })?.title ?? 'Unknown',
-            instructorName: (g.instructorId as { name?: string })?.name ?? 'Unknown',
-          })),
-        }
-      })
-    )
+    const guildMap: Record<string, typeof guilds> = {}
+    for (const g of guilds) {
+      for (const sid of (g as unknown as { studentIds: { toString(): string }[] }).studentIds ?? []) {
+        const id = (sid as { toString(): string }).toString()
+        if (!guildMap[id]) guildMap[id] = []
+        guildMap[id].push(g)
+      }
+    }
+
+    const enriched = students.map((s) => {
+      const id = s._id.toString()
+      const studentGuilds = guildMap[id] ?? []
+      return {
+        id,
+        name: (s as { name: string }).name,
+        email: (s as { email: string }).email,
+        phone: (s as { phone?: string }).phone,
+        avatar: (s as { avatar?: string }).avatar,
+        role: (s as { role: string }).role,
+        createdAt: (s as { createdAt: Date }).createdAt,
+        guilds: studentGuilds.map((g) => ({
+          id: (g._id as { toString(): string }).toString(),
+          name: (g as { name: string }).name,
+          courseTitle: (g.courseId as { title?: string })?.title ?? 'Unknown',
+          instructorName: (g.instructorId as { name?: string })?.name ?? 'Unknown',
+        })),
+      }
+    })
 
     return NextResponse.json({ students: enriched })
   }

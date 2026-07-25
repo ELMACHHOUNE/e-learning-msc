@@ -63,24 +63,35 @@ export async function GET(req: Request) {
           from: 'courses',
           localField: 'courseId',
           foreignField: '_id',
+          pipeline: [{ $project: { title: 1 } }],
           as: 'course',
         },
       },
-      { $unwind: { path: '$course', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          course: { $arrayElemAt: ['$course', 0] },
+        },
+      },
       {
         $lookup: {
           from: 'users',
           localField: 'instructorId',
           foreignField: '_id',
+          pipeline: [{ $project: { name: 1 } }],
           as: 'instructor',
         },
       },
-      { $unwind: { path: '$instructor', preserveNullAndEmptyArrays: true } },
+      {
+        $addFields: {
+          instructor: { $arrayElemAt: ['$instructor', 0] },
+        },
+      },
       {
         $lookup: {
           from: 'users',
           localField: 'studentIds',
           foreignField: '_id',
+          pipeline: [{ $project: { name: 1 } }],
           as: 'students',
         },
       },

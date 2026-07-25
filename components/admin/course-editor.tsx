@@ -122,7 +122,7 @@ export default function CourseEditor({ courseId }: { courseId: string }) {
   const [categoryOptions, setCategoryOptions] = useState<{ id: string; name: string }[]>([])
 
   useEffect(() => {
-    fetch('/api/admin/categories')
+    fetch('/api/admin/categories?simple=true')
       .then((r) => r.json())
       .then((data) => setCategoryOptions(data.categories ?? []))
       .catch(() => {})
