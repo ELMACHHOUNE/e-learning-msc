@@ -354,6 +354,7 @@ type LoadingTab = Tab | null
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>("users");
   const [searchQuery, setSearchQuery] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
   const [loadingTab, setLoadingTab] = useState<LoadingTab>('users');
   const [users, setUsers] = useState<UserData[]>([]);
   const [courses, setCourses] = useState<CourseData[]>([]);
@@ -710,8 +711,9 @@ export default function AdminPage() {
 
   const filteredUsers = users.filter(
     (u) =>
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase()),
+      (!roleFilter || u.role === roleFilter) &&
+      (u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      u.email.toLowerCase().includes(searchQuery.toLowerCase())),
   );
 
   return (
@@ -749,15 +751,27 @@ export default function AdminPage() {
       {activeTab === "users" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
           <div className="flex items-center justify-between mb-lg">
-            <div className="relative w-72">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mute" />
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search users..."
-                autoComplete="off"
-                className="w-full h-10 pl-10 pr-md bg-surface-soft text-ink text-body-sm rounded-none border-b border-hairline-strong focus-visible:outline-none"
-              />
+            <div className="flex items-center gap-3">
+              <div className="relative w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mute" />
+                <input
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search users..."
+                  autoComplete="off"
+                  className="w-full h-10 pl-10 pr-md bg-surface-soft text-ink text-body-sm rounded-none border-b border-hairline-strong focus-visible:outline-none"
+                />
+              </div>
+              <select
+                value={roleFilter}
+                onChange={(e) => setRoleFilter(e.target.value)}
+                className="h-10 px-3 bg-surface-soft text-ink text-body-sm rounded-none border-b border-hairline-strong focus-visible:outline-none cursor-pointer"
+              >
+                <option value="">All roles</option>
+                <option value="student">Student</option>
+                <option value="instructor">Instructor</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
             <Button
               variant="primary"
