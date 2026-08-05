@@ -84,44 +84,46 @@ export default async function ProgramDetailPage({
 
       {/* Stats bar */}
       <section className="border-b border-hairline bg-canvas">
-        <div className="max-w-[1440px] mx-auto px-6 py-6 flex flex-wrap items-center gap-8">
-          <div className="flex items-center gap-3">
-            <Calendar className="w-5 h-5 text-mute" />
-            <div>
-              <p className="text-heading-sm text-ink font-700">{course.durationInMonths}</p>
-              <p className="text-caption text-mute">Months</p>
+        <div className="max-w-[1440px] mx-auto px-6 py-6 flex flex-wrap items-center justify-between gap-8">
+          <div className="flex flex-wrap items-center gap-8">
+            <div className="flex items-center gap-3">
+              <Calendar className="w-5 h-5 text-mute" />
+              <div>
+                <p className="text-heading-sm text-ink font-700">{course.durationInMonths}</p>
+                <p className="text-caption text-mute">Months</p>
+              </div>
+            </div>
+            <div className="w-px h-8 bg-hairline" />
+            <div className="flex items-center gap-3">
+              <BookOpen className="w-5 h-5 text-mute" />
+              <div>
+                <p className="text-heading-sm text-ink font-700">{course.totalSessions}</p>
+                <p className="text-caption text-mute">Sessions</p>
+              </div>
+            </div>
+            <div className="w-px h-8 bg-hairline" />
+            <div className="flex items-center gap-3">
+                <Layers className="w-5 h-5 text-mute" />
+              <div>
+                <p className="text-heading-sm text-ink font-700">{moduleCount}</p>
+                <p className="text-caption text-mute">Modules</p>
+              </div>
+            </div>
+            <div className="w-px h-8 bg-hairline" />
+            <div className="flex items-center gap-3">
+              <Check className="w-5 h-5 text-mute" />
+              <div>
+                <p className="text-heading-sm text-ink font-700">{totalLessons}</p>
+                <p className="text-caption text-mute">Lessons</p>
+              </div>
             </div>
           </div>
-          <div className="w-px h-8 bg-hairline" />
-          <div className="flex items-center gap-3">
-            <BookOpen className="w-5 h-5 text-mute" />
-            <div>
-              <p className="text-heading-sm text-ink font-700">{course.totalSessions}</p>
-              <p className="text-caption text-mute">Sessions</p>
-            </div>
-          </div>
-          <div className="w-px h-8 bg-hairline" />
-          <div className="flex items-center gap-3">
-              <Layers className="w-5 h-5 text-mute" />
-            <div>
-              <p className="text-heading-sm text-ink font-700">{moduleCount}</p>
-              <p className="text-caption text-mute">Modules</p>
-            </div>
-          </div>
-          <div className="w-px h-8 bg-hairline" />
-          <div className="flex items-center gap-3">
-            <Check className="w-5 h-5 text-mute" />
-            <div>
-              <p className="text-heading-sm text-ink font-700">{totalLessons}</p>
-              <p className="text-caption text-mute">Lessons</p>
-            </div>
-          </div>
-          <div className="w-px h-8 bg-hairline" />
-          <div className="flex items-center gap-3">
-            <div>
-              <p className="text-heading-sm text-ink font-700">{course.price ? `${course.price}` : 'Free'}</p>
-              <p className="text-caption text-mute">{course.price ? 'MAD' : ''}</p>
-            </div>
+          <div className="ml-auto text-right shrink-0">
+            <p className="text-caption text-mute uppercase tracking-[0.2em] font-bold">Price</p>
+            <p className={`text-heading-lg font-700 leading-[1.1] ${course.price ? 'text-ink' : 'text-success'}`}>
+              {course.price ? `${course.price}` : 'Free'}
+            </p>
+            <p className="text-caption text-mute">{course.price ? 'MAD' : 'No cost'}</p>
           </div>
         </div>
       </section>

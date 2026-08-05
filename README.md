@@ -4,7 +4,7 @@
 
 # E-Learning MSC
 
-A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CSS. Three-role architecture (Admin, Instructor, Student) with course management, guild/cohort system, lab phases, project submission & validation, attendance tracking, and real-time support chat.
+A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CSS. Three-role architecture (Admin, Instructor, Student) with course management, guild/cohort system, lab phases, project submission & validation, attendance tracking, automated graduation & certificate generation, and real-time support chat.
 
 ## Tech Stack
 
@@ -15,6 +15,7 @@ A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CS
 | Styling | Tailwind CSS v4 + Framer Motion |
 | Database | MongoDB via Mongoose 9 |
 | Auth | NextAuth.js v5 (beta) — Credentials + Google/GitHub OAuth |
+| Certificates | PDF generation via pdf-lib (template-based, placeholder erasure) |
 | Charts | Recharts |
 | Icons | Lucide React |
 | UI Primitives | Custom components (Button, Badge, Card, Avatar, Progress, etc.) |
@@ -23,9 +24,9 @@ A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CS
 
 ### Roles
 
-- **Admin** — Full access to users, courses, guilds, categories, lab phases, support messages
+- **Admin** — Full access to users, courses, guilds, categories, lab phases, support messages, and graduation records
 - **Instructor** — Manages assigned guilds, logs attendance, creates lab phases, validates project submissions
-- **Student** — Enrolled in guilds, views courses, submits lab phase projects, tracks progress
+- **Student** — Enrolled in guilds, views courses, submits lab phase projects, tracks progress, downloads certificates
 
 ### Route Groups
 
@@ -76,26 +77,31 @@ src/
 │   │   ├── admin/                 # Admin portal, course editor
 │   │   ├── courses/               # Course listing & detail viewer
 │   │   ├── dashboard/             # Role-based analytics dashboard
+│   │   ├── graduations/           # Graduation records & certificate export (admin)
 │   │   ├── labphase/              # Lab phase CRUD & project submissions
 │   │   ├── profile/               # Account settings
 │   │   ├── students/              # Student directory
 │   │   ├── instructors/           # Instructor directory (admin)
 │   │   └── teach/                 # Attendance, earnings, sessions, one-to-one
-│   ├── api/                       # 22 REST endpoints
+│   ├── api/                       # REST endpoints (see API Overview)
 │   ├── programs/                  # Public course catalog
 │   └── globals.css                # Tailwind v4 theme tokens
 ├── components/
 │   ├── admin/course-editor.tsx    # Full course content builder
+│   ├── certificate/               # CertificateDialog + student certificate cards
 │   ├── dashboard/admin-charts.tsx # Recharts analytics components
 │   ├── shared/                    # Navbar, sidebar, chat support, session provider, spinner
 │   └── ui/                        # Button, Badge, Card, Avatar, Input, Alert, ConfirmDialog, etc.
 ├── lib/
 │   ├── auth.ts                    # NextAuth config, getCurrentUser(), requireRole()
+│   ├── certificate.ts             # Client helper: generate/download certificate PDFs
 │   ├── db.ts                      # Cached MongoDB connection
+│   ├── graduation.ts              # ensureGraduation() + academy/certificate config
 │   └── utils.ts                   # cn(), formatDate(), truncate()
-├── models/                        # 8 Mongoose models
+├── models/                        # 9 Mongoose models (incl. Certificate)
 ├── types/                         # TypeScript interfaces & auth type augmentation
-├── scripts/seed.ts                # Database seeder
+├── public/certificates/PDF/       # Certificate template (placeholder fields erased at runtime)
+├── scripts/                       # seed.ts, seed-graduations.ts, assign-graduate.ts
 └── proxy.ts                       # Auth middleware
 ```
 
@@ -118,6 +124,9 @@ Links a student's project submission to a lab phase. 3-step pipeline: presentati
 
 ### SessionLog
 Per-session attendance: `guildId`, `sessionNumber`, `date`, `records[]` (studentId + status)
+
+### Certificate
+Graduation record generated automatically when a student completes a course (all guild sessions) and a lab phase project (status `completed`). `studentName`, `studentEmail`, `courseId`, `courseTitle`, `instructorId`, `instructorName`, `academyName`, `durationF`, `formationDate`, `certificateId` (e.g. `CERT-2026-0001`), `graduatedAt`
 
 ### Category
 Taxonomy for courses and lab phases. `name` (unique)
@@ -149,6 +158,9 @@ Support chat: `name`, `email`, `message`, `isAdmin`, `read`, timestamps
 | `/api/admin/labphases` | GET, POST | Admin/Instructor |
 | `/api/admin/labphases/[id]` | PUT, DELETE | Owner/Admin |
 | `/api/admin/labphases/[id]/approve` | PUT | Admin |
+| `/api/certificates` | GET | Admin (lists + backfills graduation records) |
+| `/api/certificates/mine` | GET | Authenticated (current user's certificates) |
+| `/api/certificates/generate` | POST | Admin/Instructor/Student (renders certificate PDF) |
 
 ## Features
 
@@ -177,6 +189,14 @@ Support chat: `name`, `email`, `message`, `isAdmin`, `read`, timestamps
 - Instructor validation per step (score 0–10)
 - Automatic final grade calculation (average of validated steps)
 
+### Graduation & Certificates
+- **Auto-detection** — `ensureGraduation()` in `lib/graduation.ts` registers a graduation when a student has ≥1 fully completed course (all guild sessions done) AND ≥1 completed lab phase project
+- **Certificate records** — one per completed project, with unique sequential IDs (`CERT-YYYY-####`) and a formatted graduation date
+- **PDF generation** — official certificate rendered from a branded template (`public/certificates/PDF/certificate.pdf`) using pdf-lib; placeholders erased and replaced with student/course/instructor data
+- **Admin** — `/graduations` page lists all graduates with stats (total, this year), search, and one-click certificate export
+- **Student** — a "Congratulations" certificate card on the dashboard with a **View & Download** button that generates the PDF
+- **Backfill** — the admin certificates API retro-registers any eligible student who graduated before the feature existed
+
 ### Attendance Tracking
 - Per-session attendance with present/absent/late statuses
 - Historical session log storage
@@ -184,7 +204,7 @@ Support chat: `name`, `email`, `message`, `isAdmin`, `read`, timestamps
 ### Role-Based Dashboards
 - **Admin**: User distribution pie chart, courses by category bar chart, course active/inactive status donut, guilds by course horizontal bar chart, stat cards
 - **Instructor**: Guild list with session/skill progress bars
-- **Student**: Enrolled guilds with progress tracking
+- **Student**: Enrolled guilds with progress tracking + elegant certificate card (with download) once graduated
 
 ### Support Chat
 - Fixed bottom-right intercom-style widget
@@ -196,7 +216,7 @@ Support chat: `name`, `email`, `message`, `isAdmin`, `read`, timestamps
 - Course detail with full curriculum tree, hero section, instructor info, WhatsApp enrollment link
 - SEO-optimized with sitemap and robots.txt
 
-## Seed Script
+## Seed Scripts
 
 The seed script (`scripts/seed.ts`) populates the database with:
 - 1 admin, 3 instructors, 30 students
@@ -210,14 +230,25 @@ Run with:
 npm run seed
 ```
 
+**Demo graduation data** (additive — does not drop the database):
+
+```bash
+npm run seed:grad     # 6 fake students at 100% completion + completed projects + certificates
+npm run assign:grad   # Add a single student by email, e.g. npm run assign:grad mourad@elearning.msc
+```
+
+The `assign:grad` script assigns the given student to an instructor, creates a fully completed guild + completed lab phase project, and registers their graduation (generates a certificate record).
+
 ## Scripts
 
 ```bash
-npm run dev      # Development server
-npm run build    # Production build
-npm run start    # Start production server
-npm run lint     # ESLint
-npm run seed     # Seed database with demo data
+npm run dev            # Development server
+npm run build          # Production build
+npm run start          # Start production server
+npm run lint           # ESLint
+npm run seed           # Seed database with demo data
+npm run seed:grad      # Seed demo graduation/certificate data
+npm run assign:grad    # Assign one student graduate data by email
 ```
 
 ## Authentication
