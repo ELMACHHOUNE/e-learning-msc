@@ -123,7 +123,9 @@ export default async function ProgramsPage() {
                       <span className="w-px h-3 bg-hairline" />
                       <span>{course.moduleCount} modules</span>
                       <span className="w-px h-3 bg-hairline" />
-                      <span className="font-600 text-ink">{course.price ? `${course.price} MAD` : 'Free'}</span>
+                      <span className={`text-button-sm font-700 ${course.price ? 'text-ink' : 'text-success'}`}>
+                        {course.price ? `${course.price} MAD` : 'Free'}
+                      </span>
                     </div>
                   </div>
                 </Link>
