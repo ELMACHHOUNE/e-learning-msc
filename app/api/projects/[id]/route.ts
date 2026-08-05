@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth'
 import { connectToDatabase } from '@/lib/db'
 import ProjectApplication from '@/models/ProjectApplication'
 import Guild from '@/models/Guild'
+import { ensureGraduation } from '@/lib/graduation'
 import type { ProjectStep } from '@/types'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -136,6 +137,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       project.finalGrade = Math.round(average)
       project.status = 'completed'
       await project.save()
+
+      try {
+        await ensureGraduation(project.studentId.toString())
+      } catch (error) {
+        console.error('Failed to register graduation for student:', error)
+      }
     }
 
     const allDone = ['presentation', 'gitRepo', 'deployment'].every((s) => (project as unknown as Record<ProjectStep, { validated: boolean }>)[s as ProjectStep]?.validated)

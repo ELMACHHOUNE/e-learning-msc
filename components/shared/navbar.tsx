@@ -38,6 +38,7 @@ export function Navbar() {
     ...(role === 'admin' ? [
       { href: '/admin', label: 'Admin', icon: Shield },
       { href: '/instructors', label: 'Instructors', icon: Users },
+      { href: '/graduations', label: 'Graduations', icon: GraduationCap },
     ] : []),
     ...(role !== 'admin' ? [{
       label: 'Teach',
