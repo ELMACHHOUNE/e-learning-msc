@@ -26,7 +26,7 @@ export async function GET() {
 
     const studentIds = students.map((s) => s._id.toString())
     const guilds = await Guild.find({ studentIds: { $in: studentIds } })
-      .populate('courseId', 'title')
+      .populate('courseId', 'title totalSessions')
       .populate('instructorId', 'name')
       .lean()
 
@@ -55,6 +55,8 @@ export async function GET() {
           name: (g as { name: string }).name,
           courseTitle: (g.courseId as { title?: string })?.title ?? 'Unknown',
           instructorName: (g.instructorId as { name?: string })?.name ?? 'Unknown',
+          currentSession: (g as { currentSession: number }).currentSession ?? 0,
+          totalSessions: (g.courseId as { totalSessions?: number })?.totalSessions ?? 0,
         })),
       }
     })
@@ -64,7 +66,7 @@ export async function GET() {
 
   // instructor
   const guilds = await Guild.find({ instructorId: userId })
-    .populate('courseId', 'title')
+    .populate('courseId', 'title totalSessions')
     .lean()
 
   const studentIds = [...new Set(guilds.flatMap((g) => ((g as { studentIds?: unknown[] }).studentIds ?? []).map((id) => (id as { toString(): string }).toString())))]
@@ -94,6 +96,8 @@ export async function GET() {
         id: (g._id as { toString(): string }).toString(),
         name: (g as { name: string }).name,
         courseTitle: (g.courseId as { title?: string })?.title ?? 'Unknown',
+        currentSession: (g as { currentSession: number }).currentSession ?? 0,
+        totalSessions: (g.courseId as { totalSessions?: number })?.totalSessions ?? 0,
       })),
     }
   }).filter(Boolean)

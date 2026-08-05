@@ -11,6 +11,8 @@ interface StudentGuild {
   name: string
   courseTitle: string
   instructorName?: string
+  currentSession?: number
+  totalSessions?: number
 }
 
 interface Student {
@@ -243,10 +245,14 @@ export default function StudentsPage() {
           </thead>
           <tbody>
             {filtered.map((student) => {
-              const progress = student.guilds.length > 0
-                ? Math.round(student.guilds.length * 30)
+              const progressGuilds = student.guilds.filter((g) => (g.totalSessions ?? 0) > 0)
+              const progress = progressGuilds.length > 0
+                ? Math.round(
+                    progressGuilds.reduce((sum, g) => sum + ((g.currentSession ?? 0) / (g.totalSessions ?? 1)) * 100, 0) /
+                      progressGuilds.length
+                  )
                 : 0
-              const clamped = Math.min(progress, 100)
+              const clamped = Math.min(Math.max(progress, 0), 100)
 
               return (
                 <tr key={student.id} className="border-b border-hairline hover:bg-surface-soft/50">
