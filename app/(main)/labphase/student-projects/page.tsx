@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { Button, Badge, Avatar } from '@/components/ui'
 import LogoSpinner from '@/components/shared/logo-spinner'
 import { toast } from '@/components/ui/alert'
-import { Search, CheckCircle, XCircle, ExternalLink, Send, X, Save } from 'lucide-react'
+import { Search, CheckCircle, XCircle, ExternalLink, Send, X, Save, ChevronDown } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
 interface StepData {
@@ -283,6 +283,11 @@ export default function StudentProjectsPage() {
   const [showApply, setShowApply] = useState(false)
   const [submitStep, setSubmitStep] = useState<{ project: ProjectData; step: StepKey } | null>(null)
   const [validateStep, setValidateStep] = useState<{ project: ProjectData; step: StepKey } | null>(null)
+  const [filterStatus, setFilterStatus] = useState<'all' | 'completed' | 'not-completed'>('all')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+
+  const PAGE_SIZE = 15
 
   async function fetchProjects() {
     try {
@@ -326,10 +331,20 @@ export default function StudentProjectsPage() {
     }
   }
 
-  const filtered = projects.filter((p) =>
-    (p.student?.name ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.labPhaseTitle.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const filtered = projects.filter((p) => {
+    const matchesSearch =
+      (p.student?.name ?? '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.labPhaseTitle.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesStatus =
+      filterStatus === 'all' ||
+      (filterStatus === 'completed' && p.status === 'completed') ||
+      (filterStatus === 'not-completed' && p.status !== 'completed')
+    return matchesSearch && matchesStatus
+  })
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const safePage = Math.min(currentPage, totalPages)
+  const pageItems = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE)
 
   if (loading) return <LogoSpinner />
 
@@ -359,119 +374,184 @@ export default function StudentProjectsPage() {
         </div>
       </div>
 
-      <div className="relative w-72 mb-lg">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mute" />
-        <input
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search projects..."
-          className="w-full h-10 pl-10 pr-md bg-surface-soft text-ink text-body-sm rounded-none border-b border-hairline-strong focus-visible:outline-none"
-        />
+      <div className="flex flex-wrap items-center gap-lg mb-lg">
+        <div className="relative w-72">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mute" />
+          <input
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search projects..."
+            className="w-full h-10 pl-10 pr-md bg-surface-soft text-ink text-body-sm rounded-none border-b border-hairline-strong focus-visible:outline-none"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {([
+            { value: 'all', label: 'All' },
+            { value: 'completed', label: 'Finished' },
+            { value: 'not-completed', label: 'Not Finished' },
+          ] as const).map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => { setFilterStatus(opt.value); setCurrentPage(1) }}
+              className={`px-lg py-sm text-button-sm transition-colors ${
+                filterStatus === opt.value
+                  ? 'bg-primary text-on-primary'
+                  : 'bg-transparent text-mute border border-hairline-strong hover:text-ink'
+              }`}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        <span className="text-caption text-mute ml-auto">
+          {filtered.length} of {projects.length} students
+        </span>
       </div>
 
-      {projects.length === 0 ? (
+      {filtered.length === 0 ? (
         <div className="bg-canvas border border-hairline py-xxxl text-center">
-          <p className="text-body-md text-mute">No projects yet</p>
+          <p className="text-body-md text-mute">No students found</p>
         </div>
       ) : (
-        <div className="grid gap-lg">
-          {filtered.map((project) => {
-            const config = statusConfig[project.status] ?? statusConfig.pending
-            return (
-              <div key={project.id} className="bg-canvas border border-hairline p-xxl">
-                <div className="flex items-start justify-between mb-lg">
-                  <div>
-                    <div className="flex items-center gap-md mb-xs">
-                      <h2 className="text-heading-sm text-ink font-700">{project.labPhaseTitle}</h2>
-                      <Badge variant={config.variant}>{config.label}</Badge>
-                    </div>
-                    {project.student && (
-                      <div className="flex items-center gap-md mt-sm">
-                        <Avatar name={project.student.name} size="sm" src={project.student.avatar} />
-                        <span className="text-body-sm text-charcoal">{project.student.name}</span>
-                        <span className="text-caption text-mute">{project.student.email}</span>
+        <>
+          <div className="border border-hairline bg-canvas divide-y divide-hairline">
+            {pageItems.map((project) => {
+              const config = statusConfig[project.status] ?? statusConfig.pending
+              const expanded = expandedId === project.id
+              return (
+                <div key={project.id}>
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(expanded ? null : project.id)}
+                    className="w-full flex items-center gap-lg px-xxl py-lg text-left bg-canvas hover:bg-surface-soft transition-colors cursor-pointer border-none"
+                  >
+                    {project.student ? (
+                      <Avatar name={project.student.name} size="sm" src={project.student.avatar} />
+                    ) : (
+                      <Avatar name="?" size="sm" />
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-md mb-xs">
+                        <span className="text-heading-sm text-ink font-700 truncate">{project.labPhaseTitle}</span>
+                        <Badge variant={config.variant}>{config.label}</Badge>
                       </div>
-                    )}
-                    {project.finalGrade !== undefined && project.finalGrade !== null && (
-                      <p className={`text-heading-sm font-700 mt-sm ${project.finalGrade >= 70 ? 'text-success' : project.finalGrade >= 50 ? 'text-warning' : 'text-error'}`}>
-                        Final Grade: {project.finalGrade}%
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    {project.status === 'pending' && isInstructor && (
-                      <>
-                        <Button variant="primary" size="sm" onClick={() => handleAction(project.id, 'approve')}>
-                          <CheckCircle className="w-4 h-4 mr-1" /> Approve
-                        </Button>
-                        <Button variant="outline-dark" size="sm" onClick={() => handleAction(project.id, 'reject')}>
-                          <XCircle className="w-4 h-4 mr-1" /> Reject
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-
-                {/* Steps */}
-                {(project.status === 'approved' || project.status === 'in_progress' || project.status === 'completed') && (
-                  <div className="border-t border-hairline pt-lg mt-lg">
-                    <p className="text-caption text-mute uppercase tracking-widest font-600 mb-md">Validation Steps</p>
-                    <div className="grid gap-md">
-                      {stepsOrder.map((step, idx) => {
-                        const current = project[step]
-                        const isCurrentStep = idx === 0 || stepsOrder.slice(0, idx).every((s) => project[s]?.validated)
-                        const canSubmit = isStudent && project.studentId === session?.user?.id && !current.validated && current.url === '' && isCurrentStep && project.status !== 'completed'
-                        const canValidate = isInstructor && current.url && !current.validated
-
-                        return (
-                          <div key={step} className="flex items-center justify-between p-lg bg-surface-soft border border-hairline">
-                            <div className="flex items-center gap-lg min-w-0">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-button-sm font-700 ${current.validated ? 'bg-success text-on-dark' : current.url ? 'bg-info text-on-dark' : 'bg-surface-soft text-mute border border-hairline-strong'}`}>
-                                {current.validated ? <CheckCircle className="w-4 h-4" /> : idx + 1}
-                              </div>
-                              <div className="min-w-0">
-                                <p className="text-body-sm text-ink font-600">{stepMeta[step].label}</p>
-                                {current.url ? (
-                                  <a ref={el => { if (el && current.url && (current.url.startsWith('http://') || current.url.startsWith('https://'))) el.href = current.url }} target="_blank" rel="noopener noreferrer" className="text-caption text-ink underline break-all inline-flex items-center gap-1">
-                                    {current.url} <ExternalLink className="w-3 h-3 shrink-0" />
-                                  </a>
-                                ) : (
-                                  <p className="text-caption text-mute">Not submitted</p>
-                                )}
-                                {current.validated && current.score !== undefined && (
-                                  <p className={`text-caption font-600 ${current.score >= 7 ? 'text-success' : current.score >= 5 ? 'text-warning' : 'text-error'}`}>
-                                    Score: {current.score}/10
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              {canSubmit && (
-                                <Button variant="primary" size="sm" onClick={() => setSubmitStep({ project, step })}>
-                                  <ExternalLink className="w-4 h-4 mr-1" /> Submit
-                                </Button>
-                              )}
-                              {canValidate && (
-                                <Button variant="primary" size="sm" onClick={() => setValidateStep({ project, step })}>
-                                  <CheckCircle className="w-4 h-4 mr-1" /> Validate
-                                </Button>
-                              )}
-                              {current.validated && current.score !== undefined && (
-                                <span className={`text-button-sm font-700 ${current.score >= 7 ? 'text-success' : current.score >= 5 ? 'text-warning' : 'text-error'}`}>
-                                  {current.score}/10
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        )
-                      })}
+                      <div className="flex items-center gap-md">
+                        <span className="text-body-sm text-charcoal">{project.student?.name ?? 'Unknown'}</span>
+                        <span className="text-caption text-mute truncate">{project.student?.email}</span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                    <div className="flex items-center gap-md shrink-0">
+                      {project.finalGrade !== undefined && project.finalGrade !== null && (
+                        <span className={`text-heading-sm font-700 ${project.finalGrade >= 70 ? 'text-success' : project.finalGrade >= 50 ? 'text-warning' : 'text-error'}`}>
+                          {project.finalGrade}%
+                        </span>
+                      )}
+                      <ChevronDown className={`w-5 h-5 text-mute transition-transform ${expanded ? 'rotate-180' : ''}`} />
+                    </div>
+                  </button>
+
+                  {expanded && (
+                    <div className="px-xxl pb-xxl">
+                      <div className="flex items-center justify-between gap-2 flex-wrap mb-md">
+                        <span className="text-caption text-mute uppercase tracking-widest font-600">Validation Steps</span>
+                        {project.status === 'pending' && isInstructor && (
+                          <div className="flex items-center gap-2">
+                            <Button variant="primary" size="sm" onClick={() => handleAction(project.id, 'approve')}>
+                              <CheckCircle className="w-4 h-4 mr-1" /> Approve
+                            </Button>
+                            <Button variant="outline-dark" size="sm" onClick={() => handleAction(project.id, 'reject')}>
+                              <XCircle className="w-4 h-4 mr-1" /> Reject
+                            </Button>
+                          </div>
+                        )}
+                      </div>
+
+                      {(project.status === 'approved' || project.status === 'in_progress' || project.status === 'completed') ? (
+                        <div className="grid gap-md">
+                          {stepsOrder.map((step, idx) => {
+                            const current = project[step]
+                            const isCurrentStep = idx === 0 || stepsOrder.slice(0, idx).every((s) => project[s]?.validated)
+                            const canSubmit = isStudent && project.studentId === session?.user?.id && !current.validated && current.url === '' && isCurrentStep && project.status !== 'completed'
+                            const canValidate = isInstructor && current.url && !current.validated
+
+                            return (
+                              <div key={step} className="flex items-center justify-between p-lg bg-surface-soft border border-hairline">
+                                <div className="flex items-center gap-lg min-w-0">
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-button-sm font-700 ${current.validated ? 'bg-success text-on-dark' : current.url ? 'bg-info text-on-dark' : 'bg-surface-soft text-mute border border-hairline-strong'}`}>
+                                    {current.validated ? <CheckCircle className="w-4 h-4" /> : idx + 1}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="text-body-sm text-ink font-600">{stepMeta[step].label}</p>
+                                    {current.url ? (
+                                      <a ref={el => { if (el && current.url && (current.url.startsWith('http://') || current.url.startsWith('https://'))) el.href = current.url }} target="_blank" rel="noopener noreferrer" className="text-caption text-ink underline break-all inline-flex items-center gap-1">
+                                        {current.url} <ExternalLink className="w-3 h-3 shrink-0" />
+                                      </a>
+                                    ) : (
+                                      <p className="text-caption text-mute">Not submitted</p>
+                                    )}
+                                    {current.validated && current.score !== undefined && (
+                                      <p className={`text-caption font-600 ${current.score >= 7 ? 'text-success' : current.score >= 5 ? 'text-warning' : 'text-error'}`}>
+                                        Score: {current.score}/10
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-2 shrink-0">
+                                  {canSubmit && (
+                                    <Button variant="primary" size="sm" onClick={() => setSubmitStep({ project, step })}>
+                                      <ExternalLink className="w-4 h-4 mr-1" /> Submit
+                                    </Button>
+                                  )}
+                                  {canValidate && (
+                                    <Button variant="primary" size="sm" onClick={() => setValidateStep({ project, step })}>
+                                      <CheckCircle className="w-4 h-4 mr-1" /> Validate
+                                    </Button>
+                                  )}
+                                  {current.validated && current.score !== undefined && (
+                                    <span className={`text-button-sm font-700 ${current.score >= 7 ? 'text-success' : current.score >= 5 ? 'text-warning' : 'text-error'}`}>
+                                      {current.score}/10
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      ) : (
+                        <p className="text-body-sm text-mute">No validation steps available yet.</p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-lg">
+              <span className="text-caption text-mute">
+                Showing {safePage} of {totalPages} pages · {PAGE_SIZE} per page
+              </span>
+              <div className="flex items-center gap-md">
+                <Button variant="outline-dark" size="sm" disabled={safePage === 1} onClick={() => setCurrentPage(safePage - 1)}>
+                  Previous
+                </Button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                  <button
+                    key={n}
+                    onClick={() => setCurrentPage(n)}
+                    className={`w-8 h-8 text-sm transition-colors ${n === safePage ? 'bg-ink text-on-primary' : 'bg-surface-soft text-mute hover:text-ink'}`}
+                  >
+                    {n}
+                  </button>
+                ))}
+                <Button variant="outline-dark" size="sm" disabled={safePage === totalPages} onClick={() => setCurrentPage(safePage + 1)}>
+                  Next
+                </Button>
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )}
+        </>
       )}
 
       {showApply && <ApplyModal onClose={() => setShowApply(false)} onSave={fetchProjects} />}
