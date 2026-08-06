@@ -77,11 +77,11 @@ export function Navbar() {
   }, [])
 
   return (
-    <nav className="h-16 bg-canvas border-b border-hairline px-xl flex items-center justify-between sticky top-0 z-50">
-      <div className="flex items-center gap-xl">
-        <Link href="/" className="flex items-center gap-3 no-underline">
+    <nav className="h-16 bg-canvas border-b border-hairline px-md sm:px-xl flex items-center justify-between gap-md sticky top-0 z-50">
+      <div className="flex items-center gap-md sm:gap-xl min-w-0">
+        <Link href="/" className="flex items-center gap-3 no-underline shrink-0">
           <Image src="/images/icon.png" alt="e-learning-msc" width={28} height={28} className="object-contain" />
-          <span className="text-heading-sm text-ink font-bold uppercase tracking-[0.144px] leading-none">
+          <span className="hidden md:inline text-heading-sm text-ink font-bold uppercase tracking-[0.144px] leading-none">
             e-learning-msc
           </span>
         </Link>
@@ -144,12 +144,12 @@ export function Navbar() {
         </div>
       </div>
 
-      <div className="flex items-center gap-md">
+      <div className="flex items-center gap-sm sm:gap-md shrink-0">
         <Link
           href={role === 'admin' ? '/admin' : role === 'instructor' ? '/dashboard' : '/dashboard'}
           className="no-underline"
         >
-          <Badge variant="default">{role === 'admin' ? 'Admin View' : role === 'instructor' ? 'Instructor View' : 'Student View'}</Badge>
+          <Badge variant="default" className="hidden md:inline-flex">{role === 'admin' ? 'Admin View' : role === 'instructor' ? 'Instructor View' : 'Student View'}</Badge>
         </Link>
         <button
           onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
@@ -212,7 +212,7 @@ export function Navbar() {
             exit={{ opacity: 0, y: -10 }}
             className="absolute top-16 left-0 right-0 bg-canvas border-b border-hairline lg:hidden z-50"
           >
-            <div className="flex flex-col p-lg">
+            <div className="flex flex-col p-lg bg-surface-soft">
               {navLinks.map((link) => {
                 if ('children' in link && link.children) {
                   return (
@@ -223,7 +223,7 @@ export function Navbar() {
                           <Link
                             key={child.href}
                             href={child.href}
-                            className="block text-body-md text-charcoal py-sm no-underline hover:text-ink"
+                            className="block text-body-md text-charcoal py-sm no-underline hover:text-primary"
                             onClick={() => setMobileOpen(false)}
                           >
                             {child.label}
@@ -238,7 +238,7 @@ export function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href!}
-                    className="flex items-center gap-2 text-body-md text-charcoal py-sm no-underline hover:text-ink"
+                    className="flex items-center gap-2 text-body-md text-charcoal py-sm no-underline hover:text-primary"
                     onClick={() => setMobileOpen(false)}
                   >
                     {Icon && <Icon className="w-4 h-4" />}

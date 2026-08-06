@@ -130,7 +130,7 @@ function AdminDashboard({ data }: { data: DashboardData }) {
         <Badge variant="new">Admin Access</Badge>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-lg mb-xxl">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-lg mb-xxl">
         {statCards.map((stat, i) => {
           const Icon = stat.icon;
           return (
@@ -139,7 +139,7 @@ function AdminDashboard({ data }: { data: DashboardData }) {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="bg-canvas border border-hairline p-xl hover:border-ink transition-colors"
+                className="bg-canvas border border-hairline p-md sm:p-xl hover:border-ink transition-colors min-w-0 flex flex-col items-center text-center"
               >
                 <div
                   className={`w-10 h-10 ${stat.color} text-on-primary flex items-center justify-center mb-md`}
@@ -173,7 +173,7 @@ function AdminDashboard({ data }: { data: DashboardData }) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-lg mt-xxl">
         <Link href="/admin" className="no-underline">
-          <div className="bg-canvas border border-hairline p-xl flex items-center gap-lg hover:border-ink transition-colors">
+          <div className="bg-canvas border border-hairline p-md sm:p-xl flex items-center gap-md sm:gap-lg hover:border-ink transition-colors">
             <div className="w-12 h-12 bg-primary text-on-primary flex items-center justify-center shrink-0">
               <Users className="w-6 h-6" />
             </div>
@@ -188,7 +188,7 @@ function AdminDashboard({ data }: { data: DashboardData }) {
           </div>
         </Link>
         <Link href="/admin" className="no-underline">
-          <div className="bg-canvas border border-hairline p-xl flex items-center gap-lg hover:border-ink transition-colors">
+          <div className="bg-canvas border border-hairline p-md sm:p-xl flex items-center gap-md sm:gap-lg hover:border-ink transition-colors">
             <div className="w-12 h-12 bg-primary text-on-primary flex items-center justify-center shrink-0">
               <BookOpen className="w-6 h-6" />
             </div>
@@ -203,7 +203,7 @@ function AdminDashboard({ data }: { data: DashboardData }) {
           </div>
         </Link>
         <Link href="/admin" className="no-underline">
-          <div className="bg-canvas border border-hairline p-xl flex items-center gap-lg hover:border-ink transition-colors">
+          <div className="bg-canvas border border-hairline p-md sm:p-xl flex items-center gap-md sm:gap-lg hover:border-ink transition-colors">
             <div className="w-12 h-12 bg-success text-on-primary flex items-center justify-center shrink-0">
               <Layers className="w-6 h-6" />
             </div>

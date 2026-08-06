@@ -303,7 +303,7 @@ function MessagesPanel() {
 
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-      <div className="flex items-center justify-between mb-lg">
+      <div className="flex flex-wrap items-center justify-between gap-md mb-lg">
         <h2 className="text-heading-sm text-ink font-700">Support Messages</h2>
         <span className="text-caption text-mute">{conversations.length} conversations</span>
       </div>
@@ -321,11 +321,11 @@ function MessagesPanel() {
                 onClick={() => selectConversation(conv)}
                 className="bg-canvas border border-hairline p-xxl text-left cursor-pointer hover:border-ink transition-colors w-full"
               >
-                <div className="flex items-center justify-between mb-sm">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-sm mb-sm">
+                  <div className="flex items-center gap-2 min-w-0">
                     <span className="text-body-sm font-700 text-ink">{conv.name}</span>
                     {conv.unread > 0 && <span className="w-2 h-2 rounded-full bg-red-500 inline-block shrink-0" />}
-                    <span className="text-caption text-mute">{conv.email}</span>
+                    <span className="text-caption text-mute truncate">{conv.email}</span>
                   </div>
                   <span className="text-caption text-mute">
                     {new Date(lastMsg.createdAt).toLocaleString()}
@@ -717,15 +717,15 @@ export default function AdminPage() {
   );
 
   return (
-    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
-      <div className="flex items-center justify-between mb-xxl">
+    <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-xxl">
         <h1 className="text-display-md text-ink font-700 leading-[0.95]">
           Admin Portal
         </h1>
-        <Badge variant="new">Admin Access</Badge>
+        <Badge variant="new" className="self-start sm:self-auto">Admin Access</Badge>
       </div>
 
-      <div className="flex gap-lg mb-xxl border-b border-hairline">
+      <div className="flex gap-lg mb-xxl border-b border-hairline overflow-x-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -734,7 +734,7 @@ export default function AdminPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "flex items-center gap-2 px-lg py-md text-button-md bg-transparent border-none cursor-pointer transition-colors",
+                "flex items-center gap-2 px-lg py-md text-button-md bg-transparent border-none cursor-pointer transition-colors shrink-0 whitespace-nowrap",
                 isActive
                   ? "text-ink border-b-2 border-ink -mb-px"
                   : "text-mute hover:text-charcoal",
@@ -750,9 +750,9 @@ export default function AdminPage() {
       {/* ── Users Tab ── */}
       {activeTab === "users" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="flex items-center justify-between mb-lg">
-            <div className="flex items-center gap-3">
-              <div className="relative w-72">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full sm:w-auto">
+              <div className="relative w-full sm:w-72">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mute" />
                 <input
                   value={searchQuery}
@@ -765,7 +765,7 @@ export default function AdminPage() {
               <select
                 value={roleFilter}
                 onChange={(e) => setRoleFilter(e.target.value)}
-                className="h-10 px-3 bg-surface-soft text-ink text-body-sm rounded-none border-b border-hairline-strong focus-visible:outline-none cursor-pointer"
+                className="h-10 px-3 bg-surface-soft text-ink text-body-sm rounded-none border-b border-hairline-strong focus-visible:outline-none cursor-pointer w-full sm:w-auto"
               >
                 <option value="">All roles</option>
                 <option value="student">Student</option>
@@ -791,8 +791,8 @@ export default function AdminPage() {
               </div>
             </div>
           ) : (
-          <div className="bg-canvas border border-hairline overflow-hidden">
-            <table className="w-full">
+          <div className="bg-canvas border border-hairline overflow-x-auto">
+            <table className="w-full min-w-[640px]">
               <thead>
                 <tr className="border-b border-hairline bg-surface-soft">
                   <th className="text-left px-lg py-md text-caption text-charcoal font-600">
@@ -874,11 +874,11 @@ export default function AdminPage() {
       {/* ── Courses Tab ── */}
       {activeTab === "courses" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="flex items-center justify-between mb-lg">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-lg">
             <h2 className="text-heading-sm text-ink font-700">All Courses</h2>
             <Link
               href="/admin/courses/new"
-              className="flex items-center gap-1 bg-primary text-on-primary text-button-sm font-bold uppercase tracking-[0.144px] py-2 px-4 rounded-[2px] hover:bg-primary-deep transition-colors no-underline"
+              className="flex items-center gap-1 bg-primary text-on-primary text-button-sm font-bold uppercase tracking-[0.144px] py-2 px-4 rounded-[2px] hover:bg-primary-deep transition-colors no-underline self-start sm:self-auto"
             >
               <Plus className="w-4 h-4" /> Create Course
             </Link>
@@ -900,10 +900,10 @@ export default function AdminPage() {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: i * 0.05 }}
-                className="bg-canvas border border-hairline p-xxl flex items-center gap-6"
+                className="bg-canvas border border-hairline p-xxl flex flex-col sm:flex-row sm:items-center gap-6"
               >
                 {course.coverImage && (
-                  <div className="w-24 h-16 shrink-0 overflow-hidden bg-surface-soft border border-hairline">
+                  <div className="w-full sm:w-24 h-16 shrink-0 overflow-hidden bg-surface-soft border border-hairline">
                     <img
                       ref={el => { if (el && course.coverImage && (course.coverImage.startsWith('/') || course.coverImage.startsWith('http://') || course.coverImage.startsWith('https://'))) el.src = course.coverImage }}
                       alt=""
@@ -911,7 +911,7 @@ export default function AdminPage() {
                     />
                   </div>
                 )}
-                <div className="flex-1">
+                <div className="flex-1 min-w-0">
                   <h3 className="text-heading-sm text-ink font-700">
                     {course.title}
                   </h3>
@@ -958,7 +958,7 @@ export default function AdminPage() {
       {/* ── Categories Tab ── */}
       {activeTab === "categories" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="flex items-center justify-between mb-lg">
+          <div className="flex flex-wrap items-center justify-between gap-md mb-lg">
             <h2 className="text-heading-sm text-ink font-700">Categories</h2>
             <Button variant="primary" size="sm" onClick={() => openCreate("categories")}>
               <Plus className="w-4 h-4 mr-1" /> Add Category
@@ -969,8 +969,8 @@ export default function AdminPage() {
               <p className="text-body-md text-mute">No categories yet</p>
             </div>
           ) : (
-            <div className="bg-canvas border border-hairline overflow-hidden">
-              <table className="w-full">
+            <div className="bg-canvas border border-hairline overflow-x-auto">
+              <table className="w-full min-w-[480px]">
                 <thead>
                   <tr className="border-b border-hairline bg-surface-soft">
                     <th className="text-left px-lg py-md text-caption text-charcoal font-600">Category</th>
@@ -1014,7 +1014,7 @@ export default function AdminPage() {
       {/* ── Guilds Tab ── */}
       {activeTab === "guilds" && (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <div className="flex items-center justify-between mb-lg">
+          <div className="flex flex-wrap items-center justify-between gap-md mb-lg">
             <h2 className="text-heading-sm text-ink font-700">
               Guild Assignment
             </h2>
@@ -1045,19 +1045,19 @@ export default function AdminPage() {
                 transition={{ delay: i * 0.05 }}
                 className="bg-canvas border border-hairline p-xxl"
               >
-                <div className="flex items-center justify-between mb-lg">
-                  <div>
-                    <h3 className="text-heading-sm text-ink font-700">
-                      {guild.name}
-                    </h3>
-                    <p className="text-body-sm text-mute mt-xs">
-                      Course:{" "}
-                      {guild.course?.title ?? guild.courseId}{" "}
-                      &middot; Instructor:{" "}
-                      {guild.instructor?.name ?? guild.instructorId}{" "}
-                      &middot; {guild.studentIds.length} students
-                    </p>
-                  </div>
+                <div className="flex flex-wrap items-center justify-between gap-md mb-lg">
+                <div className="min-w-0">
+                  <h3 className="text-heading-sm text-ink font-700">
+                    {guild.name}
+                  </h3>
+                  <p className="text-body-sm text-mute mt-xs break-words">
+                    Course:{" "}
+                    {guild.course?.title ?? guild.courseId}{" "}
+                    &middot; Instructor:{" "}
+                    {guild.instructor?.name ?? guild.instructorId}{" "}
+                    &middot; {guild.studentIds.length} students
+                  </p>
+                </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline-dark"
@@ -1211,7 +1211,7 @@ export default function AdminPage() {
               onChange={(url) => setFormCourse((p) => ({ ...p, coverImage: url }))}
             />
           </div>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="text-caption text-mute uppercase tracking-[0.1em] font-600 mb-1.5 block">
                 Price (MAD)

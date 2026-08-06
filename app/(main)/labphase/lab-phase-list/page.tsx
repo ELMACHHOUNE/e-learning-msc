@@ -249,7 +249,7 @@ export default function LabPhaseListPage() {
 
   if (error) {
     return (
-      <div className="max-w-[1440px] mx-auto px-xl py-xxl">
+      <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
         <p className="text-error">{error}</p>
       </div>
     )
@@ -259,15 +259,15 @@ export default function LabPhaseListPage() {
   const canManage = role === 'admin'
 
   return (
-    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
-      <div className="flex items-center justify-between mb-xxl">
-        <div>
+    <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-xxl">
+        <div className="min-w-0">
           <h1 className="text-display-md text-ink font-700 leading-[0.95]">Lab Phase List</h1>
           <p className="text-body-sm text-mute mt-sm">
             {role === 'admin' ? 'Manage all lab phases' : role === 'instructor' ? 'Create and manage your lab phases' : 'Browse approved lab phases'}
           </p>
         </div>
-        <div className="flex items-center gap-md">
+        <div className="flex flex-wrap items-center gap-md shrink-0">
           <Badge variant="default">{labphases.length} Total</Badge>
           {canCreate && (
             <Button variant="primary" size="sm" onClick={() => { setEditLab(null); setShowModal(true) }}>
@@ -299,14 +299,14 @@ export default function LabPhaseListPage() {
                 transition={{ delay: i * 0.05 }}
                 className="bg-canvas border border-hairline p-xxl"
               >
-                <div className="flex items-start justify-between mb-lg">
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-lg mb-lg">
                   <div className="flex items-start gap-lg flex-1 min-w-0">
                     {lab.image ? (
                       <div className="w-20 h-20 shrink-0 overflow-hidden bg-surface-soft border border-hairline">
                         <img ref={el => { if (el && lab.image && (lab.image.startsWith('/') || lab.image.startsWith('http://') || lab.image.startsWith('https://'))) el.src = lab.image }} alt="" className="w-full h-full object-cover" />
                       </div>
                     ) : (
-                      <div className="w-20 h-20 shrink-0 bg-surface-soft flex items-center justify-center border border-hairline">
+                      <div className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 bg-surface-soft flex items-center justify-center border border-hairline">
                         <ImageIcon className="w-6 h-6 text-mute" />
                       </div>
                     )}
@@ -323,7 +323,7 @@ export default function LabPhaseListPage() {
                       <p className="text-caption text-mute mt-xs">Created by {lab.createdBy?.name ?? 'Unknown'}</p>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0 ml-lg">
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
                     {canManage && lab.status === 'pending' && (
                       <Button variant="primary" size="sm" onClick={() => setApproveLab(lab)}>
                         <CheckCircle className="w-4 h-4 mr-1" /> Review

@@ -209,20 +209,20 @@ export default function StudentsPage() {
 
   if (error) {
     return (
-      <div className="max-w-[1440px] mx-auto px-xl py-xxl">
+      <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
         <p className="text-error">{error}</p>
       </div>
     )
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
-      <div className="flex items-center justify-between mb-xxl">
+    <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-xxl">
         <h1 className="text-display-md text-ink font-700 leading-[0.95]">My Students</h1>
-        <Badge variant="new">{students.length} Total</Badge>
+        <Badge variant="new" className="self-start sm:self-auto">{students.length} Total</Badge>
       </div>
 
-      <div className="relative w-72 mb-lg">
+      <div className="relative w-full sm:w-72 mb-lg">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mute" />
         <input
           value={searchQuery}
@@ -232,8 +232,8 @@ export default function StudentsPage() {
         />
       </div>
 
-      <div className="bg-canvas border border-hairline overflow-hidden">
-        <table className="w-full">
+      <div className="bg-canvas border border-hairline overflow-x-auto">
+        <table className="w-full min-w-[640px]">
           <thead>
             <tr className="border-b border-hairline bg-surface-soft">
               <th className="text-left px-lg py-md text-caption text-charcoal font-600">Student</th>

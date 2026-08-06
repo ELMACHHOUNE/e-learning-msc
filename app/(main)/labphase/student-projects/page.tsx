@@ -356,15 +356,15 @@ export default function StudentProjectsPage() {
   const stepsOrder: StepKey[] = ['presentation', 'gitRepo', 'deployment']
 
   return (
-    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
-      <div className="flex items-center justify-between mb-xxl">
-        <div>
+    <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-xxl">
+        <div className="min-w-0">
           <h1 className="text-display-md text-ink font-700 leading-[0.95]">Student Projects</h1>
           <p className="text-body-sm text-mute mt-sm">
             {isStudent ? 'Apply for a lab phase and submit your project' : 'Review and validate student projects'}
           </p>
         </div>
-        <div className="flex items-center gap-md">
+        <div className="flex flex-wrap items-center gap-md shrink-0">
           <Badge variant="default">{projects.length} Total</Badge>
           {canApply && (
             <Button variant="primary" size="sm" onClick={() => setShowApply(true)}>
@@ -375,7 +375,7 @@ export default function StudentProjectsPage() {
       </div>
 
       <div className="flex flex-wrap items-center gap-lg mb-lg">
-        <div className="relative w-72">
+        <div className="relative w-full sm:w-72">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mute" />
           <input
             value={searchQuery}
@@ -528,11 +528,11 @@ export default function StudentProjectsPage() {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-lg">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mt-lg">
               <span className="text-caption text-mute">
                 Showing {safePage} of {totalPages} pages · {PAGE_SIZE} per page
               </span>
-              <div className="flex items-center gap-md">
+              <div className="flex items-center gap-md overflow-x-auto py-sm">
                 <Button variant="outline-dark" size="sm" disabled={safePage === 1} onClick={() => setCurrentPage(safePage - 1)}>
                   Previous
                 </Button>

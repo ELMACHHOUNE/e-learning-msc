@@ -81,15 +81,15 @@ export default function GraduationsPage() {
   if (loading) return <LogoSpinner />
 
   return (
-    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
-      <div className="flex items-center justify-between mb-xxl">
-        <div>
+    <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-xxl">
+        <div className="min-w-0">
           <h1 className="text-display-md text-ink font-700 leading-[0.95]">Graduations</h1>
           <p className="text-body-sm text-mute mt-sm">
             Students who completed 100% of the platform — courses, checkpoints, and lab phases
           </p>
         </div>
-        <Badge variant="new">Graduates</Badge>
+        <Badge variant="new" className="self-start sm:self-auto shrink-0">Graduates</Badge>
       </div>
 
       {error && isAdmin && (
@@ -100,12 +100,12 @@ export default function GraduationsPage() {
 
       {!error && isAdmin && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-lg mb-xxl">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-lg mb-xxl">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0 }}
-              className="bg-canvas border border-hairline p-xl"
+              className="bg-canvas border border-hairline p-xl flex flex-col items-center text-center"
             >
               <div className="w-10 h-10 bg-primary text-on-primary flex items-center justify-center mb-md">
                 <GraduationCap className="w-5 h-5" />
@@ -117,7 +117,7 @@ export default function GraduationsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.05 }}
-              className="bg-canvas border border-hairline p-xl"
+              className="bg-canvas border border-hairline p-xl flex flex-col items-center text-center"
             >
               <div className="w-10 h-10 bg-success text-on-primary flex items-center justify-center mb-md">
                 <Calendar className="w-5 h-5" />
@@ -129,7 +129,7 @@ export default function GraduationsPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="bg-canvas border border-hairline p-xl"
+              className="bg-canvas border border-hairline p-xl flex flex-col items-center text-center"
             >
               <div className="w-10 h-10 bg-info text-on-primary flex items-center justify-center mb-md">
                 <Layers className="w-5 h-5" />
@@ -139,7 +139,7 @@ export default function GraduationsPage() {
             </motion.div>
           </div>
 
-          <div className="relative w-72 mb-lg">
+          <div className="relative w-full sm:w-72 mb-lg">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mute" />
             <input
               value={search}
@@ -159,8 +159,8 @@ export default function GraduationsPage() {
               </p>
             </div>
           ) : (
-            <div className="bg-canvas border border-hairline overflow-hidden">
-              <table className="w-full">
+            <div className="bg-canvas border border-hairline overflow-x-auto">
+              <table className="w-full min-w-[720px]">
                 <thead>
                   <tr className="border-b border-hairline bg-surface-soft">
                     <th className="text-left px-lg py-md text-caption text-charcoal font-600">Graduate</th>
