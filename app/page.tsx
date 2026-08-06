@@ -25,6 +25,7 @@ export default async function LandingPage() {
       <ComponentB1_ElearningSection />
       <ComponentC_Capabilities />
       <ComponentD_Courses courses={courses} />
+      <ComponentD1_Screens />
       <section className="py-20 md:py-28" style={{ backgroundColor: '#ededed' }}>
         <div className="max-w-[1440px] mx-auto px-6">
           <p className="text-[10px] font-bold text-ink uppercase mb-3 tracking-[0.2em]">TECHNOLOGY STACK</p>
@@ -339,6 +340,66 @@ function ComponentD_Courses({ courses }: { courses: { _id: { toString(): string 
           </Link>
         )
       })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ComponentD1_Screens() {
+  return (
+    <section className="bg-canvas py-20 md:py-28 overflow-hidden">
+      <div className="max-w-[1440px] mx-auto px-6">
+        <div className="text-center mb-12 md:mb-16">
+          <p className="text-[10px] font-bold text-ink uppercase mb-3 tracking-[0.2em]">
+            THE PLATFORM
+          </p>
+          <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-ink mb-4">
+            DESIGNED FOR EVERY SCREEN
+          </h2>
+          <p className="text-[16px] font-normal leading-[1.6] text-body max-w-[640px] mx-auto">
+            A unified workspace that adapts from desktop dashboards to
+            on-the-go mobile — consistent structure, precise outcomes.
+          </p>
+        </div>
+
+        <div className="relative mx-auto max-w-[1080px] pb-20 md:pb-36">
+          {/* Laptop screen (mockup included in image) */}
+          <div className="relative aspect-[16/9] w-full overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+            <Image
+              src="/images/laptop-screen.webp"
+              alt="e-learning-msc desktop platform"
+              fill
+              sizes="(max-width: 1080px) 100vw, 1080px"
+              className="object-contain"
+            />
+          </div>
+
+          {/* Mobile screen overlapping (mockup included in image) */}
+          <div className="hidden md:block absolute right-0 -bottom-20 w-48">
+            <div className="relative aspect-[9/18] w-full overflow-hidden">
+              <Image
+                src="/images/mobile-screen.webp"
+                alt="e-learning-msc mobile platform"
+                fill
+                sizes="(max-width: 240px) 100vw, 240px"
+                className="object-contain"
+              />
+            </div>
+          </div>
+
+          {/* Mobile screen (below laptop on small screens) */}
+          <div className="md:hidden mt-10 mx-auto max-w-[280px]">
+            <div className="relative aspect-[9/18] w-full overflow-hidden">
+              <Image
+                src="/images/mobile-screen.webp"
+                alt="e-learning-msc mobile platform"
+                fill
+                sizes="(max-width: 280px) 100vw, 280px"
+                className="object-cover"
+              />
+            </div>
+          </div>
         </div>
       </div>
     </section>
