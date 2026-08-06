@@ -33,7 +33,7 @@ export default function CoursesPage() {
 
   if (courses.length === 0) {
     return (
-      <div className="max-w-[1440px] mx-auto px-xl py-xxl">
+      <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
         <h1 className="text-display-md text-ink font-700 leading-[0.95] mb-xxl">My Courses</h1>
         <div className="bg-canvas border border-hairline p-xxl text-center">
           <BookOpen className="w-12 h-12 text-mute mx-auto mb-lg" />
@@ -45,7 +45,7 @@ export default function CoursesPage() {
   }
 
   return (
-    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
+    <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
       <h1 className="text-display-md text-ink font-700 leading-[0.95] mb-xxl">My Courses</h1>
 
       <div className="grid gap-lg">
@@ -57,11 +57,11 @@ export default function CoursesPage() {
             transition={{ delay: i * 0.05 }}
             className="bg-canvas border border-hairline p-xxl"
           >
-            <div className="flex items-start justify-between mb-lg">
-              <div>
-                <div className="flex items-center gap-md mb-sm">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-md mb-lg">
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-md mb-sm">
                   <h2 className="text-heading-sm text-ink font-700">{course.title}</h2>
-                  <Badge variant="success">Active</Badge>
+                  <Badge variant="success" className="shrink-0">Active</Badge>
                 </div>
                 <p className="text-body-md text-mute">{course.description}</p>
               </div>
@@ -72,7 +72,7 @@ export default function CoursesPage() {
                 Preview Course <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
-            <div className="flex gap-xxl">
+            <div className="flex flex-wrap gap-xxl">
               <div>
                 <p className="text-display-md text-ink font-700">{course.durationInMonths} months</p>
                 <p className="text-caption text-mute">Duration</p>

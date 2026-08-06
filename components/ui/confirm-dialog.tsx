@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { AlertTriangle, Trash2, X } from 'lucide-react'
 
 interface ConfirmOptions {
@@ -63,20 +62,13 @@ export function ConfirmDialog() {
 
   const isDanger = options?.variant === 'danger'
 
-  return createPortal(
-    <AnimatePresence>
-      {options && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+return createPortal(
+    options && (
+        <div
           className="fixed inset-0 z-[9999] bg-black/45 grid place-items-center px-4 py-8"
           onClick={close}
         >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+          <div
             onClick={(e) => e.stopPropagation()}
             className="bg-canvas border border-hairline shadow-[0_20px_60px_rgba(0,0,0,0.2)] w-full"
             style={{ maxWidth: '28rem' }}
@@ -127,10 +119,9 @@ export function ConfirmDialog() {
                 {options.confirmLabel ?? (isDanger ? 'Delete' : 'Confirm')}
               </button>
             </div>
-          </motion.div>
-        </motion.div>
-      )}
-    </AnimatePresence>,
+          </div>
+        </div>
+    ),
     document.body,
   )
 }

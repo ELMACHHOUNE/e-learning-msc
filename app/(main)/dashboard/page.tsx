@@ -117,9 +117,9 @@ function AdminDashboard({ data }: { data: DashboardData }) {
   ];
 
   return (
-    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
-      <div className="flex items-center justify-between mb-xxl">
-        <div>
+    <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-xxl">
+        <div className="min-w-0">
           <h1 className="text-display-md text-ink font-700 leading-[0.95]">
             Admin Dashboard
           </h1>
@@ -127,7 +127,7 @@ function AdminDashboard({ data }: { data: DashboardData }) {
             Manage users, courses, and guild assignments
           </p>
         </div>
-        <Badge variant="new">Admin Access</Badge>
+        <Badge variant="new" className="self-start sm:self-auto shrink-0">Admin Access</Badge>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-lg mb-xxl">
@@ -235,9 +235,9 @@ function InstructorDashboard({ data }: { data: DashboardData }) {
   ];
 
   return (
-    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
-      <div className="flex items-center justify-between mb-xxl">
-        <div>
+    <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-xxl">
+        <div className="min-w-0">
           <h1 className="text-display-md text-ink font-700 leading-[0.95]">
             Instructor Dashboard
           </h1>
@@ -245,10 +245,10 @@ function InstructorDashboard({ data }: { data: DashboardData }) {
             Track your guilds, students, and sessions
           </p>
         </div>
-        <Badge variant="info">Instructor View</Badge>
+        <Badge variant="info" className="self-start sm:self-auto shrink-0">Instructor View</Badge>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-lg mb-xxl">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-xxl">
         {statCards.map((stat, i) => {
           const Icon = stat.icon;
           return (
@@ -290,11 +290,11 @@ function InstructorDashboard({ data }: { data: DashboardData }) {
               transition={{ delay: i * 0.05 }}
               className="bg-canvas border border-hairline p-xxl"
             >
-              <div className="flex items-center justify-between mb-lg">
+              <div className="flex flex-wrap items-center justify-between gap-md mb-lg">
                 <h3 className="text-heading-sm text-ink font-700">
                   {guild.name}
                 </h3>
-                <Badge variant="success">Active</Badge>
+                <Badge variant="success" className="shrink-0">Active</Badge>
               </div>
               <p className="text-body-sm text-mute mb-lg">
                 {guild.courseTitle} &middot; {guild.studentCount} students
@@ -402,9 +402,9 @@ function StudentDashboard({ data }: { data: DashboardData }) {
   const latest = certificates[0];
 
   return (
-    <div className="max-w-[1440px] mx-auto px-xl py-xxl">
-      <div className="flex items-center justify-between mb-xxl">
-        <div>
+    <div className="max-w-[1440px] mx-auto px-md sm:px-xl py-xxl">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mb-xxl">
+        <div className="min-w-0">
           <h1 className="text-display-md text-ink font-700 leading-[0.95]">
             My Dashboard
           </h1>
@@ -412,15 +412,15 @@ function StudentDashboard({ data }: { data: DashboardData }) {
             Track your progress and guilds
           </p>
         </div>
-        <Badge variant="default">Student View</Badge>
+        <Badge variant="default" className="self-start sm:self-auto shrink-0">Student View</Badge>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-lg mb-xxl">
+      <div className="grid grid-cols-2 gap-lg mb-xxl">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0 }}
-          className="bg-canvas border border-hairline p-xl"
+          className="bg-canvas border border-hairline p-md sm:p-xl flex flex-col items-center text-center"
         >
           <p className="text-display-lg text-ink font-700 leading-[0.95] mb-xs">
             {data.stats.totalGuilds}
@@ -431,7 +431,7 @@ function StudentDashboard({ data }: { data: DashboardData }) {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.05 }}
-          className="bg-canvas border border-hairline p-xl"
+          className="bg-canvas border border-hairline p-md sm:p-xl flex flex-col items-center text-center"
         >
           <p className="text-display-lg text-ink font-700 leading-[0.95] mb-xs">
             {data.stats.totalCourses}
@@ -452,11 +452,11 @@ function StudentDashboard({ data }: { data: DashboardData }) {
           animate={{ opacity: 1, y: 0 }}
           className="mb-xxl"
         >
-          <div className="bg-canvas border border-hairline shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-sm relative">
-            <div className="border border-primary/70 p-xl md:p-xxl">
+          <div className="bg-canvas border border-hairline shadow-[0_12px_40px_rgba(0,0,0,0.06)] p-xs sm:p-sm relative">
+            <div className="border border-primary/70 p-md md:p-xxl">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-xl">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-lg mb-lg">
+                  <div className="flex flex-col sm:flex-row sm:items-center items-start gap-lg mb-lg">
                     <motion.div
                       initial={{ scale: 0.7 }}
                       animate={{ scale: 1 }}

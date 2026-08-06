@@ -11,11 +11,13 @@ export default function CourseDetailPage() {
   const [activeTab, setActiveTab] = useState<ContentTab>('courses')
 
   return (
-    <div className="flex h-[calc(100vh-64px)]">
-      <SidebarNavigation />
+    <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-64px)]">
+      <div className="hidden lg:block shrink-0">
+        <SidebarNavigation />
+      </div>
 
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="flex items-center gap-4 px-xxl py-lg border-b border-hairline bg-canvas">
+        <div className="flex items-center gap-2 lg:gap-4 px-md lg:px-xxl py-lg border-b border-hairline bg-canvas overflow-x-auto">
           {[
             { id: 'courses' as const, label: 'Courses', icon: BookOpen },
             { id: 'assessment' as const, label: 'Assessment', icon: FileText },
@@ -27,7 +29,7 @@ export default function CourseDetailPage() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-lg py-sm text-button-sm bg-transparent border-none cursor-pointer transition-colors rounded-pill ${
+                className={`flex items-center gap-2 px-lg py-sm text-button-sm bg-transparent border-none cursor-pointer transition-colors rounded-pill shrink-0 whitespace-nowrap ${
                   isActive ? 'bg-surface-dark text-on-dark' : 'text-charcoal hover:text-ink'
                 }`}
               >
@@ -38,7 +40,7 @@ export default function CourseDetailPage() {
           })}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-xxl py-xxl">
+        <div className="flex-1 overflow-y-auto px-md lg:px-xxl py-xxl">
           <div className="max-w-3xl mx-auto">
             <Badge variant="new" className="mb-lg">Module 1</Badge>
             <h1 className="text-display-lg text-ink font-700 leading-[0.95] mb-lg">
@@ -77,7 +79,7 @@ export default function CourseDetailPage() {
           </div>
         </div>
 
-        <div className="flex items-center justify-between px-xxl py-lg border-t border-hairline bg-canvas">
+        <div className="flex flex-wrap items-center justify-between gap-md px-md lg:px-xxl py-lg border-t border-hairline bg-canvas">
           <button className="flex items-center gap-2 text-button-md text-mute hover:text-ink bg-transparent border-none cursor-pointer transition-colors">
             <ChevronLeft className="w-4 h-4" />
             Previous

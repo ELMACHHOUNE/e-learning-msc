@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { motion, AnimatePresence } from 'framer-motion'
 import { X, CheckCircle, AlertCircle, Info } from 'lucide-react'
 
 type AlertVariant = 'success' | 'error' | 'warning' | 'info'
@@ -55,15 +54,11 @@ export function AlertContainer() {
 
   return createPortal(
     <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 pointer-events-none w-full max-w-[384px]">
-      <AnimatePresence>
         {alerts.map((alert) => {
           const Icon = iconMap[alert.variant]
           return (
-            <motion.div
+            <div
               key={alert.id}
-              initial={{ opacity: 0, x: 40, scale: 0.95 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: 40, scale: 0.95 }}
               className="border border-hairline pointer-events-auto bg-canvas shadow-[0_20px_60px_rgba(0,0,0,0.2)]"
             >
               <div className="grid grid-cols-[1fr_auto] gap-2 px-6 py-4 border-b border-hairline bg-surface-soft">
@@ -83,10 +78,9 @@ export function AlertContainer() {
                   <p className="text-body-sm text-mute">{alert.message}</p>
                 </div>
               )}
-            </motion.div>
+            </div>
           )
         })}
-      </AnimatePresence>
     </div>,
     document.body,
   )

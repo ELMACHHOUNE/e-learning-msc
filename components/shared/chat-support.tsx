@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import { MessageCircle, X, Send } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
@@ -88,63 +87,56 @@ export function ChatSupport() {
         )}
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-48px)] bg-canvas border border-hairline shadow-lg flex flex-col"
-          >
-            <div className="p-xl border-b border-hairline">
-              <p className="text-heading-sm text-ink">Support</p>
-              <p className="text-body-sm text-mute">How can we help you today?</p>
-            </div>
-            <div ref={listRef} className="flex-1 p-xl overflow-y-auto max-h-[300px] space-y-lg">
-              {messages.length === 0 ? (
-                <p className="text-body-md text-mute text-center pt-xl">No messages yet</p>
-              ) : (
-                messages.map((msg) => {
-                  const isAdmin = msg.name?.startsWith('Admin (')
-                  const isOwn = !isAdmin
-                  return (
-                    <div key={msg.id} className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
-                      <span className="text-caption text-mute mb-xs">
-                        {isAdmin ? 'Support' : 'You'}
-                      </span>
-                      <div className={`px-md py-sm text-body-sm max-w-[80%] ${isOwn ? 'bg-primary text-on-primary' : 'bg-surface-soft text-ink'}`}>
-                        {msg.message}
-                      </div>
+      {open && (
+        <div className="fixed bottom-24 right-6 z-50 w-[360px] max-w-[calc(100vw-48px)] bg-canvas border border-hairline shadow-lg flex flex-col">
+          <div className="p-xl border-b border-hairline">
+            <p className="text-heading-sm text-ink">Support</p>
+            <p className="text-body-sm text-mute">How can we help you today?</p>
+          </div>
+          <div ref={listRef} className="flex-1 p-xl overflow-y-auto max-h-[300px] space-y-lg">
+            {messages.length === 0 ? (
+              <p className="text-body-md text-mute text-center pt-xl">No messages yet</p>
+            ) : (
+              messages.map((msg) => {
+                const isAdmin = msg.name?.startsWith('Admin (')
+                const isOwn = !isAdmin
+                return (
+                  <div key={msg.id} className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                    <span className="text-caption text-mute mb-xs">
+                      {isAdmin ? 'Support' : 'You'}
+                    </span>
+                    <div className={`px-md py-sm text-body-sm max-w-[80%] ${isOwn ? 'bg-primary text-on-primary' : 'bg-surface-soft text-ink'}`}>
+                      {msg.message}
                     </div>
-                  )
-                })
-              )}
+                  </div>
+                )
+              })
+            )}
+          </div>
+          <div className="p-lg border-t border-hairline">
+            <div className="flex gap-md">
+              <input
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Type your message..."
+                disabled={!session}
+                className="flex-1 h-10 bg-surface-soft text-ink text-body-sm px-md rounded-none border-b border-hairline-strong focus-visible:outline-none disabled:opacity-50"
+              />
+              <button
+                onClick={sendMessage}
+                disabled={!input.trim() || sending || !session}
+                className="bg-primary text-on-primary text-button-md px-lg h-10 rounded-xs font-700 border-none cursor-pointer disabled:opacity-50 flex items-center gap-1"
+              >
+                <Send className="w-4 h-4" /> Send
+              </button>
             </div>
-            <div className="p-lg border-t border-hairline">
-              <div className="flex gap-md">
-                <input
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  placeholder="Type your message..."
-                  disabled={!session}
-                  className="flex-1 h-10 bg-surface-soft text-ink text-body-sm px-md rounded-none border-b border-hairline-strong focus-visible:outline-none disabled:opacity-50"
-                />
-                <button
-                  onClick={sendMessage}
-                  disabled={!input.trim() || sending || !session}
-                  className="bg-primary text-on-primary text-button-md px-lg h-10 rounded-xs font-700 border-none cursor-pointer disabled:opacity-50 flex items-center gap-1"
-                >
-                  <Send className="w-4 h-4" /> Send
-                </button>
-              </div>
-              {!session && (
-                <p className="text-caption text-mute mt-sm">Please log in to send a message</p>
-              )}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {!session && (
+              <p className="text-caption text-mute mt-sm">Please log in to send a message</p>
+            )}
+          </div>
+        </div>
+      )}
     </>
   )
 }

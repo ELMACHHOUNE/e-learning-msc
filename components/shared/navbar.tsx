@@ -166,34 +166,27 @@ export function Navbar() {
           >
             <Avatar name={session?.user?.name ?? 'User'} size="sm" src={session?.user?.image ?? undefined} />
           </button>
-          <AnimatePresence>
-            {profileOpen && (
-              <motion.div
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                className="absolute right-0 top-full mt-1 bg-canvas border border-hairline shadow-sm min-w-[220px] z-50"
-              >
-                <div className="px-lg py-md border-b border-hairline">
-                  <p className="text-body-sm text-ink font-600">{session?.user?.name ?? 'User'}</p>
-                  <p className="text-caption text-mute">{session?.user?.email ?? 'user@email.com'}</p>
-                </div>
-                <div className="py-xs">
-                  <Link href="/profile" className="w-full flex items-center gap-md px-lg py-sm text-body-md text-charcoal hover:bg-surface-soft no-underline">
-                    <Settings className="w-4 h-4" />
-                    Account Settings
-                  </Link>
-                  <button
-                    onClick={() => signOut()}
-                    className="w-full flex items-center gap-md px-lg py-sm text-body-md text-charcoal hover:bg-surface-soft bg-transparent border-none cursor-pointer"
-                  >
-                    <LogOut className="w-4 h-4" />
-                    Logout
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+          {profileOpen && (
+            <div className="absolute right-0 top-full mt-1 bg-canvas border border-hairline shadow-sm min-w-[220px] z-50 max-w-[calc(100vw-2rem)]">
+              <div className="px-lg py-md border-b border-hairline">
+                <p className="text-body-sm text-ink font-600">{session?.user?.name ?? 'User'}</p>
+                <p className="text-caption text-mute break-words">{session?.user?.email ?? 'user@email.com'}</p>
+              </div>
+              <div className="py-xs">
+                <Link href="/profile" className="w-full flex items-center gap-md px-lg py-sm text-body-md text-charcoal hover:bg-surface-soft no-underline">
+                  <Settings className="w-4 h-4" />
+                  Account Settings
+                </Link>
+                <button
+                  onClick={() => signOut()}
+                  className="w-full flex items-center gap-md px-lg py-sm text-body-md text-charcoal hover:bg-surface-soft bg-transparent border-none cursor-pointer"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         <button
@@ -204,52 +197,45 @@ export function Navbar() {
         </button>
       </div>
 
-      <AnimatePresence>
-        {mobileOpen && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="absolute top-16 left-0 right-0 bg-canvas border-b border-hairline lg:hidden z-50"
-          >
-            <div className="flex flex-col p-lg bg-surface-soft">
-              {navLinks.map((link) => {
-                if ('children' in link && link.children) {
-                  return (
-                    <div key={link.label}>
-                      <p className="text-button-md text-charcoal py-sm">{link.label}</p>
-                      <div className="pl-lg">
-                        {link.children.map((child) => (
-                          <Link
-                            key={child.href}
-                            href={child.href}
-                            className="block text-body-md text-charcoal py-sm no-underline hover:text-primary"
-                            onClick={() => setMobileOpen(false)}
-                          >
-                            {child.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                }
-                const Icon = link.icon
+      {mobileOpen && (
+        <div className="absolute top-16 left-0 right-0 bg-canvas border-b border-hairline lg:hidden z-50">
+          <div className="flex flex-col p-lg bg-surface-soft">
+            {navLinks.map((link) => {
+              if ('children' in link && link.children) {
                 return (
-                  <Link
-                    key={link.href}
-                    href={link.href!}
-                    className="flex items-center gap-2 text-body-md text-charcoal py-sm no-underline hover:text-primary"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {Icon && <Icon className="w-4 h-4" />}
-                    {link.label}
-                  </Link>
+                  <div key={link.label}>
+                    <p className="text-button-md text-charcoal py-sm">{link.label}</p>
+                    <div className="pl-lg">
+                      {link.children.map((child) => (
+                        <Link
+                          key={child.href}
+                          href={child.href}
+                          className="block text-body-md text-charcoal py-sm no-underline hover:text-primary"
+                          onClick={() => setMobileOpen(false)}
+                        >
+                          {child.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
                 )
-              })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              }
+              const Icon = link.icon
+              return (
+                <Link
+                  key={link.href}
+                  href={link.href!}
+                  className="flex items-center gap-2 text-body-md text-charcoal py-sm no-underline hover:text-primary"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {Icon && <Icon className="w-4 h-4" />}
+                  {link.label}
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      )}
     </nav>
   )
 }
