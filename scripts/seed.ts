@@ -7,6 +7,8 @@ import Guild from '@/models/Guild'
 import SessionLog from '@/models/SessionLog'
 import LabPhase, { type LabPhaseDocument } from '@/models/LabPhase'
 import Category from '@/models/Category'
+import ProjectApplication from '@/models/ProjectApplication'
+import { ensureGraduation } from '@/lib/graduation'
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/e-learning-msc'
 
@@ -428,6 +430,82 @@ async function main() {
   ]
   const labphases = await LabPhase.insertMany(labPhasesData as unknown as LabPhaseDocument[])
   console.log(`✓ ${labphases.length} lab phases created`)
+
+  // ── Graduates (100% completion → test certificate generation) ──
+  const graduatedSeed = [
+    { name: 'Lina Benali', email: 'lina.benali@fake.msc', courseIdx: 0, instructorIdx: 0, phaseIdx: 0, daysAgo: 12 },
+    { name: 'Youssef El Amrani', email: 'youssef.elamrani@fake.msc', courseIdx: 0, instructorIdx: 0, phaseIdx: 1, daysAgo: 25 },
+    { name: 'Sara Mansouri', email: 'sara.mansouri@fake.msc', courseIdx: 0, instructorIdx: 0, phaseIdx: 2, daysAgo: 40 },
+    { name: 'Omar Haddad', email: 'omar.haddad@fake.msc', courseIdx: 1, instructorIdx: 1, phaseIdx: 0, daysAgo: 55 },
+    { name: 'Nora Fassi', email: 'nora.fassi@fake.msc', courseIdx: 1, instructorIdx: 1, phaseIdx: 1, daysAgo: 70 },
+    { name: 'Karim Berrada', email: 'karim.berrada@fake.msc', courseIdx: 2, instructorIdx: 2, phaseIdx: 2, daysAgo: 90 },
+  ]
+  const graduates = await User.create(
+    graduatedSeed.map((g) => ({ name: g.name, email: g.email, password, role: 'student' as const }))
+  )
+  console.log(`✓ ${graduates.length} graduated students created (100% completion)`)
+
+  const approvedLabPhases = labphases.filter((l) => l.status === 'approved')
+  const daysAgo = (n: number) => {
+    const d = new Date()
+    d.setDate(d.getDate() - n)
+    return d
+  }
+  const completedGuildByCourse = new Map<number, mongoose.Types.ObjectId>()
+  const completedGuildIds: mongoose.Types.ObjectId[] = []
+  for (let i = 0; i < graduatedSeed.length; i++) {
+    const info = graduatedSeed[i]
+    const course = courses[info.courseIdx]
+    let guildId = completedGuildByCourse.get(info.courseIdx)
+    if (!guildId) {
+      const group = graduatedSeed
+        .map((g, gi) => (g.courseIdx === info.courseIdx ? graduates[gi] : null))
+        .filter((s): s is (typeof graduates)[number] => s !== null)
+      const created = await Guild.create({
+        name: `Cohort ${info.courseIdx + 1} — Completed`,
+        courseId: course._id,
+        instructorId: instructors[info.instructorIdx]._id,
+        studentIds: group.map((s) => s._id),
+        currentSession: course.totalSessions,
+        skillsTotal: 0,
+        skillsAchieved: 0,
+      })
+      guildId = created._id
+      completedGuildByCourse.set(info.courseIdx, guildId)
+    }
+    completedGuildIds.push(guildId)
+  }
+  console.log(`✓ ${completedGuildByCourse.size} completed guilds created`)
+
+  for (let i = 0; i < graduatedSeed.length; i++) {
+    const info = graduatedSeed[i]
+    const student = graduates[i]
+    const phase = approvedLabPhases[info.phaseIdx % approvedLabPhases.length]
+    const scores = [8, 9, 7]
+    const completedAt = daysAgo(info.daysAgo)
+    await ProjectApplication.create({
+      studentId: student._id,
+      labPhaseId: phase._id,
+      guildId: completedGuildIds[i],
+      status: 'completed',
+      presentation: { url: 'https://www.canva.com/design/fake-presentation', score: scores[0], validated: true },
+      gitRepo: { url: 'https://github.com/fake-student/final-project', score: scores[1], validated: true },
+      deployment: { url: 'https://fake-student-project.vercel.app', score: scores[2], validated: true },
+      finalGrade: Math.round(((scores[0] + scores[1] + scores[2]) / 30) * 100),
+      createdAt: completedAt,
+      updatedAt: completedAt,
+    })
+  }
+  console.log(`✓ ${graduates.length} completed lab projects created`)
+
+  let certCount = 0
+  for (const student of graduates) {
+    const records = await ensureGraduation(student._id.toString())
+    certCount += records.length
+  }
+  const gradEmails = graduates.map((s) => s.email).join(', ')
+  console.log(`✓ ${certCount} graduation records created (certificates)`)
+  console.log('  graduates (password ' + SEED_PASSWORD + '): ' + gradEmails)
 
   console.log('\n── Seed complete ──')
   console.log('Email format:  name@elearning.msc')
