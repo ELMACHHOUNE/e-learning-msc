@@ -20,12 +20,22 @@ Full-featured e-learning platform: Next.js 16 (App Router, Turbopack), TypeScrip
 npm run dev            # Turbopack dev server → http://localhost:3000
 npm run build          # Production build
 npm run lint           # ESLint (eslint-config-next) — run before finishing a task
-npm run seed           # Reset demo data (uses scripts/seed.ts, additive)
-npm run seed:grad      # Add demo graduation/certificate data
+npm run seed           # Reset demo data (scripts/seed.ts) — now ALSO creates 6 graduates
+npm run seed:grad      # Extra additive graduation data (legacy — main seed covers this)
 npm run assign:grad    # assign:grad <email> — graduate a single student by email
 ```
 
 Seed/assign scripts run via `tsx --env-file=.env.local` — a `.env.local` with `MONGODB_URI` is required.
+
+**Note for Docker:** `.env.local` points at MongoDB Atlas, NOT the compose `mongo` service. To seed the container DB, run the script directly against `localhost:27017` with `SEED_PASSWORD` set (the container maps 27017→27017):
+
+```powershell
+$env:MONGODB_URI='mongodb://localhost:27017/e-learning-msc'
+$env:SEED_PASSWORD='password123'
+npx tsx scripts/seed.ts
+```
+
+`seed.ts` drops the DB, then seeds 1 admin, 3 instructors, 30 students, 3 courses, 5 guilds, session logs, 4 lab phases, **and 6 graduates** (100% completion) whose certificates are registered via `ensureGraduation()` (`CERT-YYYY-####`). Graduates: `lina.benali@fake.msc`, `youssef.elamrani@fake.msc`, `sara.mansouri@fake.msc`, `omar.haddad@fake.msc`, `nora.fassi@fake.msc`, `karim.berrada@fake.msc` — password `password123`, used to test certificate PDF generation.
 
 ## Environment
 

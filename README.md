@@ -67,10 +67,29 @@ npm run dev         # http://localhost:3000
 
 Login credentials after seeding: check `scripts/seed.ts` for default admin/instructor/student accounts.
 
+### Run with Docker
+
+The project is containerized (`next.config.ts` sets `output: 'standalone'`; a 3-stage `Dockerfile` runs the minimal standalone server as a non-root user with MongoDB 7 as a companion service).
+
+```bash
+cp .env.docker .env   # compose template — fill in AUTH_SECRET / AUTH_URL
+docker compose up --build   # app on ${APP_PORT:-3000}, mongo on 27017
+docker compose down         # stop (data persists in the mongodb_data volume)
+```
+
+Seed the container database after `up`:
+
+```powershell
+$env:MONGODB_URI='mongodb://localhost:27017/e-learning-msc'
+$env:SEED_PASSWORD='password123'
+npx tsx scripts/seed.ts
+```
+
 ## Project Structure
 
+Source files live at the **project root** (there is no `src/` directory); the `@/*` path alias resolves to the repo root.
+
 ```
-src/
 ├── app/
 │   ├── (auth)/                    # Login, forgot-password
 │   ├── (main)/
@@ -98,10 +117,14 @@ src/
 │   ├── db.ts                      # Cached MongoDB connection
 │   ├── graduation.ts              # ensureGraduation() + academy/certificate config
 │   └── utils.ts                   # cn(), formatDate(), truncate()
-├── models/                        # 9 Mongoose models (incl. Certificate)
+├── models/                        # 10 Mongoose models (incl. Certificate)
 ├── types/                         # TypeScript interfaces & auth type augmentation
 ├── public/certificates/PDF/       # Certificate template (placeholder fields erased at runtime)
 ├── scripts/                       # seed.ts, seed-graduations.ts, assign-graduate.ts
+├── Dockerfile                     # 3-stage build → standalone server
+├── docker-compose.yml             # app + MongoDB 7
+├── .dockerignore
+├── .env.docker                    # Compose env template (copy to `.env`)
 └── proxy.ts                       # Auth middleware
 ```
 
@@ -218,11 +241,12 @@ Support chat: `name`, `email`, `message`, `isAdmin`, `read`, timestamps
 
 ## Seed Scripts
 
-The seed script (`scripts/seed.ts`) populates the database with:
+The seed script (`scripts/seed.ts`) drops the database and populates it with:
 - 1 admin, 3 instructors, 30 students
 - 3 categories, 3 courses with full module/chapter/lesson content
 - 5 guilds with assigned students and instructors
 - Session logs and 4 lab phases
+- **6 graduates at 100% completion** (completed guilds + validated lab projects + certificates via `ensureGraduation()`), used to test certificate PDF generation
 
 Run with:
 
@@ -230,14 +254,18 @@ Run with:
 npm run seed
 ```
 
-**Demo graduation data** (additive — does not drop the database):
+**Legacy additive scripts** (no longer required — the main seed covers graduation data):
 
 ```bash
-npm run seed:grad     # 6 fake students at 100% completion + completed projects + certificates
-npm run assign:grad   # Add a single student by email, e.g. npm run assign:grad mourad@elearning.msc
+npm run seed:grad     # Additive demo graduation data (idempotent)
+npm run assign:grad   # Graduate a single student by email, e.g. npm run assign:grad mourad@elearning.msc
 ```
 
 The `assign:grad` script assigns the given student to an instructor, creates a fully completed guild + completed lab phase project, and registers their graduation (generates a certificate record).
+
+**Demo graduates** created by `npm run seed` (password `password123`):
+
+`lina.benali@fake.msc`, `youssef.elamrani@fake.msc`, `sara.mansouri@fake.msc`, `omar.haddad@fake.msc`, `nora.fassi@fake.msc`, `karim.berrada@fake.msc`
 
 ## Scripts
 
@@ -246,8 +274,8 @@ npm run dev            # Development server
 npm run build          # Production build
 npm run start          # Start production server
 npm run lint           # ESLint
-npm run seed           # Seed database with demo data
-npm run seed:grad      # Seed demo graduation/certificate data
+npm run seed           # Full demo data (courses + 6 graduates with certificates)
+npm run seed:grad      # Legacy additive graduation demo data
 npm run assign:grad    # Assign one student graduate data by email
 ```
 
