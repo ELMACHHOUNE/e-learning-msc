@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import path from 'path'
 import crypto from 'crypto'
+import { uploadObject } from '@/lib/rustfs'
 
 const ALLOWED = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml', 'image/avif']
 const MIME_EXT: Record<string, string> = {
@@ -40,13 +39,12 @@ export async function POST(req: Request) {
     const ext = MIME_EXT[mime]
     const name = `${Date.now()}-${crypto.randomUUID().slice(0, 8)}.${ext}`
 
-    const dir = path.join(process.cwd(), 'public', 'uploads', folder)
-    const filePath = path.join(dir, name)
-
-    await mkdir(dir, { recursive: true })
-    await writeFile(filePath, raw)
-
-    const url = `/uploads/${folder}/${name}`
+    const url = await uploadObject({
+      folder,
+      name,
+      body: raw,
+      contentType: mime,
+    })
 
     return NextResponse.json({ url })
   } catch (err) {

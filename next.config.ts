@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  serverExternalPackages: ['mongoose'],
+  serverExternalPackages: ['mongoose', '@aws-sdk/client-s3'],
   experimental: {
     proxyClientMaxBodySize: 50 * 1024 * 1024,
   },

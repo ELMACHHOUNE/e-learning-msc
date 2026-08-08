@@ -12,6 +12,7 @@
     "assign:grad": "npx tsx --env-file=.env.local scripts/assign-graduate.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1106.0",
     "@hookform/resolvers": "^5.4.0",
     "@tanstack/react-table": "^8.21.3",
     "bcryptjs": "^3.0.3",

@@ -43,17 +43,18 @@ Copy the stack from the right side of `.env.example` to `.env.local`. `.env.loca
 
 ## Docker
 
-The project is containerized. `next.config.ts` sets `output: 'standalone'`; the `Dockerfile` is a 3-stage build (deps → builder → runner) on Node 22 alpine, running the minimal standalone `server.js` as a non-root user. MongoDB 7 is the companion service.
+The project is containerized. `next.config.ts` sets `output: 'standalone'`; the `Dockerfile` is a 3-stage build (deps → builder → runner) on Node 22 alpine, running the minimal standalone `server.js` as a non-root user. MongoDB 7 and RustFS (S3-compatible object storage) are the companion services.
 
 ```bash
 cp .env.docker .env      # template → docker compose reads `.env`
-docker compose up --build # app on ${APP_PORT:-3000}, mongo on 27017
-docker compose down       # stop (data persists in the mongodb_data volume)
+docker compose up --build # app on ${APP_PORT:-3000}, mongo on 27017, rustfs S3 on 9000 + console 9001
+docker compose down       # stop (data persists in the mongodb_data / rustfs_data volumes)
 ```
 
 - Compose `environment:` passes `AUTH_SECRET`/`AUTH_URL` to the container and hard-fails (`${VAR:?}`) if unset — always set them in `.env` before `up`. OAuth vars fall back to empty.
 - `MONGODB_URI` inside compose points at the `mongo` service (`mongodb://mongo:27017/e-learning-msc`), overriding the localhost value in `.env.example`.
-- `app` waits for `mongo` via a healthcheck (`depends_on.condition: service_healthy`).
+- `RUSTFS_*` vars configure the app (S3 client) and the `rustfs` service. **RustFS refuses its default `rustfsadmin` creds on non-loopback listeners** — the compose defaults use `elearningfsadmin` / `elearningfsadmin-secret`; override via `.env`.
+- `app` waits for `mongo` via a healthcheck (`depends_on.condition: service_healthy`); it depends on `rustfs` only by `service_started` (bucket is created lazily on first upload).
 - `.dockerignore` excludes `node_modules`, `.next`, secrets (`.env*` except templates), and the git metadata. The live certificate template `public/certificates/PDF/certificate.pdf` IS copied into the image.
 
 ## Tech Stack
@@ -62,6 +63,7 @@ docker compose down       # stop (data persists in the mongodb_data volume)
 - **Tailwind CSS v4** via `@tailwindcss/postcss` (theme tokens in `app/globals.css`) + **Framer Motion**
 - **MongoDB** via **Mongoose 9** (connection cached in `lib/db.ts`)
 - **NextAuth.js v5 beta** — Credentials (bcrypt) + Google/GitHub OAuth, JWT sessions (1h)
+- **RustFS** (self-hosted S3 object storage) via `@aws-sdk/client-s3` — the single source for images/media
 - **pdf-lib** for certificate PDF generation; **Recharts** for dashboard charts; **lucide-react** icons; custom UI primitives in `components/ui/`
 - `zod` v4 + `react-hook-form` + `@hookform/resolvers` + `@tanstack/react-table` for forms/tables
 - **Custom UI primitives** — Button, Badge, Card, Avatar, Input, Alert, ConfirmDialog, etc. in `components/ui/`. Prefer these over a UI library.
@@ -75,7 +77,8 @@ docker compose down       # stop (data persists in the mongodb_data volume)
 | `app/(main)/layout.tsx` | Authenticated shell (navbar, sidebar, chat widget) |
 | `app/public/` → actually `app/programs/` | Public program catalog + detail pages |
 | `app/api/` | Route handlers: `admin/`, `auth/[...nextauth]` (NextAuth handlers), `certificates/`, `courses/`, `dashboard/`, `instructors/`, `projects/`, `students/`, `support/`, `upload/`, `user/` |
-| `app/api/upload/` | File/image upload endpoint |
+| `app/api/upload/` | File/image upload endpoint (stores in RustFS) |
+| `app/uploads/[...path]/` | Streams stored RustFS objects back to the browser (signed S3 GET, `/uploads/<folder>/<name>` URLs) |
 | `app/robots.ts`, `app/sitemap.ts` | SEO metadata |
 | `app/loader/` | Loading route group |
 | `components/admin/` | `course-editor.tsx` and admin tooling |
@@ -86,6 +89,7 @@ docker compose down       # stop (data persists in the mongodb_data volume)
 | `lib/auth.ts` | NextAuth config + `getCurrentUser()`, `requireRole(...)` |
 | `lib/db.ts` | Cached global Mongoose connection (`connectToDatabase`) |
 | `lib/graduation.ts` | `ensureGraduation()` graduation logic + `ACADEMY_NAME` |
+| `lib/rustfs.ts` | S3 client (RUSTFS_*), bucket init, `uploadObject()`/`getObject()` helpers |
 | `lib/certificate.ts` | Client helper for generating/downloading certificate PDFs |
 | `lib/utils.ts` | `cn()`, `formatDate()`, `truncate()`, `safeUrl()`, `safeMailto()`, `safePhoneUrl()` |
 | `models/` | 10 Mongoose models (incl. CourseContent, Certificate) |

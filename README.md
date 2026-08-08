@@ -18,6 +18,7 @@ A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CS
 | Certificates | PDF generation via pdf-lib (template-based, placeholder erasure) |
 | Charts | Recharts |
 | Icons | Lucide React |
+| Media storage | RustFS (S3-compatible object storage, self-hosted) via `@aws-sdk/client-s3` |
 | UI Primitives | Custom components (Button, Badge, Card, Avatar, Progress, etc.) |
 
 ## Architecture
@@ -69,12 +70,12 @@ Login credentials after seeding: check `scripts/seed.ts` for default admin/instr
 
 ### Run with Docker
 
-The project is containerized (`next.config.ts` sets `output: 'standalone'`; a 3-stage `Dockerfile` runs the minimal standalone server as a non-root user with MongoDB 7 as a companion service).
+The project is containerized (`next.config.ts` sets `output: 'standalone'`; a 3-stage `Dockerfile` runs the minimal standalone server as a non-root user). MongoDB 7 and RustFS (S3-compatible media storage) run as companion services.
 
 ```bash
 cp .env.docker .env   # compose template — fill in AUTH_SECRET / AUTH_URL
-docker compose up --build   # app on ${APP_PORT:-3000}, mongo on 27017
-docker compose down         # stop (data persists in the mongodb_data volume)
+docker compose up --build   # app on ${APP_PORT:-3000}, mongo on 27017, rustfs S3 on 9000 + console on 9001
+docker compose down         # stop (data persists in the mongodb_data / rustfs_data volumes)
 ```
 
 Seed the container database after `up`:
@@ -84,6 +85,8 @@ $env:MONGODB_URI='mongodb://localhost:27017/e-learning-msc'
 $env:SEED_PASSWORD='password123'
 npx tsx scripts/seed.ts
 ```
+
+Uploaded images/avatars/cover photos are stored in the RustFS bucket (`RUSTFS_BUCKET`, default `e-learning-msc`) and served back through `app/uploads/[...path]/route.ts`, so the client URL stays `/uploads/<folder>/<name>`. Push Media to the RustFS console at `http://localhost:9001` (default `RUSTFS_ACCESS_KEY` / `RUSTFS_SECRET_KEY` in `.env.docker`).
 
 ## Project Structure
 
@@ -103,6 +106,7 @@ Source files live at the **project root** (there is no `src/` directory); the `@
 │   │   ├── instructors/           # Instructor directory (admin)
 │   │   └── teach/                 # Attendance, earnings, sessions, one-to-one
 │   ├── api/                       # REST endpoints (see API Overview)
+│   ├── uploads/[...path]          # Streams RustFS media back to the browser (signed S3 GET)
 │   ├── programs/                  # Public course catalog
 │   └── globals.css                # Tailwind v4 theme tokens
 ├── components/
@@ -116,6 +120,7 @@ Source files live at the **project root** (there is no `src/` directory); the `@
 │   ├── certificate.ts             # Client helper: generate/download certificate PDFs
 │   ├── db.ts                      # Cached MongoDB connection
 │   ├── graduation.ts              # ensureGraduation() + academy/certificate config
+│   ├── rustfs.ts                  # S3 client + bucket init + upload/get for RustFS
 │   └── utils.ts                   # cn(), formatDate(), truncate()
 ├── models/                        # 10 Mongoose models (incl. Certificate)
 ├── types/                         # TypeScript interfaces & auth type augmentation

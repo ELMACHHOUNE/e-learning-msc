@@ -483,7 +483,7 @@ async function main() {
     const phase = approvedLabPhases[info.phaseIdx % approvedLabPhases.length]
     const scores = [8, 9, 7]
     const completedAt = daysAgo(info.daysAgo)
-    await ProjectApplication.create({
+    const created = await ProjectApplication.create({
       studentId: student._id,
       labPhaseId: phase._id,
       guildId: completedGuildIds[i],
@@ -492,9 +492,8 @@ async function main() {
       gitRepo: { url: 'https://github.com/fake-student/final-project', score: scores[1], validated: true },
       deployment: { url: 'https://fake-student-project.vercel.app', score: scores[2], validated: true },
       finalGrade: Math.round(((scores[0] + scores[1] + scores[2]) / 30) * 100),
-      createdAt: completedAt,
-      updatedAt: completedAt,
     })
+    await ProjectApplication.updateOne({ _id: created._id }, { $set: { createdAt: completedAt, updatedAt: completedAt } })
   }
   console.log(`✓ ${graduates.length} completed lab projects created`)
 
