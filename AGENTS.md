@@ -39,7 +39,7 @@ npx tsx scripts/seed.ts
 
 ## Environment
 
-Copy the stack from the right side of `.env.example` to `.env.local`. `.env.local` is used for dev and is gitignored (do not commit secrets). Required: `MONGODB_URI`, `AUTH_SECRET`, `AUTH_URL`. OAuth (`AUTH_GOOGLE_ID/SECRET`, `AUTH_GITHUB_ID/SECRET`) is optional — providers are only mounted when both id+secret are set.
+Copy the stack from the right side of `.env.example` to `.env.local`. `.env.local` is used for dev and is gitignored (do not commit secrets). Required: `MONGODB_URI`, `AUTH_SECRET`, `AUTH_URL`. OAuth (`AUTH_GOOGLE_ID/SECRET`, `AUTH_GITHUB_ID/SECRET`) is optional — providers are only mounted when both id+secret are set. RustFS vars (`RUSTFS_ENDPOINT`, `RUSTFS_BUCKET`, `RUSTFS_ACCESS_KEY`, `RUSTFS_SECRET_KEY`, `RUSTFS_REGION`) fall back to the `.env.example` values (localhost:9000, bucket `e-learning-msc`, `elearningfsadmin`/`elearningfsadmin-secret`).
 
 ## Docker
 
@@ -47,7 +47,7 @@ The project is containerized. `next.config.ts` sets `output: 'standalone'`; the 
 
 ```bash
 cp .env.docker .env      # template → docker compose reads `.env`
-docker compose up --build # app on ${APP_PORT:-3000}, mongo on 27017, rustfs S3 on 9000 + console 9001
+docker compose up --build # app on ${APP_PORT:-3000}, mongo on 27017, rustfs S3 on 9000 + console 9001, mongo-express on ${ME_PORT:-8081}
 docker compose down       # stop (data persists in the mongodb_data / rustfs_data volumes)
 ```
 
@@ -55,6 +55,7 @@ docker compose down       # stop (data persists in the mongodb_data / rustfs_dat
 - `MONGODB_URI` inside compose points at the `mongo` service (`mongodb://mongo:27017/e-learning-msc`), overriding the localhost value in `.env.example`.
 - `RUSTFS_*` vars configure the app (S3 client) and the `rustfs` service. **RustFS refuses its default `rustfsadmin` creds on non-loopback listeners** — the compose defaults use `elearningfsadmin` / `elearningfsadmin-secret`; override via `.env`.
 - `app` waits for `mongo` via a healthcheck (`depends_on.condition: service_healthy`); it depends on `rustfs` only by `service_started` (bucket is created lazily on first upload).
+- `mongo-express` gives a web UI on `${ME_PORT:-8081}` (login `ME_USER`/`ME_PASSWORD`, defaults `admin`/`admin`). It uses `ME_CONFIG_BASICAUTH_*` (note: `BASICAUTH`, not `BASIC_AUTH`) and `ME_CONFIG_MONGODB_ENABLE_ADMIN=true` so all databases (incl. `e-learning-msc`) are browsable.
 - `.dockerignore` excludes `node_modules`, `.next`, secrets (`.env*` except templates), and the git metadata. The live certificate template `public/certificates/PDF/certificate.pdf` IS copied into the image.
 
 ## Tech Stack
@@ -123,6 +124,7 @@ All in `models/` with the pattern `mongoose.models.X ?? mongoose.model('X', sche
 - **Middleware/protection** is `proxy.ts` (`export default auth(...)` with a `matcher`). This is the Next 16 middleware file.
 - **Mongoose models** reference `types/` interfaces; split Domain/Application schema if needed. Always `select('-password')` when leaking user data; never return `_id` raw strings — `.toString()`.
 - **Large uploads**: `next.config.ts` sets `experimental.proxyClientMaxBodySize` (50MB) for the upload route.
+- **Media storage**: all files/images go to RustFS via `lib/rustfs.ts`. Clients POST base64 to `/api/upload` which stores objects under `uploads/<folder>/<name>`; the stored URL is `/uploads/<folder>/<name>` kept relative. `app/uploads/[...path]/route.ts` streams them back with a signed S3 GET — never write media to `public/`.
 - **Style utilities** come from `@/lib/utils` (`cn`, `formatDate`, `truncate`, `safeUrl`, etc.) — reuse rather than reimplement.
 
 ## Verification

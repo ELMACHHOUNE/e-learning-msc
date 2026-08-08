@@ -56,6 +56,13 @@ AUTH_GOOGLE_ID=
 AUTH_GOOGLE_SECRET=
 AUTH_GITHUB_ID=
 AUTH_GITHUB_SECRET=
+
+# RustFS (S3-compatible object storage) — images & media
+RUSTFS_ENDPOINT=http://localhost:9000
+RUSTFS_BUCKET=e-learning-msc
+RUSTFS_ACCESS_KEY=elearningfsadmin
+RUSTFS_SECRET_KEY=elearningfsadmin-secret
+RUSTFS_REGION=us-east-1
 ```
 
 ### Install & Run
@@ -87,6 +94,10 @@ npx tsx scripts/seed.ts
 ```
 
 Uploaded images/avatars/cover photos are stored in the RustFS bucket (`RUSTFS_BUCKET`, default `e-learning-msc`) and served back through `app/uploads/[...path]/route.ts`, so the client URL stays `/uploads/<folder>/<name>`. Push Media to the RustFS console at `http://localhost:9001` (default `RUSTFS_ACCESS_KEY` / `RUSTFS_SECRET_KEY` in `.env.docker`).
+
+A Mongo web UI is available at `http://localhost:8081` (mongo-express; login `ME_USER`/`ME_PASSWORD`, defaults `admin`/`admin`).
+
+Note: port `9000` is the RustFS **S3 API** only (no browser UI — it returns `AccessDenied` XML to anonymous browser hits, which is expected). The storage console is on `9001`.
 
 ## Project Structure
 
@@ -127,7 +138,7 @@ Source files live at the **project root** (there is no `src/` directory); the `@
 ├── public/certificates/PDF/       # Certificate template (placeholder fields erased at runtime)
 ├── scripts/                       # seed.ts, seed-graduations.ts, assign-graduate.ts
 ├── Dockerfile                     # 3-stage build → standalone server
-├── docker-compose.yml             # app + MongoDB 7
+├── docker-compose.yml             # app + MongoDB 7 + RustFS + mongo-express
 ├── .dockerignore
 ├── .env.docker                    # Compose env template (copy to `.env`)
 └── proxy.ts                       # Auth middleware
@@ -189,6 +200,8 @@ Support chat: `name`, `email`, `message`, `isAdmin`, `read`, timestamps
 | `/api/certificates` | GET | Admin (lists + backfills graduation records) |
 | `/api/certificates/mine` | GET | Authenticated (current user's certificates) |
 | `/api/certificates/generate` | POST | Admin/Instructor/Student (renders certificate PDF) |
+| `/api/upload` | POST | Authenticated (base64 image → RustFS, returns `/uploads/...` URL) |
+| `/uploads/[...path]` | GET | Public (streams stored RustFS objects to the browser) |
 
 ## Features
 
