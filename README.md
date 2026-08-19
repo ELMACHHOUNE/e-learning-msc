@@ -63,6 +63,11 @@ RUSTFS_BUCKET=e-learning-msc
 RUSTFS_ACCESS_KEY=elearningfsadmin
 RUSTFS_SECRET_KEY=elearningfsadmin-secret
 RUSTFS_REGION=us-east-1
+
+# Docker compose only
+APP_PORT=3000
+HTTP_PORT=80
+ME_PORT=8585
 ```
 
 ### Install & Run
@@ -77,13 +82,15 @@ Login credentials after seeding: check `scripts/seed.ts` for default admin/instr
 
 ### Run with Docker
 
-The project is containerized (`next.config.ts` sets `output: 'standalone'`; a 3-stage `Dockerfile` runs the minimal standalone server as a non-root user). MongoDB 7 and RustFS (S3-compatible media storage) run as companion services.
+The project is containerized (`next.config.ts` sets `output: 'standalone'`; a 3-stage `Dockerfile` runs the minimal standalone server as a non-root user). Nginx (`nginx/nginx.conf`) is the front-door reverse proxy on port 80. MongoDB 7 and RustFS (S3-compatible media storage) run as companion services.
 
 ```bash
 cp .env.docker .env   # compose template — fill in AUTH_SECRET / AUTH_URL
-docker compose up --build   # app on ${APP_PORT:-3000}, mongo on 27017, rustfs S3 on 9000 + console on 9001
+docker compose up --build   # nginx on ${HTTP_PORT:-80}, app direct on ${APP_PORT:-3000}, mongo on 27017, rustfs S3 on 9000 + console on 9001, mongo-express on ${ME_PORT:-8585}
 docker compose down         # stop (data persists in the mongodb_data / rustfs_data volumes)
 ```
+
+Browse the app through nginx at `http://localhost`. `AUTH_URL` must match the nginx-facing URL (default `http://localhost` in `.env.docker`). The app container also stays reachable directly on `${APP_PORT:-3000}` for debugging.
 
 Seed the container database after `up`:
 
@@ -95,7 +102,7 @@ npx tsx scripts/seed.ts
 
 Uploaded images/avatars/cover photos are stored in the RustFS bucket (`RUSTFS_BUCKET`, default `e-learning-msc`) and served back through `app/uploads/[...path]/route.ts`, so the client URL stays `/uploads/<folder>/<name>`. Push Media to the RustFS console at `http://localhost:9001` (default `RUSTFS_ACCESS_KEY` / `RUSTFS_SECRET_KEY` in `.env.docker`).
 
-A Mongo web UI is available at `http://localhost:8081` (mongo-express; login `ME_USER`/`ME_PASSWORD`, defaults `admin`/`admin`).
+A Mongo web UI is available at `http://localhost:8585` (mongo-express; login `ME_USER`/`ME_PASSWORD`, defaults `admin`/`admin`). Note: `8081` is not used by default — Windows Docker Desktop reserves the 8054–8353 port band, so `ME_PORT` defaults to `8585`.
 
 Note: port `9000` is the RustFS **S3 API** only (no browser UI — it returns `AccessDenied` XML to anonymous browser hits, which is expected). The storage console is on `9001`.
 
@@ -137,8 +144,9 @@ Source files live at the **project root** (there is no `src/` directory); the `@
 ├── types/                         # TypeScript interfaces & auth type augmentation
 ├── public/certificates/PDF/       # Certificate template (placeholder fields erased at runtime)
 ├── scripts/                       # seed.ts, seed-graduations.ts, assign-graduate.ts
+├── nginx/nginx.conf               # Reverse proxy front door (→ app:3000)
 ├── Dockerfile                     # 3-stage build → standalone server
-├── docker-compose.yml             # app + MongoDB 7 + RustFS + mongo-express
+├── docker-compose.yml             # nginx + app + MongoDB 7 + RustFS + mongo-express
 ├── .dockerignore
 ├── .env.docker                    # Compose env template (copy to `.env`)
 └── proxy.ts                       # Auth middleware
