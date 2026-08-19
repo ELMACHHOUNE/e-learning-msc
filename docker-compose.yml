@@ -3,8 +3,6 @@ services:
     image: mongo:7
     container_name: e-learning-mongo
     restart: unless-stopped
-    ports:
-      - "27017:27017"
     volumes:
       - mongodb_data:/data/db
     healthcheck:
@@ -18,9 +16,6 @@ services:
     image: rustfs/rustfs:latest
     container_name: e-learning-rustfs
     restart: unless-stopped
-    ports:
-      - "9000:9000"
-      - "9001:9001"
     volumes:
       - rustfs_data:/data
     environment:
@@ -35,8 +30,6 @@ services:
     image: mongo-express:latest
     container_name: e-learning-mongo-express
     restart: unless-stopped
-    ports:
-      - "${ME_PORT:-8585}:8081"
     environment:
       ME_CONFIG_MONGODB_SERVER: mongo
       ME_CONFIG_MONGODB_PORT: "27017"
@@ -66,8 +59,6 @@ services:
       dockerfile: Dockerfile
     container_name: e-learning-app
     restart: unless-stopped
-    ports:
-      - "${APP_PORT:-3000}:3000"
     environment:
       NODE_ENV: production
       MONGODB_URI: mongodb://mongo:27017/e-learning-msc
