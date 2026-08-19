@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ShieldAlert, Terminal, MessageSquare, User, ArrowRight } from "lucide-react";
 import { auth } from "@/lib/auth";
 import ExpandableCardDemo from "@/components/expandable-card-demo-standard";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { connectToDatabase } from "@/lib/db";
 import Course from "@/models/Course";
 
@@ -123,6 +124,7 @@ function ComponentA_NavBar({ user }: { user?: { name?: string | null; email?: st
         </div>
 
         <div className="flex items-center gap-4">
+          <ThemeToggle />
           {user ? (
             <Link
               href="/dashboard"

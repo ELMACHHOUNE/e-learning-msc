@@ -5,14 +5,11 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
-import { useTheme } from 'next-themes'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ChevronDown,
   LogOut,
   Settings,
-  Moon,
-  Sun,
   GraduationCap,
   Users,
   FlaskConical,
@@ -23,6 +20,7 @@ import {
 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
+import { ThemeToggle } from '@/components/shared/theme-toggle'
 import { cn } from '@/lib/utils'
 
 type NavLink = { href?: string; label: string; icon?: React.ComponentType<{ className?: string }>; children?: { href: string; label: string }[] }
@@ -30,7 +28,6 @@ type NavLink = { href?: string; label: string; icon?: React.ComponentType<{ clas
 export function Navbar() {
   const pathname = usePathname()
   const { data: session } = useSession()
-  const { theme, setTheme } = useTheme()
   const role = session?.user?.role
 
   const navLinks: NavLink[] = [
@@ -151,13 +148,7 @@ export function Navbar() {
         >
           <Badge variant="default" className="hidden md:inline-flex">{role === 'admin' ? 'Admin View' : role === 'instructor' ? 'Instructor View' : 'Student View'}</Badge>
         </Link>
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="bg-transparent border-none cursor-pointer text-charcoal hover:text-ink p-1"
-          aria-label="Toggle theme"
-        >
-          {theme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-        </button>
+        <ThemeToggle />
 
         <div className="relative" ref={profileRef}>
           <button
