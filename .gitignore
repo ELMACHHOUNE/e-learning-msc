@@ -46,3 +46,4 @@ next-env.d.ts
 package-lock.json
 
 /public/uploads/*
+nginx/ssl/
