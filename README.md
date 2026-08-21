@@ -112,44 +112,130 @@ Source files live at the **project root** (there is no `src/` directory); the `@
 
 ```
 ├── app/
-│   ├── (auth)/                    # Login, forgot-password
-│   ├── (main)/
-│   │   ├── admin/                 # Admin portal, course editor
-│   │   ├── courses/               # Course listing & detail viewer
-│   │   ├── dashboard/             # Role-based analytics dashboard
-│   │   ├── graduations/           # Graduation records & certificate export (admin)
-│   │   ├── labphase/              # Lab phase CRUD & project submissions
-│   │   ├── profile/               # Account settings
-│   │   ├── students/              # Student directory
-│   │   ├── instructors/           # Instructor directory (admin)
-│   │   └── teach/                 # Attendance, earnings, sessions, one-to-one
-│   ├── api/                       # REST endpoints (see API Overview)
-│   ├── uploads/[...path]          # Streams RustFS media back to the browser (signed S3 GET)
-│   ├── programs/                  # Public course catalog
-│   └── globals.css                # Tailwind v4 theme tokens
+│   ├── (auth)/                          # Public auth pages
+│   │   ├── login/page.tsx               # Sign in with credentials/OAuth
+│   │   └── forgot-password/page.tsx     # Password reset request
+│   ├── (main)/                          # Authenticated shell (navbar, sidebar, chat)
+│   │   ├── layout.tsx                   # Main layout with providers
+│   │   ├── admin/                       # Admin portal
+│   │   │   ├── page.tsx                 # Admin dashboard overview
+│   │   │   └── courses/
+│   │   │       ├── [id]/page.tsx        # Course editor (full builder)
+│   │   │       └── new/page.tsx         # Create new course
+│   │   ├── courses/                     # Course catalog (authenticated)
+│   │   │   ├── page.tsx                 # Course listing
+│   │   │   └── [courseId]/page.tsx      # Course detail viewer
+│   │   ├── dashboard/page.tsx           # Role-based analytics dashboard
+│   │   ├── graduations/page.tsx         # Graduation records & certificate export
+│   │   ├── instructors/page.tsx         # Instructor directory (admin)
+│   │   ├── labphase/                    # Lab phase management
+│   │   │   ├── lab-phase-list/page.tsx  # List & create lab phases
+│   │   │   └── student-projects/page.tsx# Project submissions & validation
+│   │   ├── profile/page.tsx             # Account settings & avatar upload
+│   │   ├── students/page.tsx            # Student directory
+│   │   └── teach/                       # Instructor tools
+│   │       ├── attendance/page.tsx      # Session attendance logging
+│   │       ├── earnings/page.tsx        # Earnings overview
+│   │       ├── one-to-one/page.tsx      # One-to-one sessions
+│   │       └── online-sessions/page.tsx # Online session management
+│   ├── api/                             # REST API route handlers
+│   │   ├── admin/
+│   │   │   ├── categories/              # CRUD for categories
+│   │   │   ├── courses/                 # CRUD for courses
+│   │   │   ├── dashboard/route.ts       # Admin stats
+│   │   │   ├── guilds/                  # CRUD for guilds/cohorts
+│   │   │   ├── labphases/               # CRUD + approve lab phases
+│   │   │   └── users/                   # User management
+│   │   ├── auth/[...nextauth]/route.ts  # NextAuth.js handlers
+│   │   ├── certificates/
+│   │   │   ├── route.ts                 # List certificates (admin)
+│   │   │   ├── mine/route.ts            # Current user's certificates
+│   │   │   └── generate/route.ts        # PDF generation
+│   │   ├── courses/route.ts             # Public course listing
+│   │   ├── dashboard/route.ts           # Dashboard analytics data
+│   │   ├── instructors/route.ts         # Instructor listing
+│   │   ├── projects/                    # Project applications CRUD
+│   │   ├── students/route.ts            # Student listing
+│   │   ├── support/messages/route.ts    # Support chat messages
+│   │   ├── upload/route.ts              # Base64 image → RustFS upload
+│   │   └── user/profile/route.ts        # Current user profile CRUD
+│   ├── uploads/[...path]/route.ts       # Streams RustFS objects (signed S3 GET)
+│   ├── programs/                        # Public course catalog
+│   │   ├── page.tsx                     # Program listing with cards
+│   │   └── [courseId]/page.tsx          # Public course detail (SEO, curriculum)
+│   ├── globals.css                      # Tailwind v4 theme tokens
+│   ├── layout.tsx                       # Root layout (providers, fonts)
+│   ├── page.tsx                         # Landing page
+│   ├── loading.tsx                      # Global loading UI
+│   ├── not-found.tsx                    # 404 page
+│   ├── robots.ts                        # robots.txt generation
+│   └── sitemap.ts                       # sitemap.xml generation
 ├── components/
-│   ├── admin/course-editor.tsx    # Full course content builder
-│   ├── certificate/               # CertificateDialog + student certificate cards
-│   ├── dashboard/admin-charts.tsx # Recharts analytics components
-│   ├── shared/                    # Navbar, sidebar, chat support, session provider, spinner
-│   └── ui/                        # Button, Badge, Card, Avatar, Input, Alert, ConfirmDialog, etc.
+│   ├── admin/
+│   │   └── course-editor.tsx            # Full course content builder (modules/chapters/lessons)
+│   ├── certificate/
+│   │   └── certificate-dialog.tsx       # Certificate preview & download dialog
+│   ├── dashboard/
+│   │   └── admin-charts.tsx             # Recharts analytics (pie, bar, donut, horizontal bar)
+│   ├── shared/
+│   │   ├── navbar.tsx                   # Top navigation with user menu
+│   │   ├── sidebar-navigation.tsx       # Collapsible role-based sidebar
+│   │   ├── chat-support.tsx             # Intercom-style support widget
+│   │   ├── session-provider.tsx         # NextAuth session context
+│   │   ├── logo-spinner.tsx             # Branded loading spinner
+│   │   ├── theme-toggle.tsx             # Dark/light mode toggle
+│   │   └── index.ts                     # Barrel export
+│   └── ui/                              # Reusable primitives (Button, Badge, Card, Avatar, Input, Alert, ConfirmDialog, Progress, ImageUpload, RichTextEditor)
 ├── lib/
-│   ├── auth.ts                    # NextAuth config, getCurrentUser(), requireRole()
-│   ├── certificate.ts             # Client helper: generate/download certificate PDFs
-│   ├── db.ts                      # Cached MongoDB connection
-│   ├── graduation.ts              # ensureGraduation() + academy/certificate config
-│   ├── rustfs.ts                  # S3 client + bucket init + upload/get for RustFS
-│   └── utils.ts                   # cn(), formatDate(), truncate()
-├── models/                        # 10 Mongoose models (incl. Certificate)
-├── types/                         # TypeScript interfaces & auth type augmentation
-├── public/certificates/PDF/       # Certificate template (placeholder fields erased at runtime)
-├── scripts/                       # seed.ts, seed-graduations.ts, assign-graduate.ts
-├── nginx/nginx.conf               # Reverse proxy front door (→ app:3000)
-├── Dockerfile                     # 3-stage build → standalone server
-├── docker-compose.yml             # nginx + app + MongoDB 7 + RustFS + mongo-express
+│   ├── auth.ts                          # NextAuth config, getCurrentUser(), requireRole()
+│   ├── certificate.ts                   # Client helper: generate/download certificate PDFs
+│   ├── db.ts                            # Cached MongoDB connection (connectToDatabase)
+│   ├── graduation.ts                    # ensureGraduation() + ACADEMY_NAME config
+│   ├── rustfs.ts                        # S3 client + bucket init + upload/get for RustFS
+│   └── utils.ts                         # cn(), formatDate(), truncate(), safeUrl(), safeMailto(), safePhoneUrl()
+├── models/                              # 10 Mongoose models (guards against hot-reload recompilation)
+│   ├── User.ts
+│   ├── Course.ts
+│   ├── CourseContent.ts
+│   ├── Guild.ts
+│   ├── LabPhase.ts
+│   ├── ProjectApplication.ts
+│   ├── SessionLog.ts
+│   ├── Certificate.ts
+│   ├── Category.ts
+│   └── Message.ts
+├── types/
+│   ├── index.ts                         # Core domain interfaces
+│   ├── certificate.ts                   # Certificate-specific types
+│   └── next-auth.d.ts                   # NextAuth module augmentation
+├── hooks/
+│   └── use-outside-click.tsx            # Click-outside detection hook
+├── public/
+│   ├── certificates/PDF/certificate.pdf # Branded certificate template
+│   ├── images/                          # Static assets (icon, covers, screenshots)
+│   └── videos/                          # Demo videos
+├── scripts/
+│   ├── seed.ts                          # Full DB reset + demo data (6 graduates)
+│   ├── seed-graduations.ts              # Legacy additive graduation data
+│   └── assign-graduate.ts               # Graduate single student by email
+├── nginx/nginx.conf                     # Reverse proxy (HTTP→HTTPS, TLS termination, proxy to app:3000)
+├── Dockerfile                           # 3-stage build → standalone server (Node 22 alpine, non-root)
+├── docker-compose.yml                   # nginx + app + MongoDB 7 + RustFS + mongo-express
 ├── .dockerignore
-├── .env.docker                    # Compose env template (copy to `.env`)
-└── proxy.ts                       # Auth middleware
+├── .env.example                         # Environment template
+├── .env.docker                          # Compose env template
+├── next.config.ts                       # Next.js config (standalone output, proxyClientMaxBodySize)
+├── proxy.ts                             # NextAuth middleware (protects authenticated routes)
+├── postcss.config.mjs                   # Tailwind v4 PostCSS config
+├── tsconfig.json                        # TypeScript config (strict, @/* alias)
+├── eslint.config.mjs                    # ESLint flat config (eslint-config-next)
+├── package.json
+├── README.md
+├── AGENTS.md
+├── DESIGN.md
+├── CLAUDE.md
+├── LICENSE
+└── Prompt.md
 ```
 
 ## Data Models
@@ -311,3 +397,153 @@ npm run assign:grad    # Assign one student graduate data by email
 - **OAuth**: Google and GitHub (optional)
 - **Session strategy**: JWT (1-hour max age)
 - **Middleware**: Protects all authenticated routes, redirects to `/login`
+
+## HTTPS / SSL Configuration
+
+The production deployment runs on **Oracle Cloud Infrastructure** using an **Oracle Linux 9.8 (ARM/AArch64)** VM.
+
+### Domain & DNS
+
+- `e-teaching.tech`
+- `www.e-teaching.tech`
+
+Both domains point to the Oracle Cloud VM public IP address via `A` records.
+
+### Firewall & Network
+
+- **Oracle Cloud VCN Security List** — inbound rules allow **TCP 80 (HTTP)** and **TCP 443 (HTTPS)** from `0.0.0.0/0`.
+- **Server firewalld** — the same ports are opened permanently:
+  ```bash
+  sudo firewall-cmd --permanent --add-service=http
+  sudo firewall-cmd --permanent --add-service=https
+  sudo firewall-cmd --reload
+  ```
+
+### Certbot Installation
+
+The `certbot` package was **not available** in the configured Oracle Linux 9 repositories, so it was installed manually under `/opt/certbot`:
+
+```bash
+cd /opt
+sudo wget https://github.com/certbot/certbot/archive/refs/tags/v4.2.0.tar.gz
+sudo tar -xzf v4.2.0.tar.gz
+cd certbot-4.2.0
+sudo pip3 install .
+```
+
+The executable is available at `/opt/certbot/bin/certbot`.
+
+### Certificate Generation
+
+The certificate was obtained using the **standalone HTTP-01 challenge** (no web server running on port 80 during issuance). The successful command:
+
+```bash
+sudo /opt/certbot/bin/certbot certonly \
+  --standalone \
+  --http-01-port 80 \
+  --non-interactive \
+  --agree-tos \
+  --email mohamed20rida@gmail.com \
+  --preferred-challenges http \
+  -d e-teaching.tech \
+  -d www.e-teaching.tech \
+  -v
+```
+
+- `--standalone` spins up a temporary HTTP server on port 80 for the challenge.
+- `--http-01-port 80` ensures the challenge listens on the standard HTTP port.
+
+### Certificate Files & Expiration
+
+The issued certificate and private key are located at:
+
+```
+/etc/letsencrypt/live/e-teaching.tech/fullchain.pem
+/etc/letsencrypt/live/e-teaching.tech/privkey.pem
+```
+
+**Current expiration:** `2026-11-19` — renewal must be configured before this date.
+
+### Verification Commands
+
+Use these commands to verify the setup:
+
+```bash
+# List certificates managed by Certbot
+sudo /opt/certbot/bin/certbot certificates
+
+# Check firewalld allowed services/ports
+sudo firewall-cmd --list-all
+
+# Verify port 80 is listening (HTTP)
+sudo ss -lntp | grep ':80'
+
+# Verify port 443 is listening (HTTPS)
+sudo ss -lntp | grep ':443'
+```
+
+### Nginx Reverse Proxy Configuration
+
+The `nginx/nginx.conf` reverse proxy terminates TLS and forwards traffic to the Next.js application running on port 3000 (inside the Docker network). The required server blocks:
+
+```nginx
+# HTTP → HTTPS redirect
+server {
+    listen 80;
+    server_name e-teaching.tech www.e-teaching.tech;
+
+    location / {
+        return 301 https://$host$request_uri;
+    }
+}
+
+# HTTPS termination & proxy to Next.js
+server {
+    listen 443 ssl http2;
+    server_name e-teaching.tech www.e-teaching.tech;
+
+    ssl_certificate     /etc/letsencrypt/live/e-teaching.tech/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/e-teaching.tech/privkey.pem;
+
+    # TLS hardening (recommended)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+
+    location / {
+        proxy_pass http://app:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+```
+
+Key points:
+- **Port 80** redirects all HTTP traffic to HTTPS.
+- **Port 443** terminates TLS using the Let's Encrypt certificate/key.
+- Requests are proxied to `http://app:3000` (the Next.js container name in Docker Compose).
+- Standard proxy headers (`X-Forwarded-*`, `Host`) are forwarded so the application knows the original client IP and protocol.
+
+### Certificate Renewal
+
+Certbot should be tested with a dry run before relying on automated renewal:
+
+```bash
+sudo /opt/certbot/bin/certbot renew --dry-run
+```
+
+If the dry run succeeds, configure automated renewal via cron or systemd timer:
+
+```bash
+# /etc/cron.d/certbot-renew
+0 */12 * * * root /opt/certbot/bin/certbot renew --quiet --post-hook "docker exec nginx nginx -s reload"
+```
+
+- Runs twice daily (at minute 0 of every 12th hour).
+- `--quiet` suppresses output unless there's an error.
+- `--post-hook` reloads nginx inside the container so the renewed certificate is picked up without downtime.
