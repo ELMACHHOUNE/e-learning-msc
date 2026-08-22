@@ -92,6 +92,8 @@ services:
         condition: service_healthy
       rustfs:
         condition: service_started
+    ports:
+      - "3000:3000"
     volumes:
       - .:/app
       - /app/node_modules

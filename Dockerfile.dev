@@ -26,6 +26,9 @@ COPY --from=deps --chown=nextjs:nodejs /app/node_modules ./node_modules
 # Copy source code
 COPY --chown=nextjs:nodejs . .
 
+# Create .next directory with proper ownership for Turbopack dev mode
+RUN mkdir -p /app/.next && chown -R nextjs:nodejs /app/.next
+
 USER nextjs
 
 EXPOSE 3000
