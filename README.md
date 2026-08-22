@@ -70,7 +70,7 @@ HTTP_PORT=80
 ME_PORT=8585
 ```
 
-### Install & Run
+### Install & Run (Local Development)
 
 ```bash
 npm install
@@ -80,9 +80,102 @@ npm run dev         # http://localhost:3000
 
 Login credentials after seeding: check `scripts/seed.ts` for default admin/instructor/student accounts.
 
-### Run with Docker
+---
 
-The project is containerized (`next.config.ts` sets `output: 'standalone'`; a 3-stage `Dockerfile` runs the minimal standalone server as a non-root user). Nginx (`nginx/nginx.conf`) is the front-door reverse proxy on port 80. MongoDB 7 and RustFS (S3-compatible media storage) run as companion services.
+## Branching Strategy
+
+| Branch | Purpose | Deploy Target |
+|--------|---------|---------------|
+| `main` | Production-ready code | VPS (e-teaching.tech) |
+| `dev` | Active development | Local / Staging |
+
+**Workflow:**
+- Create feature branches from `dev`
+- Merge features → `dev` via PR
+- Merge `dev` → `main` via `./scripts/merge-to-main.sh` (runs lint + build)
+
+---
+
+## Docker Deployment
+
+### Development (dev branch)
+
+**Files:** `docker-compose.dev.yml`, `Dockerfile.dev`, `nginx/nginx.dev.conf`, `.env.development`
+
+```bash
+# Switch to dev branch
+git checkout dev
+
+# First-time setup
+cp .env.development .env.local
+# Edit .env.local if needed
+
+# Build & start (hot reload enabled)
+docker compose -f docker-compose.dev.yml --env-file .env.development up -d --build
+
+# Access at http://localhost:3000 (direct) or http://localhost (via nginx)
+# Mongo Express: http://localhost:8585 (admin/admin)
+# RustFS Console: http://localhost:9001 (elearningfsadmin/elearningfsadmin-secret)
+
+# Seed database
+docker exec e-learning-app-dev npx tsx --env-file=.env.local scripts/seed.ts
+
+# Stop
+docker compose -f docker-compose.dev.yml down
+```
+
+### Production (main branch)
+
+**Files:** `docker-compose.prod.yml`, `Dockerfile`, `nginx/nginx.conf`, `.env.production`
+
+```bash
+# On VPS, switch to main
+git checkout main
+git pull origin main
+
+# First-time setup
+cp .env.production .env
+# Edit .env with production values (AUTH_SECRET, AUTH_URL, etc.)
+
+# Build & start
+docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+
+# Access at https://e-teaching.tech (SSL via certbot)
+# Mongo Express: http://localhost:8585
+# RustFS Console: http://localhost:9001
+
+# Stop
+docker compose -f docker-compose.prod.yml down
+```
+
+### Quick Commands
+
+| Task | Development | Production |
+|------|-------------|------------|
+| Build | `docker compose -f docker-compose.dev.yml --env-file .env.development build` | `docker compose -f docker-compose.prod.yml --env-file .env build` |
+| Start | `docker compose -f docker-compose.dev.yml --env-file .env.development up -d` | `docker compose -f docker-compose.prod.yml --env-file .env up -d` |
+| Logs | `docker logs -f e-learning-app-dev` | `docker logs -f e-learning-app` |
+| Restart | `docker compose -f docker-compose.dev.yml restart` | `docker compose -f docker-compose.prod.yml restart` |
+| Seed | `docker exec e-learning-app-dev npx tsx --env-file=.env.local scripts/seed.ts` | `docker exec e-learning-app npx tsx --env-file=.env scripts/seed.ts` |
+
+### Helper Scripts
+
+```bash
+# Setup branch environment
+./scripts/setup-branch.sh dev    # or main
+
+# Deploy
+./scripts/deploy.sh dev          # or prod
+
+# Merge dev → main (with lint + build checks)
+./scripts/merge-to-main.sh
+```
+
+---
+
+## Legacy Docker Compose (docker-compose.yml)
+
+The original `docker-compose.yml` is kept for reference. Use `docker-compose.prod.yml` for new production deployments.
 
 ```bash
 cp .env.docker .env   # compose template — fill in AUTH_SECRET / AUTH_URL
