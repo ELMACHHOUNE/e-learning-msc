@@ -7,7 +7,7 @@ server {
     listen 80;
     listen [::]:80;
 
-    server_name e-teaching.tech www.e-teaching.tech;
+    server_name ${DOMAIN:-e-teaching.tech} www.${DOMAIN:-e-teaching.tech};
 
     # Allow ACME challenge for certbot/Let's Encrypt
     location /.well-known/acme-challenge/ {
@@ -26,11 +26,11 @@ server {
     listen 443 ssl http2;
     listen [::]:443 ssl http2;
 
-    server_name e-teaching.tech www.e-teaching.tech;
+    server_name ${DOMAIN:-e-teaching.tech} www.${DOMAIN:-e-teaching.tech};
 
     # SSL certificates (mounted from host /etc/letsencrypt)
-    ssl_certificate /etc/letsencrypt/live/e-teaching.tech/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/e-teaching.tech/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/${DOMAIN:-e-teaching.tech}/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/${DOMAIN:-e-teaching.tech}/privkey.pem;
 
     # Modern SSL configuration
     ssl_protocols TLSv1.2 TLSv1.3;
