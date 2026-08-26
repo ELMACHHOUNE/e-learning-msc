@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useOutsideClick } from "@/hooks/use-outside-click";
@@ -277,8 +277,8 @@ const cards = [
       return (
         <p>
           MongoDB provides a flexible, document-oriented database that scales
-          naturally with the platform&apos;s data model. Mongoose acts as the ODM
-          layer, enforcing schema validation and providing a rich query API.
+          naturally with the platform&apos;s data model. Mongoose acts as the
+          ODM layer, enforcing schema validation and providing a rich query API.
           Together they power the course catalog, user management, attendance
           tracking, and project submission pipelines that form the backbone of
           this educational platform.
