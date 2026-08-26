@@ -1,6 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ShieldAlert, Terminal, MessageSquare, User, ArrowRight } from "lucide-react";
+import {
+  ShieldAlert,
+  Terminal,
+  MessageSquare,
+  User,
+  ArrowRight,
+} from "lucide-react";
 import { auth } from "@/lib/auth";
 import ExpandableCardDemo from "@/components/expandable-card-demo-standard";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
@@ -12,12 +18,14 @@ export default async function LandingPage() {
     auth(),
     connectToDatabase().then(() =>
       Course.find({ $or: [{ active: true }, { active: { $exists: false } }] })
-        .select('title description coverImage price durationInMonths totalSessions')
+        .select(
+          "title description coverImage price durationInMonths totalSessions",
+        )
         .sort({ createdAt: -1 })
         .limit(6)
-        .lean()
+        .lean(),
     ),
-  ])
+  ]);
 
   return (
     <>
@@ -27,10 +35,12 @@ export default async function LandingPage() {
       <ComponentC_Capabilities />
       <ComponentD_Courses courses={courses} />
       <ComponentD1_Screens />
-      <section className="py-20 md:py-28" style={{ backgroundColor: '#ededed' }}>
+      <section className="py-20 md:py-28 bg-primary">
         <div className="max-w-[1440px] mx-auto px-6">
-          <p className="text-[10px] font-bold text-ink uppercase mb-3 tracking-[0.2em]">TECHNOLOGY STACK</p>
-          <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-ink mb-12">
+          <p className="text-[10px] font-bold text-on-primary uppercase mb-3 tracking-[0.2em]">
+            TECHNOLOGY STACK
+          </p>
+          <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-on-primary mb-12">
             BUILT WITH MODERN TECHNOLOGIES
           </h2>
           <ExpandableCardDemo />
@@ -38,7 +48,9 @@ export default async function LandingPage() {
       </section>
       <section className="bg-surface-dark py-20 md:py-28">
         <div className="max-w-[1440px] mx-auto px-6">
-          <p className="text-[10px] font-bold text-on-dark uppercase mb-3 tracking-[0.2em]">GET IN TOUCH</p>
+          <p className="text-[10px] font-bold text-on-dark uppercase mb-3 tracking-[0.2em]">
+            GET IN TOUCH
+          </p>
           <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-on-dark mb-12">
             LET&apos;S CONNECT
           </h2>
@@ -70,16 +82,30 @@ export default async function LandingPage() {
                   className="inline-flex items-center gap-3 text-on-dark-mute hover:text-on-dark transition-colors no-underline"
                 >
                   <MessageSquare className="w-5 h-5 text-primary" />
-                  <span className="text-[16px] font-normal">+212 649 455 082</span>
+                  <span className="text-[16px] font-normal">
+                    +212 649 455 082
+                  </span>
                 </a>
                 <a
                   href="mailto:contact@e-learning-msc.com"
                   className="inline-flex items-center gap-3 text-on-dark-mute hover:text-on-dark transition-colors no-underline"
                 >
-                  <svg className="w-5 h-5 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  <svg
+                    className="w-5 h-5 text-primary"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
                   </svg>
-                  <span className="text-[16px] font-normal">contact@e-learning-msc.com</span>
+                  <span className="text-[16px] font-normal">
+                    contact@e-learning-msc.com
+                  </span>
                 </a>
               </div>
             </div>
@@ -92,7 +118,13 @@ export default async function LandingPage() {
   );
 }
 
-function ComponentA_NavBar({ user }: { user?: { name?: string | null; email?: string | null; image?: string | null } | undefined }) {
+function ComponentA_NavBar({
+  user,
+}: {
+  user?:
+    | { name?: string | null; email?: string | null; image?: string | null }
+    | undefined;
+}) {
   return (
     <nav className="h-[60px] bg-canvas border-b border-hairline">
       <div className="max-w-[1440px] mx-auto px-6 h-full flex items-center justify-between">
@@ -110,9 +142,7 @@ function ComponentA_NavBar({ user }: { user?: { name?: string | null; email?: st
         </Link>
 
         <div className="hidden md:flex items-center gap-8">
-          {[
-            { label: 'Programs', href: '/programs' },
-          ].map((item) => (
+          {[{ label: "Programs", href: "/programs" }].map((item) => (
             <Link
               key={item.label}
               href={item.href}
@@ -131,10 +161,16 @@ function ComponentA_NavBar({ user }: { user?: { name?: string | null; email?: st
               className="flex items-center gap-2 border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
             >
               {user.image ? (
-                <Image src={user.image} alt="" width={20} height={20} className="w-5 h-5 rounded-full object-cover" />
+                <Image
+                  src={user.image}
+                  alt=""
+                  width={20}
+                  height={20}
+                  className="w-5 h-5 rounded-full object-cover"
+                />
               ) : (
                 <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center font-700 text-button-sm text-on-primary">
-                  {user.name?.charAt(0)?.toUpperCase() ?? 'U'}
+                  {user.name?.charAt(0)?.toUpperCase() ?? "U"}
                 </div>
               )}
               Dashboard
@@ -286,62 +322,82 @@ function ComponentC_Capabilities() {
   );
 }
 
-function ComponentD_Courses({ courses }: { courses: { _id: { toString(): string }; title: string; description: string; coverImage?: string; price?: number; durationInMonths: number; totalSessions: number }[] }) {
+function ComponentD_Courses({
+  courses,
+}: {
+  courses: {
+    _id: { toString(): string };
+    title: string;
+    description: string;
+    coverImage?: string;
+    price?: number;
+    durationInMonths: number;
+    totalSessions: number;
+  }[];
+}) {
   return (
     <section className="bg-canvas py-20 md:py-28">
       <div className="max-w-[1440px] mx-auto px-6">
-        <p className="text-[10px] font-bold text-ink uppercase mb-3 tracking-[0.2em]">FEATURED COURSES</p>
+        <p className="text-[10px] font-bold text-ink uppercase mb-3 tracking-[0.2em]">
+          FEATURED COURSES
+        </p>
         <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-ink mb-12">
           EXPLORE OUR PROGRAMS
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {courses.map((course) => {
-        const id = course._id.toString()
-        return (
-          <Link
-            key={id}
-            href={`/programs/${id}`}
-            className="border border-hairline bg-canvas flex flex-col no-underline group hover:border-ink transition-colors"
-          >
-            <div className="relative w-full aspect-[16/9] overflow-hidden bg-surface-soft">
-              <Image
-                src={course.coverImage || "/images/cover.png"}
-                alt={course.title}
-                fill
-                sizes="(max-width: 768px) 100vw, 33vw"
-                className="object-cover group-hover:scale-105 transition-transform duration-500"
-              />
-            </div>
-            <div className="p-6 flex flex-col flex-1">
-              <h3 className="text-heading-sm text-ink font-700 uppercase leading-[1] mb-2">
-                {course.title}
-              </h3>
-              <p className="text-body-sm text-mute flex-1 mb-4">
-                {course.description}
-              </p>
-              <div className="flex items-center gap-4 mb-4">
-                <div>
-                  <p className="text-heading-md text-ink font-700">{course.durationInMonths}</p>
-                  <p className="text-caption text-mute">Months</p>
+            const id = course._id.toString();
+            return (
+              <Link
+                key={id}
+                href={`/programs/${id}`}
+                className="border border-hairline bg-canvas flex flex-col no-underline group hover:border-ink transition-colors"
+              >
+                <div className="relative w-full aspect-[16/9] overflow-hidden bg-surface-soft">
+                  <Image
+                    src={course.coverImage || "/images/cover.png"}
+                    alt={course.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
                 </div>
-                <div className="w-px h-8 bg-hairline" />
-                <div>
-                  <p className="text-heading-md text-ink font-700">{course.totalSessions}</p>
-                  <p className="text-caption text-mute">Sessions</p>
+                <div className="p-6 flex flex-col flex-1">
+                  <h3 className="text-heading-sm text-ink font-700 uppercase leading-[1] mb-2">
+                    {course.title}
+                  </h3>
+                  <p className="text-body-sm text-mute flex-1 mb-4">
+                    {course.description}
+                  </p>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div>
+                      <p className="text-heading-md text-ink font-700">
+                        {course.durationInMonths}
+                      </p>
+                      <p className="text-caption text-mute">Months</p>
+                    </div>
+                    <div className="w-px h-8 bg-hairline" />
+                    <div>
+                      <p className="text-heading-md text-ink font-700">
+                        {course.totalSessions}
+                      </p>
+                      <p className="text-caption text-mute">Sessions</p>
+                    </div>
+                    <div className="ml-auto text-right">
+                      <p className="text-heading-lg text-primary font-700">
+                        {course.price ?? "—"}
+                      </p>
+                      <p className="text-caption text-mute">MAD</p>
+                    </div>
+                  </div>
+                  <div className="inline-flex items-center gap-2 text-button-md font-bold uppercase tracking-[0.144px] text-ink group-hover:opacity-70 transition-opacity mt-auto">
+                    View Details <ArrowRight className="w-4 h-4" />
+                  </div>
                 </div>
-                <div className="ml-auto text-right">
-                  <p className="text-heading-lg text-primary font-700">{course.price ?? '—'}</p>
-                  <p className="text-caption text-mute">MAD</p>
-                </div>
-              </div>
-              <div className="inline-flex items-center gap-2 text-button-md font-bold uppercase tracking-[0.144px] text-ink group-hover:opacity-70 transition-opacity mt-auto">
-                View Details <ArrowRight className="w-4 h-4" />
-              </div>
-            </div>
-          </Link>
-        )
-      })}
+              </Link>
+            );
+          })}
         </div>
       </div>
     </section>
@@ -360,14 +416,14 @@ function ComponentD1_Screens() {
             DESIGNED FOR EVERY SCREEN
           </h2>
           <p className="text-[16px] font-normal leading-[1.6] text-body max-w-[640px] mx-auto">
-            A unified workspace that adapts from desktop dashboards to
-            on-the-go mobile — consistent structure, precise outcomes.
+            A unified workspace that adapts from desktop dashboards to on-the-go
+            mobile — consistent structure, precise outcomes.
           </p>
         </div>
 
         <div className="relative mx-auto max-w-[1080px] pb-20 md:pb-36">
           {/* Laptop screen (mockup included in image) */}
-          <div className="relative aspect-[16/9] w-full overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.12)]">
+          <div className="relative aspect-[16/9] w-full overflow-hidden ">
             <Image
               src="/images/laptop-screen.webp"
               alt="e-learning-msc desktop platform"
