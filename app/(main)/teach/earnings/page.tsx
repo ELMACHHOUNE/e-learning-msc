@@ -2,6 +2,7 @@
 
 import { Badge } from '@/components/ui'
 import { DollarSign, TrendingUp, Calendar } from 'lucide-react'
+import { InstructorGuard } from '@/components/shared/instructor-guard'
 
 const earningsData = [
   { month: 'Jan', amount: 3200 },
@@ -12,7 +13,7 @@ const earningsData = [
   { month: 'Jun', amount: 4500 },
 ]
 
-export default function EarningsPage() {
+function EarningsPageContent() {
   const totalEarnings = earningsData.reduce((sum, e) => sum + e.amount, 0)
   const maxAmount = Math.max(...earningsData.map((e) => e.amount))
 
@@ -57,5 +58,13 @@ export default function EarningsPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function EarningsPage() {
+  return (
+    <InstructorGuard>
+      <EarningsPageContent />
+    </InstructorGuard>
   )
 }

@@ -37,7 +37,7 @@ export function Navbar() {
       { href: '/instructors', label: 'Instructors', icon: Users },
       { href: '/graduations', label: 'Graduations', icon: GraduationCap },
     ] : []),
-    ...(role !== 'admin' ? [{
+    ...(role === 'instructor' ? [{
       label: 'Teach',
       icon: BookOpen,
       children: [
