@@ -67,7 +67,7 @@ export default function CoursesPage() {
               </div>
               <Link
                 href={`/courses/${course.id}`}
-                className="flex items-center gap-1 text-button-md text-ink underline no-underline hover:underline shrink-0"
+                className="flex items-center gap-1 text-button-md text-ink hover:text-primary-deep font-700 transition-colors no-underline shrink-0"
               >
                 Preview Course <ArrowRight className="w-4 h-4" />
               </Link>

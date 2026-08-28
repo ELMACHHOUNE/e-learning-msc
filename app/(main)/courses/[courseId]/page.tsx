@@ -1,19 +1,165 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { SidebarNavigation } from '@/components/shared/sidebar-navigation'
 import { Badge } from '@/components/ui'
 import { BookOpen, FileText, ChevronLeft, ChevronRight } from 'lucide-react'
+import LogoSpinner from '@/components/shared/logo-spinner'
+
+interface LessonNode {
+  title: string
+  content: string
+  type: 'lesson' | 'checkpoint' | 'workshop'
+  completed?: boolean
+  id?: string
+}
+
+interface ChapterNode {
+  title: string
+  lessons: LessonNode[]
+}
+
+interface ModuleNode {
+  title: string
+  chapters: ChapterNode[]
+}
+
+interface CourseContent {
+  id: string
+  title: string
+  description: string
+  coverImage?: string
+  durationInMonths: number
+  totalSessions: number
+  content: ModuleNode[]
+}
 
 type ContentTab = 'courses' | 'assessment' | 'resources'
 
-export default function CourseDetailPage() {
+export default function CourseDetailPage({ params }: { params: Promise<{ courseId: string }> }) {
+  const [course, setCourse] = useState<CourseContent | null>(null)
+  const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<ContentTab>('courses')
+  const [selectedModuleIndex, setSelectedModuleIndex] = useState(0)
+  const [selectedChapterIndex, setSelectedChapterIndex] = useState(0)
+  const [selectedLessonIndex, setSelectedLessonIndex] = useState(0)
+
+  useEffect(() => {
+    async function fetchCourse() {
+      const { courseId } = await params
+      try {
+        const res = await fetch(`/api/courses/${courseId}`)
+        if (res.ok) {
+          const data = await res.json()
+          setCourse(data)
+        }
+      } catch (e) {
+        console.error('Failed to fetch course:', e)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCourse()
+  }, [params])
+
+  if (loading) {
+    return (
+      <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-64px)]">
+        <div className="hidden lg:block shrink-0 w-72 border-r border-hairline bg-canvas">
+          <LogoSpinner />
+        </div>
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 flex items-center justify-center">
+            <LogoSpinner />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!course) {
+    return (
+      <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-64px)]">
+        <div className="hidden lg:block shrink-0 w-72 border-r border-hairline bg-canvas" />
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-center">
+              <p className="text-body-md text-mute">Course not found</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Transform course content for SidebarNavigation
+  const modules: ModuleNode[] = (course.content ?? []).map((mod) => ({
+    title: mod.title,
+    chapters: (mod.chapters ?? []).map((ch) => ({
+      title: ch.title,
+      lessons: (ch.lessons ?? []).map((les) => ({
+        title: les.title,
+        content: les.content ?? '',
+        type: les.type,
+        completed: les.completed ?? false,
+        id: les.id,
+      })),
+    })),
+  }))
+
+  const selectedModule = modules[selectedModuleIndex]
+  const selectedChapter = selectedModule?.chapters[selectedChapterIndex]
+  const selectedLesson = selectedChapter?.lessons[selectedLessonIndex]
+
+  const handleModuleClick = (index: number) => {
+    setSelectedModuleIndex(index)
+    setSelectedChapterIndex(0)
+    setSelectedLessonIndex(0)
+  }
+
+  const handleChapterClick = (moduleIndex: number, chapterIndex: number) => {
+    setSelectedModuleIndex(moduleIndex)
+    setSelectedChapterIndex(chapterIndex)
+    setSelectedLessonIndex(0)
+  }
+
+  const handleLessonClick = (moduleIndex: number, chapterIndex: number, lessonIndex: number) => {
+    setSelectedModuleIndex(moduleIndex)
+    setSelectedChapterIndex(chapterIndex)
+    setSelectedLessonIndex(lessonIndex)
+  }
+
+  const hasNextModule = selectedModuleIndex < modules.length - 1
+  const hasPrevModule = selectedModuleIndex > 0
+
+  const handleNextModule = () => {
+    if (hasNextModule) {
+      setSelectedModuleIndex(selectedModuleIndex + 1)
+      setSelectedChapterIndex(0)
+      setSelectedLessonIndex(0)
+    }
+  }
+  const handlePrevModule = () => {
+    if (hasPrevModule) {
+      setSelectedModuleIndex(selectedModuleIndex - 1)
+      setSelectedChapterIndex(0)
+      setSelectedLessonIndex(0)
+    }
+  }
 
   return (
     <div className="flex flex-col lg:flex-row h-auto lg:h-[calc(100vh-64px)]">
       <div className="hidden lg:block shrink-0">
-        <SidebarNavigation />
+        <SidebarNavigation 
+          modules={modules} 
+          courseId={course.id}
+          onModuleClick={handleModuleClick}
+          onChapterClick={handleChapterClick}
+          onLessonClick={handleLessonClick}
+          selectedModuleIndex={selectedModuleIndex}
+          selectedChapterIndex={selectedChapterIndex}
+          selectedLessonIndex={selectedLessonIndex}
+        />
       </div>
 
       <div className="flex-1 flex flex-col min-w-0">
@@ -30,7 +176,7 @@ export default function CourseDetailPage() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-lg py-sm text-button-sm bg-transparent border-none cursor-pointer transition-colors rounded-pill shrink-0 whitespace-nowrap ${
-                  isActive ? 'bg-surface-dark text-on-dark' : 'text-charcoal hover:text-ink'
+                  isActive ? 'bg-surface-dark text-primary dark:bg-primary text-on-primary' : 'text-charcoal hover:text-ink'
                 }`}
               >
                 <Icon className="w-4 h-4" />
@@ -40,52 +186,139 @@ export default function CourseDetailPage() {
           })}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-md lg:px-xxl py-xxl">
-          <div className="max-w-3xl mx-auto">
-            <Badge variant="new" className="mb-lg">Module 1</Badge>
-            <h1 className="text-display-lg text-ink font-700 leading-[0.95] mb-lg">
-              Introduction to Problem Solving
-            </h1>
-
-            <div className="prose prose-sm max-w-none">
-              <p className="text-body-lg text-body leading-relaxed mb-lg">
-                Welcome to the first module of your software engineering journey. In this module,
-                we will explore the fundamental concepts of problem-solving and algorithmic
-                thinking that form the bedrock of all software development.
-              </p>
-
-              <h2 className="text-heading-md text-ink font-700 mt-xxl mb-md">What is Problem Solving?</h2>
-              <p className="text-body-md text-body mb-lg">
-                Problem solving is the process of identifying a problem, developing a strategy
-                to address it, and implementing that strategy effectively. In software engineering,
-                this translates to understanding requirements, designing solutions, and writing code.
-              </p>
-
-              <div className="bg-primary/10 border-l-4 border-primary p-lg mb-lg">
-                <p className="text-body-md text-ink font-600">Key Insight</p>
-                <p className="text-body-sm text-body mt-xs">
-                  The best engineers don&rsquo;t just write code — they solve problems. Focus on
-                  understanding the problem before jumping to implementation.
-                </p>
+        {selectedModule && (
+          <div className="flex-1 overflow-y-auto px-md lg:px-xxl py-xxl">
+            <div className="max-w-3xl mx-auto">
+              <div className="mb-lg">
+                <Badge variant="new" className="mr-2">Module {selectedModuleIndex + 1}</Badge>
+                <span className="text-caption text-mute">{selectedModuleIndex + 1} of {modules.length}</span>
               </div>
+              <h1 className="text-display-lg text-ink font-700 leading-[0.95] mb-lg">
+                {selectedModule.title}
+              </h1>
 
-              <h2 className="text-heading-md text-ink font-700 mt-xxl mb-md">Algorithmic Thinking</h2>
-              <p className="text-body-md text-body mb-lg">
-                Algorithms are step-by-step procedures for solving problems. Developing strong
-                algorithmic thinking means you can break down complex problems into manageable
-                steps and express them clearly.
-              </p>
+              <div className="prose prose-sm max-w-none">
+                {selectedChapter ? (
+                  <>
+                    <h2 className="text-heading-md text-ink font-700 mt-xxl mb-md">
+                      {selectedChapter.title}
+                    </h2>
+                    <div className="space-y-md">
+                      {selectedChapter.lessons.map((lesson, lessonIndex) => (
+                        <button
+                          key={lesson.id ?? lessonIndex}
+                          onClick={() => handleLessonClick(selectedModuleIndex, selectedChapterIndex, lessonIndex)}
+                          className={`w-full flex items-center gap-md p-md rounded-none transition-colors text-left ${
+                            selectedLessonIndex === lessonIndex 
+                              ? 'bg-primary/10 border border-primary' 
+                              : lesson.completed 
+                                ? 'bg-success/10 border border-success' 
+                                : 'bg-canvas border border-hairline hover:bg-surface-soft'
+                          }`}
+                        >
+                          <div className="w-8 h-8 flex items-center justify-center shrink-0">
+                            {lesson.type === 'checkpoint' && (
+                              <span className="text-warning font-bold">◆</span>
+                            )}
+                            {lesson.type === 'workshop' && (
+                              <span className="text-info font-bold">⬢</span>
+                            )}
+                            {lesson.type === 'lesson' && (
+                              <span className="text-mute">●</span>
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <p className="text-body-sm text-ink font-600">
+                              {lesson.title}
+                              {lesson.type !== 'lesson' && (
+                                <span className="ml-2 text-caption uppercase font-bold">
+                                  {lesson.type}
+                                </span>
+                              )}
+                            </p>
+                            {lesson.content && (
+                              <p className="text-body-sm text-mute mt-1 line-clamp-2">{lesson.content}</p>
+                            )}
+                          </div>
+                          {lesson.completed && (
+                            <span className="text-success text-caption font-600">Completed</span>
+                          )}
+                          {selectedLessonIndex === lessonIndex && (
+                            <span className="text-primary text-caption font-600">Active</span>
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {selectedLesson && (
+                      <div className="mt-xl p-lg bg-surface-soft border border-hairline rounded-none">
+                        <h3 className="text-heading-sm text-ink font-700 mb-md">
+                          {selectedLesson.title}
+                        </h3>
+                        {selectedLesson.type !== 'lesson' && (
+                          <Badge variant={selectedLesson.type === 'checkpoint' ? 'warning' : 'info'} className="mb-md">
+                            {selectedLesson.type}
+                          </Badge>
+                        )}
+                        <div className="prose prose-sm max-w-none">
+                          {selectedLesson.content ? (
+                            <div dangerouslySetInnerHTML={{ __html: selectedLesson.content }} />
+                          ) : (
+                            <p className="text-body-md text-mute">No content available for this lesson yet.</p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="space-y-md">
+                    {selectedModule.chapters.map((chapter, chapterIndex) => (
+                      <button
+                        key={chapter.title}
+                        onClick={() => handleChapterClick(selectedModuleIndex, chapterIndex)}
+                        className={`w-full flex items-center justify-between p-lg rounded-none transition-colors text-left ${
+                          selectedChapterIndex === chapterIndex 
+                            ? 'bg-primary/10 border border-primary' 
+                            : 'bg-canvas border border-hairline hover:bg-surface-soft'
+                        }`}
+                      >
+                        <div className="flex items-center gap-md">
+                          <div className="w-10 h-10 flex items-center justify-center shrink-0 bg-surface-soft border border-hairline">
+                            <BookOpen className="w-5 h-5 text-mute" />
+                          </div>
+                          <div>
+                            <p className="text-body-md text-ink font-600">{chapter.title}</p>
+                            <p className="text-caption text-mute">{chapter.lessons.length} lessons</p>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-5 h-5 text-mute" />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         <div className="flex flex-wrap items-center justify-between gap-md px-md lg:px-xxl py-lg border-t border-hairline bg-canvas">
-          <button className="flex items-center gap-2 text-button-md text-mute hover:text-ink bg-transparent border-none cursor-pointer transition-colors">
+          <button
+            onClick={handlePrevModule}
+            disabled={!hasPrevModule}
+            className="flex items-center gap-2 text-button-md bg-transparent border-none cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
             <ChevronLeft className="w-4 h-4" />
-            Previous
+            Previous Module
           </button>
-          <button className="flex items-center gap-2 text-button-md text-ink bg-transparent border-none cursor-pointer hover:underline">
-            Next
+          <div className="text-caption text-mute">
+            {selectedModuleIndex + 1} / {modules.length}
+          </div>
+          <button
+            onClick={handleNextModule}
+            disabled={!hasNextModule}
+            className="flex items-center gap-2 text-button-md bg-transparent border-none cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Next Module
             <ChevronRight className="w-4 h-4" />
           </button>
         </div>

@@ -490,9 +490,11 @@ export default function AdminPage() {
       Promise.all([
         fetch("/api/admin/users?role=instructor").then((r) => r.json()),
         fetch("/api/admin/users?role=student").then((r) => r.json()),
-      ]).then(([instructors, students]) => {
+        fetch("/api/admin/courses").then((r) => r.json()),
+      ]).then(([instructors, students, coursesData]) => {
         setAllInstructors(instructors);
         setAllStudents(students);
+        setCourses(coursesData);
       });
       setModal("guild");
     }
@@ -527,9 +529,11 @@ export default function AdminPage() {
       Promise.all([
         fetch("/api/admin/users?role=instructor").then((r) => r.json()),
         fetch("/api/admin/users?role=student").then((r) => r.json()),
-      ]).then(([instructors, students]) => {
+        fetch("/api/admin/courses").then((r) => r.json()),
+      ]).then(([instructors, students, coursesData]) => {
         setAllInstructors(instructors);
         setAllStudents(students);
+        setCourses(coursesData);
       });
       setStudentSearch("");
       setFormGuild({

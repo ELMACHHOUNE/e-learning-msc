@@ -15,7 +15,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(
           'inline-flex items-center justify-center whitespace-nowrap font-700 transition-colors disabled:pointer-events-none disabled:opacity-50',
           {
-            'bg-primary text-on-primary text-button-md rounded-xs hover:bg-primary-deep active:bg-primary-deep':
+            'bg-primary text-on-primary dark:text-on-primary text-button-md rounded-xs hover:bg-primary-deep active:bg-primary-deep':
               variant === 'primary',
             'bg-surface-dark text-on-dark text-button-md rounded-xs hover:opacity-90 active:opacity-80':
               variant === 'secondary-dark',
