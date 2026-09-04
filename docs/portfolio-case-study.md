@@ -13,11 +13,11 @@ Traditional e-learning platforms are passive content delivery systems. Students 
 
 ## Target User
 
-| Role | Need |
-|------|------|
-| **Student** | On-demand help understanding course material without waiting for office hours |
-| **Instructor** | Efficient quiz creation and consistent, structured project feedback |
-| **Administrator** | Centralized management of courses, users, cohorts, and graduation records |
+| Role              | Need                                                                          |
+| ----------------- | ----------------------------------------------------------------------------- |
+| **Student**       | On-demand help understanding course material without waiting for office hours |
+| **Instructor**    | Efficient quiz creation and consistent, structured project feedback           |
+| **Administrator** | Centralized management of courses, users, cohorts, and graduation records     |
 
 ## Solution
 
@@ -34,6 +34,7 @@ I built a full-stack e-learning platform and integrated local AI capabilities us
 ## Features
 
 ### Core Platform
+
 - Three-role architecture with role-based dashboards and RBAC
 - Course management with nested curriculum (modules → chapters → lessons)
 - Guild/cohort system with session-by-session progression tracking
@@ -42,11 +43,13 @@ I built a full-stack e-learning platform and integrated local AI capabilities us
 - Attendance tracking, support chat, and public program catalog
 
 ### AI Integration
+
 - **AI Learning Assistant** — Context-aware student Q&A grounded in course material
 - **AI Quiz Generator** — Structured quiz creation with editable drafts
 - **AI Project Feedback** — Advisory analysis of student submissions with scoring
 
 ### Infrastructure
+
 - Docker Compose with 6 services (app, MongoDB, Ollama, RustFS, nginx, mongo-express)
 - Nginx reverse proxy with SSL/TLS termination
 - RustFS (S3-compatible) for media storage
@@ -58,31 +61,35 @@ This is a solo capstone project. I designed the architecture, implemented all fe
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS v4, Framer Motion |
-| Backend | Next.js API Routes, NextAuth v5, Zod |
-| Database | MongoDB 7, Mongoose 9 |
-| AI | Ollama, phi4-mini (3.8B), custom prompt engineering |
-| Storage | RustFS (S3-compatible), pdf-lib for certificates |
-| Infrastructure | Docker Compose, nginx, Oracle Cloud |
-| DevOps | GitHub, ESLint, TypeScript strict mode |
+| Layer          | Technology                                                       |
+| -------------- | ---------------------------------------------------------------- |
+| Frontend       | Next.js 16, React 19, TypeScript, Tailwind CSS v4, Framer Motion |
+| Backend        | Next.js API Routes, NextAuth v5, Zod                             |
+| Database       | MongoDB 7, Mongoose 9                                            |
+| AI             | Ollama, phi4-mini (3.8B), custom prompt engineering              |
+| Storage        | RustFS (S3-compatible), pdf-lib for certificates                 |
+| Infrastructure | Docker Compose, nginx, Oracle Cloud                              |
+| DevOps         | GitHub, ESLint, TypeScript strict mode                           |
 
 ## Challenges
 
 ### 1. Structured Output from LLMs
+
 **Challenge:** LLMs produce unpredictable output formats. The UI needs consistent data structures.
 **Solution:** Zod schemas validate every AI response. Ollama's `format: 'json'` parameter constrains output at the model level. Malformed responses are rejected with controlled errors.
 
 ### 2. Prompt Injection
+
 **Challenge:** Users could include instructions in their questions to manipulate the AI.
 **Solution:** User input is escaped (`<` → `[LT]`, `>` → `[GT]`, `&` → `[AMP]`) and wrapped in XML-style delimiters. System prompts instruct the AI to ignore instructions in user content.
 
 ### 3. CPU-Only Inference
+
 **Challenge:** No GPU available in the development environment. LLM inference is 5-10x slower on CPU.
 **Solution:** Selected phi4-mini (3.8B params) — small enough for CPU, good JSON output quality. Response times are acceptable for educational use (5-15 seconds).
 
 ### 4. Docker Model Persistence
+
 **Challenge:** Ollama models are 2+ GB. Re-downloading on every container rebuild wastes time.
 **Solution:** Named Docker volume (`ollama_data`) persists downloaded models across container rebuilds.
 
