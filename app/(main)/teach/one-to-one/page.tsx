@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button, Avatar } from '@/components/ui'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { InstructorGuard } from '@/components/shared/instructor-guard'
 
 const timeSlots = [
   '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
@@ -11,7 +12,7 @@ const timeSlots = [
 
 const students = ['Alice Johnson', 'Bob Smith', 'Carol White', 'David Brown']
 
-export default function OneToOnePage() {
+function OneToOnePageContent() {
   const [selectedStudent, setSelectedStudent] = useState('')
   const [selectedSlot, setSelectedSlot] = useState('')
 
@@ -98,5 +99,13 @@ export default function OneToOnePage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function OneToOnePage() {
+  return (
+    <InstructorGuard>
+      <OneToOnePageContent />
+    </InstructorGuard>
   )
 }

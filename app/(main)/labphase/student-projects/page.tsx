@@ -6,6 +6,7 @@ import LogoSpinner from '@/components/shared/logo-spinner'
 import { toast } from '@/components/ui/alert'
 import { Search, CheckCircle, XCircle, ExternalLink, Send, X, Save, ChevronDown } from 'lucide-react'
 import { useSession } from 'next-auth/react'
+import ProjectFeedback from '@/components/ai/project-feedback'
 
 interface StepData {
   url: string
@@ -519,6 +520,16 @@ export default function StudentProjectsPage() {
                         </div>
                       ) : (
                         <p className="text-body-sm text-mute">No validation steps available yet.</p>
+                      )}
+
+                      {isInstructor && project.status !== 'pending' && (
+                        <div className="mt-md pt-md border-t border-hairline">
+                          <ProjectFeedback
+                            projectApplicationId={project.id}
+                            studentName={project.student?.name ?? 'Unknown'}
+                            labPhaseTitle={project.labPhaseTitle}
+                          />
+                        </div>
                       )}
                     </div>
                   )}

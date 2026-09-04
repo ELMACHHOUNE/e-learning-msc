@@ -2,6 +2,7 @@
 
 import { Button, Badge } from '@/components/ui'
 import { Video, Clock } from 'lucide-react'
+import { InstructorGuard } from '@/components/shared/instructor-guard'
 
 const sessions = [
   { id: '1', title: 'Module 3: Data Structures', guild: 'Achilles Vengeance', time: 'Today, 2:00 PM', participants: 24, status: 'upcoming' as const },
@@ -9,7 +10,7 @@ const sessions = [
   { id: '3', title: 'Q&A: Final Project Prep', guild: 'Data Science Guild', time: 'Sep 20, 3:00 PM', participants: 18, status: 'upcoming' as const },
 ]
 
-export default function OnlineSessionsPage() {
+function OnlineSessionsPageContent() {
   return (
     <div className="max-w-[1440px] mx-auto px-xl py-xxl">
       <div className="flex items-center justify-between mb-xxl">
@@ -46,5 +47,13 @@ export default function OnlineSessionsPage() {
         ))}
       </div>
     </div>
+  )
+}
+
+export default function OnlineSessionsPage() {
+  return (
+    <InstructorGuard>
+      <OnlineSessionsPageContent />
+    </InstructorGuard>
   )
 }

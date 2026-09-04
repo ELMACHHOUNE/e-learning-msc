@@ -9,6 +9,7 @@ interface LessonNode {
   title: string
   type: 'lesson' | 'checkpoint' | 'workshop'
   completed?: boolean
+  id?: string
 }
 
 interface ChapterNode {
@@ -24,6 +25,12 @@ interface ModuleNode {
 interface SidebarNavigationProps {
   modules?: ModuleNode[]
   courseId?: string
+  onModuleClick?: (moduleIndex: number) => void
+  onChapterClick?: (moduleIndex: number, chapterIndex: number) => void
+  onLessonClick?: (moduleIndex: number, chapterIndex: number, lessonIndex: number) => void
+  selectedModuleIndex?: number
+  selectedChapterIndex?: number
+  selectedLessonIndex?: number
 }
 
 const defaultModules: ModuleNode[] = [
@@ -72,20 +79,45 @@ const typeIcons = {
   workshop: Video,
 }
 
-export function SidebarNavigation({ modules = defaultModules }: SidebarNavigationProps) {
+export function SidebarNavigation({ 
+  modules = defaultModules, 
+  onModuleClick,
+  onChapterClick,
+  onLessonClick,
+  selectedModuleIndex,
+  selectedChapterIndex,
+  selectedLessonIndex
+}: SidebarNavigationProps) {
   const [expandedModules, setExpandedModules] = useState<string[]>([modules[0]?.title])
   const [expandedChapters, setExpandedChapters] = useState<string[]>([])
   const [searchQuery, setSearchQuery] = useState('')
 
-  const toggleModule = (title: string) => {
+  const handleModuleClick = (moduleIndex: number) => {
+    if (onModuleClick) onModuleClick(moduleIndex)
+  }
+
+  const handleChapterClick = (moduleIndex: number, chapterIndex: number) => {
+    if (onChapterClick) onChapterClick(moduleIndex, chapterIndex)
+  }
+
+  const handleLessonClick = (moduleIndex: number, chapterIndex: number, lessonIndex: number) => {
+    if (onLessonClick) onLessonClick(moduleIndex, chapterIndex, lessonIndex)
+  }
+
+  const toggleModule = (moduleIndex: number) => {
     setExpandedModules((prev) =>
-      prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
+      prev.includes(modules[moduleIndex]?.title ?? '')
+        ? prev.filter((t) => t !== modules[moduleIndex]?.title)
+        : [...prev, modules[moduleIndex]?.title].filter(Boolean)
     )
   }
 
-  const toggleChapter = (title: string) => {
+  const toggleChapter = (chapterIndex: number) => {
+    const chapterTitles = modules.flatMap((m) => m.chapters.map((c) => c.title))
     setExpandedChapters((prev) =>
-      prev.includes(title) ? prev.filter((t) => t !== title) : [...prev, title]
+      prev.includes(chapterTitles[chapterIndex] ?? '')
+        ? prev.filter((t) => t !== chapterTitles[chapterIndex])
+        : [...prev, chapterTitles[chapterIndex] ?? ''].filter(Boolean)
     )
   }
 
@@ -104,13 +136,17 @@ export function SidebarNavigation({ modules = defaultModules }: SidebarNavigatio
       </div>
 
       <div className="flex-1 overflow-y-auto">
-        {modules.map((mod) => {
+        {modules.map((mod, moduleIndex) => {
           const isModOpen = expandedModules.includes(mod.title)
+          const isModuleSelected = selectedModuleIndex === moduleIndex
           return (
             <div key={mod.title} className="border-b border-hairline">
               <button
-                onClick={() => toggleModule(mod.title)}
-                className="w-full flex items-center justify-between px-lg py-md text-body-sm text-ink font-600 hover:bg-surface-soft transition-colors bg-transparent border-none cursor-pointer"
+                onClick={() => { handleModuleClick(moduleIndex); toggleModule(moduleIndex) }}
+                className={cn(
+                  'w-full flex items-center justify-between px-lg py-md text-body-sm font-600 hover:bg-surface-soft transition-colors bg-transparent border-none cursor-pointer',
+                  isModuleSelected && 'bg-primary/10 text-primary'
+                )}
               >
                 {mod.title}
                 <ChevronDown
@@ -125,13 +161,17 @@ export function SidebarNavigation({ modules = defaultModules }: SidebarNavigatio
                     exit={{ height: 0, opacity: 0 }}
                     className="overflow-hidden"
                   >
-                    {mod.chapters.map((ch) => {
+                    {mod.chapters.map((ch, chapterIndex) => {
                       const isChOpen = expandedChapters.includes(ch.title)
+                      const isChapterSelected = selectedModuleIndex === moduleIndex && selectedChapterIndex === chapterIndex
                       return (
                         <div key={ch.title}>
                           <button
-                            onClick={() => toggleChapter(ch.title)}
-                            className="w-full flex items-center justify-between pl-xl pr-lg py-sm text-caption text-charcoal hover:bg-surface-soft bg-transparent border-none cursor-pointer"
+                            onClick={() => { handleChapterClick(moduleIndex, chapterIndex); toggleChapter(chapterIndex) }}
+                            className={cn(
+                              'w-full flex items-center justify-between pl-xl pr-lg py-sm text-caption hover:bg-surface-soft bg-transparent border-none cursor-pointer',
+                              isChapterSelected && 'text-primary font-600'
+                            )}
                           >
                             {ch.title}
                             <ChevronDown
@@ -146,15 +186,21 @@ export function SidebarNavigation({ modules = defaultModules }: SidebarNavigatio
                                 exit={{ height: 0 }}
                                 className="overflow-hidden"
                               >
-                                {ch.lessons.map((lesson) => {
+                                {ch.lessons.map((lesson, lessonIndex) => {
                                   const Icon = typeIcons[lesson.type]
+                                  const isLessonSelected = selectedModuleIndex === moduleIndex && selectedChapterIndex === chapterIndex && selectedLessonIndex === lessonIndex
                                   return (
                                     <button
-                                      key={lesson.title}
-                                      className="w-full flex items-center gap-md pl-xxl pr-lg py-xs text-caption text-mute hover:text-charcoal hover:bg-surface-soft bg-transparent border-none cursor-pointer text-left"
+                                      key={lesson.id ?? lesson.title ?? lessonIndex}
+                                      onClick={() => handleLessonClick(moduleIndex, chapterIndex, lessonIndex)}
+                                      className={cn(
+                                        'w-full flex items-center gap-md pl-xxl pr-lg py-xs text-caption hover:bg-surface-soft bg-transparent border-none cursor-pointer text-left',
+                                        isLessonSelected && 'text-primary font-600 bg-primary/5',
+                                        lesson.completed && 'text-success'
+                                      )}
                                     >
                                       <Icon className="w-3 h-3 shrink-0" />
-                                      <span className={cn(lesson.completed && 'text-success line-through')}>
+                                      <span className={cn(lesson.completed && 'line-through')}>
                                         {lesson.title}
                                       </span>
                                     </button>

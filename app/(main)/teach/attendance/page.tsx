@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Button, Badge, Avatar } from '@/components/ui'
 import { Search, Check, X, Clock } from 'lucide-react'
+import { InstructorGuard } from '@/components/shared/instructor-guard'
 
 type AttendanceStatus = 'present' | 'absent' | 'late'
 
@@ -20,7 +21,7 @@ const initialStudents: StudentRecord[] = [
   { id: '5', name: 'Eve Davis', status: 'present' },
 ]
 
-export default function AttendancePage() {
+function AttendancePageContent() {
   const [students, setStudents] = useState(initialStudents)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -117,5 +118,13 @@ export default function AttendancePage() {
         <Button variant="primary">Save Attendance</Button>
       </div>
     </div>
+  )
+}
+
+export default function AttendancePage() {
+  return (
+    <InstructorGuard>
+      <AttendancePageContent />
+    </InstructorGuard>
   )
 }
