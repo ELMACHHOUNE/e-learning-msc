@@ -16,6 +16,38 @@ export interface ITechStackSection {
   cards: ITechStackCard[]
 }
 
+export interface IHeroSection {
+  image: string
+  heading: string
+  subtitle: string
+  ctaText: string
+  ctaLink: string
+}
+
+export interface IOverviewStat {
+  value: string
+  label: string
+}
+
+export interface IOverviewSection {
+  eyebrow: string
+  title: string
+  description: string
+  image: string
+  stats: IOverviewStat[]
+}
+
+export interface IRoleCard {
+  title: string
+  description: string
+  icon: string
+}
+
+export interface IRolesSection {
+  title: string
+  cards: IRoleCard[]
+}
+
 export interface ISiteContent {
   _id: string
   key: string
