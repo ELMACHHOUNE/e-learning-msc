@@ -18,7 +18,7 @@ I integrated local AI capabilities directly into a full-stack e-learning platfor
 **Tech Stack:**
 - Next.js 16 + TypeScript + Tailwind CSS
 - MongoDB + Mongoose
-- Ollama (local LLM inference) with phi3:mini
+- Ollama (local LLM inference) with phi4-mini
 - Docker containerization
 - NextAuth v5 for authentication
 - Zod for input/output validation

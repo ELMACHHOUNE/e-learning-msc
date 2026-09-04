@@ -9,7 +9,7 @@ Ollama provides local LLM inference without external API dependencies. For a cap
 - Easy Docker integration
 - Can swap models without changing application code
 
-The phi3:mini model was chosen because it runs reliably with 4-8GB RAM, has good structured output quality, and is fast enough for interactive use.
+The phi4-mini model was chosen because it runs reliably with 4-8GB RAM, has good structured output quality, and is fast enough for interactive use.
 
 ## 2. Why integrate AI into this project instead of creating a separate AI application?
 

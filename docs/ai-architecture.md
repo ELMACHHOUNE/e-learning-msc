@@ -123,7 +123,7 @@ On the host, Ollama is accessible at `http://localhost:11434`.
 
 ## Model Selection
 
-**Selected model: `phi3:mini` (3.8B parameters)**
+**Selected model: `phi4-mini` (3.8B parameters)**
 
 Rationale:
 - Small enough to run in Docker with 4-8GB RAM

@@ -87,7 +87,7 @@ This is advisory only. The instructor makes the final evaluation."
 "Let me show the architecture.
 
 [Show the health endpoint]
-The AI health endpoint shows Ollama is running with the phi3:mini model.
+The AI health endpoint shows Ollama is running with the phi4-mini model.
 
 The architecture follows a clean separation:
 - Provider abstraction — we can swap Ollama for OpenAI later

@@ -4,7 +4,10 @@
 
 # E-Learning MSC
 
-A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CSS. Three-role architecture (Admin, Instructor, Student) with course management, guild/cohort system, lab phases, project submission & validation, attendance tracking, automated graduation & certificate generation, and real-time support chat.
+> **AI Developer Bootcamp — Capstone Project**
+> An AI-powered e-learning platform with local LLM integration via Ollama.
+
+A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CSS. Three-role architecture (Admin, Instructor, Student) with course management, guild/cohort system, lab phases, project submission & validation, attendance tracking, automated graduation & certificate generation, and real-time support chat. AI features include a Learning Assistant, Quiz Generator, and Project Feedback — all powered by local LLM inference.
 
 ## Tech Stack
 
@@ -15,7 +18,7 @@ A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CS
 | Styling | Tailwind CSS v4 + Framer Motion |
 | Database | MongoDB via Mongoose 9 |
 | Auth | NextAuth.js v5 (beta) — Credentials + Google/GitHub OAuth |
-| AI | Ollama (local LLM inference) + phi3:mini |
+| AI | Ollama (local LLM inference) + phi4-mini |
 | Certificates | PDF generation via pdf-lib (template-based, placeholder erasure) |
 | Charts | Recharts |
 | Icons | Lucide React |
@@ -94,7 +97,7 @@ The AI features use Ollama for local LLM inference. Ollama runs as a Docker serv
 docker compose up -d
 
 # Pull the AI model (one-time setup)
-docker compose exec ollama ollama pull phi3:mini
+docker compose exec ollama ollama pull phi4-mini
 
 # Verify Ollama is running
 curl http://localhost:11434/api/tags
@@ -105,11 +108,11 @@ docker compose exec ollama ollama list
 
 #### Model Selection
 
-**Default model: `phi3:mini`** (3.8B parameters)
+**Default model: `phi4-mini`** (3.8B parameters)
 
 - Small enough for Docker with 4-8GB RAM
 - Good structured output quality
-- Fast inference for interactive use
+- Fast inference for interactive use (15-25 tok/s on CPU)
 
 Alternative: `llama3.1:8b` for higher quality (requires more resources).
 
@@ -117,7 +120,7 @@ Alternative: `llama3.1:8b` for higher quality (requires more resources).
 
 ```env
 OLLAMA_BASE_URL=http://ollama:11434  # Docker service name
-OLLAMA_MODEL=phi3:mini                # Model to use
+OLLAMA_MODEL=phi4-mini                # Model to use
 AI_PROVIDER=ollama                    # Provider abstraction
 ```
 
@@ -128,7 +131,7 @@ AI_PROVIDER=ollama                    # Provider abstraction
 curl http://localhost:3000/api/ai/health
 
 # Expected response:
-# {"available":true,"provider":"ollama","model":"phi3:mini","modelLoaded":true}
+# {"available":true,"provider":"ollama","model":"phi4-mini","modelLoaded":true}
 ```
 
 ---
@@ -592,6 +595,22 @@ npm run seed           # Full demo data (courses + 6 graduates with certificates
 npm run seed:grad      # Legacy additive graduation demo data
 npm run assign:grad    # Assign one student graduate data by email
 ```
+
+## Documentation
+
+| Document | Description |
+|----------|-------------|
+| [Final Product Review](docs/final-product-review.md) | Problem solved, features, challenges, future improvements |
+| [Architecture](docs/architecture.md) | System diagram, request flow, data flow |
+| [Portfolio Case Study](docs/portfolio-case-study.md) | Full case study for portfolio presentation |
+| [AI Architecture](docs/ai-architecture.md) | AI system design and request lifecycle |
+| [Prompt Engineering](docs/prompt-engineering.md) | Prompt design and injection defense |
+| [API Reference](docs/api.md) | API endpoint documentation |
+| [AI Testing](docs/ai-testing.md) | AI testing strategy |
+| [Demo Script](docs/demo-script.md) | 3-5 minute presentation script |
+| [Interview Questions](docs/interview-questions.md) | 15 interview Q&A pairs |
+| [LinkedIn Post](docs/linkedin-post.md) | LinkedIn project post draft |
+| [Release Checklist](docs/final-release-checklist.md) | Final release audit |
 
 ## Authentication
 
