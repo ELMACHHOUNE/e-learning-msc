@@ -4,8 +4,15 @@ import { useEffect, useId, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { useOutsideClick } from "@/hooks/use-outside-click";
+import type { ITechStackCard } from "@/types";
 
-export default function ExpandableCardDemo() {
+type ExpandableCard = ITechStackCard;
+
+export default function ExpandableCardDemo({
+  cards,
+}: {
+  cards: ExpandableCard[];
+}) {
   const [active, setActive] = useState<(typeof cards)[number] | boolean | null>(
     null,
   );
@@ -109,8 +116,12 @@ export default function ExpandableCardDemo() {
                     exit={{ opacity: 0 }}
                     className="text-body-md text-body leading-[1.4] h-40 md:h-fit pb-10 overflow-auto [mask:linear-gradient(to_bottom,black,black,transparent)] [scrollbar-width:none]"
                   >
-                    {typeof active.content === "function"
-                      ? active.content()
+                    {Array.isArray(active.content)
+                      ? active.content.map((paragraph, i) => (
+                          <p key={i} className={i > 0 ? "mt-4" : ""}>
+                            {paragraph}
+                          </p>
+                        ))
                       : active.content}
                   </motion.div>
                 </div>
@@ -188,102 +199,3 @@ export const CloseIcon = () => {
     </motion.svg>
   );
 };
-
-const cards = [
-  {
-    description: "Full-stack Framework",
-    title: "Next.js 16",
-    src: "/images/cover.png",
-    ctaText: "Learn More",
-    ctaLink: "https://nextjs.org",
-    content: () => {
-      return (
-        <p>
-          Next.js is the leading React framework for production-grade
-          applications. It provides server-side rendering, static site
-          generation, and API routes all in one unified framework. With the App
-          Router, it offers a powerful paradigm for building modern web
-          applications with React Server Components, streaming, and partial
-          prerendering. The framework powers this entire platform, handling
-          routing, data fetching, and rendering with precision.
-        </p>
-      );
-    },
-  },
-  {
-    description: "User Interface Library",
-    title: "React 19",
-    src: "/images/cover.png",
-    ctaText: "Learn More",
-    ctaLink: "https://react.dev",
-    content: () => {
-      return (
-        <p>
-          React is the industry-standard library for building user interfaces.
-          Version 19 introduces enhanced concurrent features, improved server
-          components, and a streamlined hook API. This platform leverages
-          React&apos;s component model to create a cohesive, maintainable UI
-          architecture where each piece—from navigation to course cards—is a
-          reusable building block.
-        </p>
-      );
-    },
-  },
-  {
-    description: "Static Typing",
-    title: "TypeScript 6",
-    src: "/images/cover.png",
-    ctaText: "Learn More",
-    ctaLink: "https://typescriptlang.org",
-    content: () => {
-      return (
-        <p>
-          TypeScript brings static type checking to JavaScript, catching errors
-          at compile time rather than runtime. This codebase is fully typed,
-          ensuring that data flows predictably between components, models, and
-          API routes. TypeScript 6 offers faster compilation, improved type
-          inference, and richer editor tooling—making the development experience
-          both safer and more productive.
-        </p>
-      );
-    },
-  },
-  {
-    description: "Utility-first CSS",
-    title: "Tailwind CSS v4",
-    src: "/images/cover.png",
-    ctaText: "Learn More",
-    ctaLink: "https://tailwindcss.com",
-    content: () => {
-      return (
-        <p>
-          Tailwind CSS is a utility-first framework that enables rapid UI
-          development without leaving your HTML. Version 4 introduces a
-          CSS-first configuration model using the `@theme` directive,
-          eliminating the need for a separate JavaScript config file. Every
-          component on this platform is styled with Tailwind utilities, ensuring
-          consistency, responsiveness, and a clean, geometric aesthetic.
-        </p>
-      );
-    },
-  },
-  {
-    description: "Database & ODM",
-    title: "MongoDB & Mongoose",
-    src: "/images/cover.png",
-    ctaText: "Learn More",
-    ctaLink: "https://mongoosejs.com",
-    content: () => {
-      return (
-        <p>
-          MongoDB provides a flexible, document-oriented database that scales
-          naturally with the platform&apos;s data model. Mongoose acts as the
-          ODM layer, enforcing schema validation and providing a rich query API.
-          Together they power the course catalog, user management, attendance
-          tracking, and project submission pipelines that form the backbone of
-          this educational platform.
-        </p>
-      );
-    },
-  },
-];

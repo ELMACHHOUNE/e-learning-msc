@@ -12,9 +12,11 @@ import ExpandableCardDemo from "@/components/expandable-card-demo-standard";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { connectToDatabase } from "@/lib/db";
 import Course from "@/models/Course";
+import { getTechStackSection } from "@/lib/site-content";
+import type { ITechStackSection } from "@/types";
 
 export default async function LandingPage() {
-  const [session, courses] = await Promise.all([
+  const [session, courses, techStack] = await Promise.all([
     auth(),
     connectToDatabase().then(() =>
       Course.find({ $or: [{ active: true }, { active: { $exists: false } }] })
@@ -25,6 +27,7 @@ export default async function LandingPage() {
         .limit(6)
         .lean(),
     ),
+    getTechStackSection(),
   ]);
 
   return (
@@ -35,17 +38,7 @@ export default async function LandingPage() {
       <ComponentC_Capabilities />
       <ComponentD_Courses courses={courses} />
       <ComponentD1_Screens />
-      <section className="py-20 md:py-28 bg-primary">
-        <div className="max-w-[1440px] mx-auto px-6">
-          <p className="text-[10px] font-bold text-on-primary uppercase mb-3 tracking-[0.2em]">
-            TECHNOLOGY STACK
-          </p>
-          <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-on-primary mb-12">
-            BUILT WITH MODERN TECHNOLOGIES
-          </h2>
-          <ExpandableCardDemo />
-        </div>
-      </section>
+      <ComponentG_TechStack section={techStack} />
       <section className="bg-surface-dark py-20 md:py-28">
         <div className="max-w-[1440px] mx-auto px-6">
           <p className="text-[10px] font-bold text-on-dark uppercase mb-3 tracking-[0.2em]">
@@ -459,6 +452,22 @@ function ComponentD1_Screens() {
             </div>
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function ComponentG_TechStack({ section }: { section: ITechStackSection }) {
+  return (
+    <section className="py-20 md:py-28 bg-primary">
+      <div className="max-w-[1440px] mx-auto px-6">
+        <p className="text-[10px] font-bold text-on-primary uppercase mb-3 tracking-[0.2em]">
+          {section.sectionEyebrow}
+        </p>
+        <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-on-primary mb-12">
+          {section.sectionTitle}
+        </h2>
+        <ExpandableCardDemo cards={section.cards} />
       </div>
     </section>
   );
