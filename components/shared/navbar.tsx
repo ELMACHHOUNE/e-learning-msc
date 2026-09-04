@@ -45,6 +45,7 @@ export function Navbar() {
         { href: '/teach/one-to-one', label: 'One-to-One' },
         { href: '/teach/earnings', label: 'Earnings' },
         { href: '/teach/online-sessions', label: 'Online Sessions' },
+        { href: '/teach/quiz-generator', label: 'AI Quiz Generator' },
       ],
     }] : []),
     ...(role !== 'student' ? [{ href: '/students', label: role === 'admin' ? 'Students' : 'My Students', icon: Users }] : []),
