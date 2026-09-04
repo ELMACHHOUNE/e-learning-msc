@@ -9,7 +9,13 @@ import LabPhase, { type LabPhaseDocument } from '@/models/LabPhase'
 import Category from '@/models/Category'
 import ProjectApplication from '@/models/ProjectApplication'
 import SiteContent from '@/models/SiteContent'
-import { DEFAULT_TECH_STACK_SECTION, SITE_CONTENT_KEYS } from '@/lib/site-content'
+import {
+  DEFAULT_HERO_SECTION,
+  DEFAULT_OVERVIEW_SECTION,
+  DEFAULT_ROLES_SECTION,
+  DEFAULT_TECH_STACK_SECTION,
+  SITE_CONTENT_KEYS,
+} from '@/lib/site-content'
 import { ensureGraduation } from '@/lib/graduation'
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/e-learning-msc'
@@ -36,11 +42,25 @@ async function main() {
   console.log(`✓ ${categoryDocs.length} categories created`)
 
   // ── Site Content (configurable landing-page sections) ──
-  await SiteContent.create({
-    key: SITE_CONTENT_KEYS.techStack,
-    content: DEFAULT_TECH_STACK_SECTION as unknown as Record<string, unknown>,
-  })
-  console.log('✓ Site content created (Built with Modern Technologies)')
+  await SiteContent.create([
+    {
+      key: SITE_CONTENT_KEYS.hero,
+      content: DEFAULT_HERO_SECTION as unknown as Record<string, unknown>,
+    },
+    {
+      key: SITE_CONTENT_KEYS.overview,
+      content: DEFAULT_OVERVIEW_SECTION as unknown as Record<string, unknown>,
+    },
+    {
+      key: SITE_CONTENT_KEYS.roles,
+      content: DEFAULT_ROLES_SECTION as unknown as Record<string, unknown>,
+    },
+    {
+      key: SITE_CONTENT_KEYS.techStack,
+      content: DEFAULT_TECH_STACK_SECTION as unknown as Record<string, unknown>,
+    },
+  ])
+  console.log('✓ Site content created (hero, platform overview, role configurator, tech stack)')
 
   // ── Admin ──
   await User.create({

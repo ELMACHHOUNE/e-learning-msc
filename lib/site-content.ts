@@ -1,8 +1,19 @@
 import { connectToDatabase } from '@/lib/db'
 import SiteContent from '@/models/SiteContent'
-import type { ITechStackCard, ITechStackSection } from '@/types'
+import type {
+  IHeroSection,
+  IOverviewSection,
+  IRoleCard,
+  IRolesSection,
+  IOverviewStat,
+  ITechStackCard,
+  ITechStackSection,
+} from '@/types'
 
 export const SITE_CONTENT_KEYS = {
+  hero: 'home.hero',
+  overview: 'home.overview',
+  roles: 'home.roles',
   techStack: 'home.tech_stack',
 } as const
 
@@ -16,12 +27,69 @@ export interface SiteSectionMeta {
 
 export const SITE_SECTIONS: SiteSectionMeta[] = [
   {
+    key: SITE_CONTENT_KEYS.hero,
+    label: 'Home · Hero',
+    description:
+      'Full-screen banner at the top of the landing page: background image, optional headline, and the primary call-to-action.',
+  },
+  {
+    key: SITE_CONTENT_KEYS.overview,
+    label: 'Home · Platform Overview',
+    description:
+      'The "PLATFORM OVERVIEW" section: eyebrow, heading, description, illustration, and the key stat figures.',
+  },
+  {
+    key: SITE_CONTENT_KEYS.roles,
+    label: 'Home · Role Configurator & Management',
+    description:
+      'The dark two-column section describing the Admin Layer and Instructor Console.',
+  },
+  {
     key: SITE_CONTENT_KEYS.techStack,
     label: 'Home · Built with Modern Technologies',
     description:
       'The eyebrow, heading, and expandable technology cards shown in the dark section of the landing page.',
   },
 ]
+
+export const DEFAULT_HERO_SECTION: IHeroSection = {
+  image: '/images/cover.png',
+  heading: '',
+  subtitle: '',
+  ctaText: 'Explore the Platform',
+  ctaLink: '#elearning',
+}
+
+export const DEFAULT_OVERVIEW_SECTION: IOverviewSection = {
+  eyebrow: 'PLATFORM OVERVIEW',
+  title: 'STRUCTURED LEARNING. MEASURABLE OUTCOMES.',
+  description:
+    'e-learning-msc delivers a disciplined, three-role architecture for technical education. Administrators define programs with precision. Instructors execute curriculum through live cohort tracking, attendance logging, and milestone validation. Students progress through modular pathways with clear metrics at every stage.',
+  image: '/images/icon.png',
+  stats: [
+    { value: '3', label: 'Platform Roles' },
+    { value: '194', label: 'Sessions' },
+    { value: '12', label: 'Modules' },
+  ],
+}
+
+export const DEFAULT_ROLES_SECTION: IRolesSection = {
+  title: 'ROLE CONFIGURATOR & MANAGEMENT',
+  cards: [
+    {
+      title: 'Admin Layer',
+      description:
+        'Create and manage student and instructor accounts. Craft courses with defined durations, map session volumes, and compose nested module schemas. Assign students into Guild groupings and designate primary instructors — all from a single command surface.',
+      icon: 'shield',
+    },
+    {
+      title: 'Instructor Console',
+      description:
+        'Track students through a high-performance matrix interface. Oversee LabPhase progression, validate project submissions at milestone checkpoints, and run live attendance panels per session. One-to-one booking and earnings analytics complete the command suite.',
+      icon: 'terminal',
+    },
+  ],
+}
 
 export const DEFAULT_TECH_STACK_SECTION: ITechStackSection = {
   sectionEyebrow: 'TECHNOLOGY STACK',
@@ -104,12 +172,66 @@ function asParagraphs(value: unknown): string[] {
     .filter(Boolean)
 }
 
+function asRecords(value: unknown): Record<string, unknown>[] {
+  if (!Array.isArray(value)) return []
+  return value.filter((v): v is Record<string, unknown> => typeof v === 'object' && v !== null)
+}
+
+export function sanitizeHero(raw: unknown): IHeroSection {
+  const source = (raw ?? {}) as Record<string, unknown>
+  const fallback = DEFAULT_HERO_SECTION
+  return {
+    image: asString(source.image) || fallback.image,
+    heading: asString(source.heading),
+    subtitle: asString(source.subtitle),
+    ctaText: asString(source.ctaText) || fallback.ctaText,
+    ctaLink: asString(source.ctaLink) || fallback.ctaLink,
+  }
+}
+
+export function sanitizeOverview(raw: unknown): IOverviewSection {
+  const source = (raw ?? {}) as Record<string, unknown>
+  const fallback = DEFAULT_OVERVIEW_SECTION
+
+  const stats: IOverviewStat[] = asRecords(source.stats)
+    .map((stat) => ({
+      value: asString(stat.value),
+      label: asString(stat.label),
+    }))
+    .filter((stat) => stat.value)
+
+  return {
+    eyebrow: asString(source.eyebrow) || fallback.eyebrow,
+    title: asString(source.title) || fallback.title,
+    description: asString(source.description) || fallback.description,
+    image: asString(source.image) || fallback.image,
+    stats: stats.length > 0 ? stats : fallback.stats,
+  }
+}
+
+export function sanitizeRoles(raw: unknown): IRolesSection {
+  const source = (raw ?? {}) as Record<string, unknown>
+  const fallback = DEFAULT_ROLES_SECTION
+
+  const cards: IRoleCard[] = asRecords(source.cards)
+    .map((card) => ({
+      title: asString(card.title),
+      description: asString(card.description),
+      icon: asString(card.icon),
+    }))
+    .filter((card) => card.title)
+
+  return {
+    title: asString(source.title) || fallback.title,
+    cards: cards.length > 0 ? cards : fallback.cards,
+  }
+}
+
 export function sanitizeTechStack(raw: unknown): ITechStackSection {
   const source = (raw ?? {}) as Record<string, unknown>
   const rawCards = Array.isArray(source.cards) ? source.cards : []
 
-  const cards: ITechStackCard[] = rawCards
-    .filter((c): c is Record<string, unknown> => typeof c === 'object' && c !== null)
+  const cards: ITechStackCard[] = asRecords(rawCards)
     .map((c) => ({
       title: asString(c.title),
       description: asString(c.description),
@@ -135,6 +257,12 @@ export function sanitizeSiteContent(
   raw: unknown
 ): Record<string, unknown> {
   switch (key) {
+    case SITE_CONTENT_KEYS.hero:
+      return sanitizeHero(raw) as unknown as Record<string, unknown>
+    case SITE_CONTENT_KEYS.overview:
+      return sanitizeOverview(raw) as unknown as Record<string, unknown>
+    case SITE_CONTENT_KEYS.roles:
+      return sanitizeRoles(raw) as unknown as Record<string, unknown>
     case SITE_CONTENT_KEYS.techStack:
       return sanitizeTechStack(raw) as unknown as Record<string, unknown>
     default:
@@ -149,14 +277,25 @@ async function getStored(key: SiteContentKey): Promise<Record<string, unknown> |
   return (doc.content ?? {}) as Record<string, unknown>
 }
 
-export async function getTechStackSection(): Promise<ITechStackSection> {
-  const stored = await getStored(SITE_CONTENT_KEYS.techStack)
-  return sanitizeTechStack(stored)
-}
-
 export async function getSection<T>(key: SiteContentKey, sanitize: (raw: unknown) => T): Promise<T> {
   const stored = await getStored(key)
   return sanitize(stored)
+}
+
+export async function getHeroSection(): Promise<IHeroSection> {
+  return getSection(SITE_CONTENT_KEYS.hero, sanitizeHero)
+}
+
+export async function getOverviewSection(): Promise<IOverviewSection> {
+  return getSection(SITE_CONTENT_KEYS.overview, sanitizeOverview)
+}
+
+export async function getRolesSection(): Promise<IRolesSection> {
+  return getSection(SITE_CONTENT_KEYS.roles, sanitizeRoles)
+}
+
+export async function getTechStackSection(): Promise<ITechStackSection> {
+  return getSection(SITE_CONTENT_KEYS.techStack, sanitizeTechStack)
 }
 
 export async function getAllSiteContent(): Promise<Array<{ key: string; content: Record<string, unknown> }>> {

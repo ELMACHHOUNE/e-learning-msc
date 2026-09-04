@@ -14,8 +14,6 @@ const SiteContentSchema = new Schema<SiteContentDocument>(
   { timestamps: true }
 )
 
-SiteContentSchema.index({ key: 1 }, { unique: true })
-
 const SiteContent: Model<SiteContentDocument> =
   mongoose.models.SiteContent ?? mongoose.model<SiteContentDocument>('SiteContent', SiteContentSchema)
 

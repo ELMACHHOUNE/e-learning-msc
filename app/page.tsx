@@ -1,22 +1,47 @@
 import Image from "next/image";
 import Link from "next/link";
+import { Fragment } from "react";
 import {
   ShieldAlert,
   Terminal,
   MessageSquare,
   User,
   ArrowRight,
+  BookOpen,
+  Users,
+  Rocket,
+  CheckCircle2,
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import ExpandableCardDemo from "@/components/expandable-card-demo-standard";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { connectToDatabase } from "@/lib/db";
 import Course from "@/models/Course";
-import { getTechStackSection } from "@/lib/site-content";
-import type { ITechStackSection } from "@/types";
+import {
+  getHeroSection,
+  getOverviewSection,
+  getRolesSection,
+  getTechStackSection,
+} from "@/lib/site-content";
+import { cn } from "@/lib/utils";
+import type {
+  IHeroSection,
+  IOverviewSection,
+  IRolesSection,
+  ITechStackSection,
+} from "@/types";
+
+const roleIcons: Record<string, typeof Terminal> = {
+  shield: ShieldAlert,
+  terminal: Terminal,
+  book: BookOpen,
+  users: Users,
+  rocket: Rocket,
+  check: CheckCircle2,
+};
 
 export default async function LandingPage() {
-  const [session, courses, techStack] = await Promise.all([
+  const [session, courses, hero, overview, roles, techStack] = await Promise.all([
     auth(),
     connectToDatabase().then(() =>
       Course.find({ $or: [{ active: true }, { active: { $exists: false } }] })
@@ -27,15 +52,18 @@ export default async function LandingPage() {
         .limit(6)
         .lean(),
     ),
+    getHeroSection(),
+    getOverviewSection(),
+    getRolesSection(),
     getTechStackSection(),
   ]);
 
   return (
     <>
       <ComponentA_NavBar user={session?.user} />
-      <ComponentB_Hero />
-      <ComponentB1_ElearningSection />
-      <ComponentC_Capabilities />
+      <ComponentB_Hero section={hero} />
+      <ComponentB1_ElearningSection section={overview} />
+      <ComponentC_Capabilities section={roles} />
       <ComponentD_Courses courses={courses} />
       <ComponentD1_Screens />
       <ComponentG_TechStack section={techStack} />
@@ -190,12 +218,13 @@ function ComponentA_NavBar({
   );
 }
 
-function ComponentB_Hero() {
+function ComponentB_Hero({ section }: { section: IHeroSection }) {
+  const hasCopy = Boolean(section.heading || section.subtitle);
   return (
     <section className="relative min-h-screen flex items-end justify-center overflow-hidden">
       <div className="absolute inset-0">
         <Image
-          src="/images/cover.png"
+          src={section.image || "/images/cover.png"}
           alt="Platform workspace UI"
           fill
           sizes="100vw"
@@ -205,25 +234,40 @@ function ComponentB_Hero() {
         <div className="absolute inset-0 bg-gradient-to-t from-surface-dark/60 to-transparent" />
       </div>
       <div className="relative z-10 text-center pb-16 md:pb-20">
+        {hasCopy && (
+          <div className="mb-10 px-6">
+            {section.heading && (
+              <h1 className="text-3xl md:text-5xl font-bold uppercase leading-[0.95] tracking-normal text-on-dark mb-4">
+                {section.heading}
+              </h1>
+            )}
+            {section.subtitle && (
+              <p className="text-[16px] font-normal leading-[1.6] text-on-dark-mute max-w-[560px] mx-auto">
+                {section.subtitle}
+              </p>
+            )}
+          </div>
+        )}
         <Link
-          href="#elearning"
+          href={section.ctaLink || "#elearning"}
           className="inline-flex bg-primary text-on-primary text-[14.4px] font-bold uppercase tracking-[0.144px] py-4 px-10 rounded-[2px] hover:bg-primary-deep transition-colors no-underline"
         >
-          Explore the Platform
+          {section.ctaText || "Explore the Platform"}
         </Link>
       </div>
     </section>
   );
 }
 
-function ComponentB1_ElearningSection() {
+function ComponentB1_ElearningSection({ section }: { section: IOverviewSection }) {
+  const hasStats = section.stats.length > 0;
   return (
     <section id="elearning" className="bg-canvas py-20 md:py-28">
       <div className="max-w-[1440px] mx-auto px-6">
         <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
           <div className="w-full md:w-[30%] shrink-0 flex justify-center">
             <Image
-              src="/images/icon.png"
+              src={section.image || "/images/icon.png"}
               alt="e-learning-msc icon"
               width={240}
               height={240}
@@ -232,41 +276,29 @@ function ComponentB1_ElearningSection() {
           </div>
           <div className="flex-1">
             <p className="text-[10px] font-bold text-ink uppercase mb-3 tracking-[0.2em]">
-              PLATFORM OVERVIEW
+              {section.eyebrow}
             </p>
             <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-ink mb-6">
-              STRUCTURED LEARNING. MEASURABLE OUTCOMES.
+              {section.title}
             </h2>
             <p className="text-[18px] font-normal leading-[1.6] text-body max-w-[600px]">
-              e-learning-msc delivers a disciplined, three-role architecture for
-              technical education. Administrators define programs with
-              precision. Instructors execute curriculum through live cohort
-              tracking, attendance logging, and milestone validation. Students
-              progress through modular pathways with clear metrics at every
-              stage.
+              {section.description}
             </p>
-            <div className="flex items-center gap-6 mt-8">
-              <div>
-                <p className="text-display-md text-ink font-bold leading-[0.95]">
-                  3
-                </p>
-                <p className="text-caption text-mute mt-1">Platform Roles</p>
+            {hasStats && (
+              <div className="flex items-center gap-6 mt-8">
+                {section.stats.map((stat, i) => (
+                  <Fragment key={i}>
+                    {i > 0 && <div className="w-px h-10 bg-hairline" />}
+                    <div>
+                      <p className="text-display-md text-ink font-bold leading-[0.95]">
+                        {stat.value}
+                      </p>
+                      <p className="text-caption text-mute mt-1">{stat.label}</p>
+                    </div>
+                  </Fragment>
+                ))}
               </div>
-              <div className="w-px h-10 bg-hairline" />
-              <div>
-                <p className="text-display-md text-ink font-bold leading-[0.95]">
-                  194
-                </p>
-                <p className="text-caption text-mute mt-1">Sessions</p>
-              </div>
-              <div className="w-px h-10 bg-hairline" />
-              <div>
-                <p className="text-display-md text-ink font-bold leading-[0.95]">
-                  12
-                </p>
-                <p className="text-caption text-mute mt-1">Modules</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -274,41 +306,37 @@ function ComponentB1_ElearningSection() {
   );
 }
 
-function ComponentC_Capabilities() {
+function ComponentC_Capabilities({ section }: { section: IRolesSection }) {
   return (
     <section className="bg-surface-dark py-20">
       <div className="max-w-[1440px] mx-auto px-6">
         <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-on-dark mb-12">
-          ROLE CONFIGURATOR &amp; MANAGEMENT
+          {section.title}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-0 border border-divider-dark">
-          <div className="bg-surface-deep p-8 border-r-0 md:border-r border-b md:border-b-0 border-divider-dark">
-            <ShieldAlert className="w-8 h-8 text-on-dark mb-4" />
-            <h3 className="text-2xl font-bold uppercase text-on-dark mb-4 leading-[0.95]">
-              Admin Layer
-            </h3>
-            <p className="text-[16px] font-normal leading-[1.4] text-on-dark-mute">
-              Create and manage student and instructor accounts. Craft courses
-              with defined durations, map session volumes, and compose nested
-              module schemas. Assign students into Guild groupings and designate
-              primary instructors — all from a single command surface.
-            </p>
-          </div>
-
-          <div className="bg-surface-dark p-8">
-            <Terminal className="w-8 h-8 text-on-dark mb-4" />
-            <h3 className="text-2xl font-bold uppercase text-on-dark mb-4 leading-[0.95]">
-              Instructor Console
-            </h3>
-            <p className="text-[16px] font-normal leading-[1.4] text-on-dark-mute">
-              Track students through a high-performance matrix interface.
-              Oversee LabPhase progression, validate project submissions at
-              milestone checkpoints, and run live attendance panels per session.
-              One-to-one booking and earnings analytics complete the command
-              suite.
-            </p>
-          </div>
+          {section.cards.map((card, i) => {
+            const Icon = roleIcons[card.icon] ?? Terminal;
+            return (
+              <div
+                key={i}
+                className={cn(
+                  "p-8 border-divider-dark",
+                  i % 2 === 0
+                    ? "bg-surface-deep border-r-0 md:border-r border-b md:border-b-0"
+                    : "bg-surface-dark",
+                )}
+              >
+                <Icon className="w-8 h-8 text-on-dark mb-4" />
+                <h3 className="text-2xl font-bold uppercase text-on-dark mb-4 leading-[0.95]">
+                  {card.title}
+                </h3>
+                <p className="text-[16px] font-normal leading-[1.4] text-on-dark-mute">
+                  {card.description}
+                </p>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
