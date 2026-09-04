@@ -8,6 +8,8 @@ import SessionLog from '@/models/SessionLog'
 import LabPhase, { type LabPhaseDocument } from '@/models/LabPhase'
 import Category from '@/models/Category'
 import ProjectApplication from '@/models/ProjectApplication'
+import SiteContent from '@/models/SiteContent'
+import { DEFAULT_TECH_STACK_SECTION, SITE_CONTENT_KEYS } from '@/lib/site-content'
 import { ensureGraduation } from '@/lib/graduation'
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/e-learning-msc'
@@ -32,6 +34,13 @@ async function main() {
   const categoryNames = ['Data Science', 'Information Technology', 'Graphic Design', 'Digital Marketing']
   const categoryDocs = await Category.insertMany(categoryNames.map((name) => ({ name })))
   console.log(`✓ ${categoryDocs.length} categories created`)
+
+  // ── Site Content (configurable landing-page sections) ──
+  await SiteContent.create({
+    key: SITE_CONTENT_KEYS.techStack,
+    content: DEFAULT_TECH_STACK_SECTION as unknown as Record<string, unknown>,
+  })
+  console.log('✓ Site content created (Built with Modern Technologies)')
 
   // ── Admin ──
   await User.create({

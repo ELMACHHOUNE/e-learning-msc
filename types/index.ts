@@ -1,6 +1,30 @@
 export type Role = 'admin' | 'instructor' | 'student'
 export type AttendanceStatus = 'present' | 'absent' | 'late'
 
+export interface ITechStackCard {
+  title: string
+  description: string
+  src: string
+  ctaText: string
+  ctaLink: string
+  content: string[]
+}
+
+export interface ITechStackSection {
+  sectionEyebrow: string
+  sectionTitle: string
+  cards: ITechStackCard[]
+}
+
+export interface ISiteContent {
+  _id: string
+  key: string
+  content: Record<string, unknown>
+  updatedBy?: string
+  updatedAt: Date | string
+  createdAt: Date | string
+}
+
 export interface IUser {
   _id: string
   name: string

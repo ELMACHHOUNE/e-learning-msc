@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { Button, Badge, Avatar } from "@/components/ui";
 import { ImageUpload } from "@/components/ui/image-upload";
+import SiteContentEditor from "@/components/admin/site-content-editor";
 import {
   Search,
   Plus,
@@ -20,12 +21,13 @@ import {
   ExternalLink,
   ArrowLeft,
   Send,
+  LayoutTemplate,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "@/components/ui/alert";
 import { confirm } from "@/components/ui/confirm-dialog";
 
-type Tab = "users" | "courses" | "guilds" | "messages" | "categories";
+type Tab = "users" | "courses" | "guilds" | "messages" | "categories" | "content";
 
 interface UserData {
   id: string;
@@ -78,6 +80,7 @@ const tabs: { id: Tab; label: string; icon: React.ComponentType<{ className?: st
   { id: "categories", label: "Categories", icon: Filter },
   { id: "guilds", label: "Guild Assignment", icon: Layers },
   { id: "messages", label: "Support Messages", icon: MessageCircle },
+  { id: "content", label: "Site Content", icon: LayoutTemplate },
 ];
 
 function Modal({
@@ -424,7 +427,7 @@ export default function AdminPage() {
     let cancelled = false
 
     async function loadData() {
-      if (tab === 'messages') return
+      if (tab === 'messages' || tab === 'content') return
       if (loadedTabs.current.has(tab)) return
       setLoadingTab(tab)
       try {
@@ -1088,6 +1091,11 @@ export default function AdminPage() {
       {/* ── Support Messages Tab ── */}
       {activeTab === "messages" && (
         <MessagesPanel />
+      )}
+
+      {/* ── Site Content Tab ── */}
+      {activeTab === "content" && (
+        <SiteContentEditor />
       )}
 
       {/* ── User Modal ── */}
