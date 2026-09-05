@@ -3,7 +3,7 @@
 
 param(
     [string]$OllamaContainer = "e-learning-ollama",
-    [string]$Model = "phi3:mini"
+    [string]$Model = "phi4-mini"
 )
 
 Write-Host "=== Ollama Model Initialization ===" -ForegroundColor Cyan

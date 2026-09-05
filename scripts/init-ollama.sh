@@ -5,7 +5,7 @@
 set -e
 
 OLLAMA_CONTAINER="${OLLAMA_CONTAINER:-e-learning-ollama}"
-MODEL="${OLLAMA_MODEL:-phi3:mini}"
+MODEL="${OLLAMA_MODEL:-phi4-mini}"
 
 echo "=== Ollama Model Initialization ==="
 echo "Container: $OLLAMA_CONTAINER"

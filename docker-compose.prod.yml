@@ -94,7 +94,7 @@ services:
       RUSTFS_SECRET_KEY: ${RUSTFS_SECRET_KEY:-elearningfsadmin-secret}
       RUSTFS_REGION: ${RUSTFS_REGION:-us-east-1}
       OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_MODEL: ${OLLAMA_MODEL:-phi3:mini}
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-phi4-mini}
       AI_PROVIDER: ollama
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://localhost:3000/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
