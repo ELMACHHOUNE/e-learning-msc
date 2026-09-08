@@ -1,22 +1,22 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Button, Input } from '@/components/ui'
-import { ArrowLeft } from 'lucide-react'
-import Link from 'next/link'
-import type { IForgotPasswordSection } from '@/types'
+import { useState } from "react";
+import { motion } from "framer-motion";
+import { Button, Input } from "@/components/ui";
+import { ArrowLeft } from "lucide-react";
+import Link from "next/link";
+import type { IForgotPasswordSection } from "@/types";
 
 export function ForgotPasswordForm({
   section,
 }: {
-  section: IForgotPasswordSection
+  section: IForgotPasswordSection;
 }) {
-  const [submitted, setSubmitted] = useState(false)
+  const [submitted, setSubmitted] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setSubmitted(true)
+    e.preventDefault();
+    setSubmitted(true);
   }
 
   return (
@@ -24,7 +24,7 @@ export function ForgotPasswordForm({
       <motion.div
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
-        className="w-full max-w-sm"
+        className="w-full max-w-2xl"
       >
         <Link
           href="/login"
@@ -39,7 +39,9 @@ export function ForgotPasswordForm({
             <h2 className="text-heading-lg text-ink font-bold mb-xs">
               {section.title}
             </h2>
-            <p className="text-body-md text-mute mb-xxl">{section.description}</p>
+            <p className="text-body-md text-mute mb-xxl">
+              {section.description}
+            </p>
 
             <form onSubmit={handleSubmit} className="space-y-lg">
               <Input
@@ -79,5 +81,5 @@ export function ForgotPasswordForm({
         )}
       </motion.div>
     </div>
-  )
+  );
 }
