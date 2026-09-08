@@ -9,7 +9,6 @@ import Certificate from '@/models/Certificate'
 import { ensureGraduation } from '@/lib/graduation'
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/e-learning-msc'
-const PASSWORD = 'password123'
 
 interface LeanCourse {
   _id: mongoose.Types.ObjectId
@@ -34,10 +33,16 @@ async function main() {
   await mongoose.connect(MONGODB_URI)
   console.log('Connected.\n')
 
+  const SEED_PASSWORD = process.env.SEED_PASSWORD
+  if (!SEED_PASSWORD) {
+    console.error('SEED_PASSWORD environment variable is required. Set it before running the script.')
+    process.exit(1)
+  }
+  const password = await bcrypt.hash(SEED_PASSWORD, 12)
+
   // ── Reuse existing resources or create minimal ones ──
   let instructors = (await User.find({ role: 'instructor' }).limit(3).lean()) as unknown as LeanUser[]
   if (instructors.length === 0) {
-    const password = await bcrypt.hash(PASSWORD, 12)
     const created = await User.create([
       { name: 'Sarah Chen', email: 'sarah@elearning.msc', password, role: 'instructor' },
       { name: 'Marcus Johnson', email: 'marcus@elearning.msc', password, role: 'instructor' },
@@ -105,7 +110,7 @@ async function main() {
   }
 
   // ── Fake students (6 graduated + 3 in progress) ──
-  const password = await bcrypt.hash(PASSWORD, 12)
+  const studentPassword = await bcrypt.hash(SEED_PASSWORD, 12)
 
   const graduatedNames: Array<{ name: string; email: string; courseIndex: number; instructorIndex: number; phaseIndex: number; completedDaysAgo: number }> = [
     { name: 'Lina Benali', email: 'lina.benali@fake.msc', courseIndex: 0, instructorIndex: 0, phaseIndex: 0, completedDaysAgo: 12 },
@@ -125,7 +130,7 @@ async function main() {
   async function findOrCreateStudent(name: string, email: string): Promise<LeanUser> {
     const existing = (await User.findOne({ email }).lean()) as unknown as LeanUser | null
     if (existing) return existing
-    const created = await User.create({ name, email, password, role: 'student' })
+    const created = await User.create({ name, email, password: studentPassword, role: 'student' })
     return { _id: created._id, name, email }
   }
 
@@ -138,7 +143,7 @@ async function main() {
     inProgressStudents.push(await findOrCreateStudent(s.name, s.email))
   }
   console.log(`✓ ${graduatedStudents.length} graduated students ready (${inProgressStudents.length} in-progress)`)
-  console.log('  password for all fake accounts: ' + PASSWORD)
+  console.log('  password for all fake accounts: ' + SEED_PASSWORD)
 
   // ── Guilds (completed = currentSession >= totalSessions) ──
   async function findOrCreateGuild(name: string, course: LeanCourse, instructor: LeanUser, students: LeanUser[], currentSession: number): Promise<mongoose.Types.ObjectId> {
