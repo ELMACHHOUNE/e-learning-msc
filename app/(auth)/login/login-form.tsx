@@ -1,64 +1,69 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import { signIn, useSession } from 'next-auth/react'
-import type { ILoginSection } from '@/types'
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { signIn, useSession } from "next-auth/react";
+import type { ILoginSection } from "@/types";
 
 export function LoginForm({ section }: { section: ILoginSection }) {
-  const router = useRouter()
-  const { status } = useSession()
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const router = useRouter();
+  const { status } = useSession();
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
-    if (status === 'authenticated') {
-      router.replace('/dashboard')
+    if (status === "authenticated") {
+      router.replace("/dashboard");
     }
-  }, [status, router])
+  }, [status, router]);
 
-  if (status === 'loading') return null
-  if (status === 'authenticated') return null
+  if (status === "loading") return null;
+  if (status === "authenticated") return null;
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setIsLoading(true)
-    setError('')
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
-    const formData = new FormData(e.currentTarget)
-    const email = formData.get('email') as string
-    const password = formData.get('password') as string
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
-      })
+      });
 
       if (result?.error) {
-        setError('Invalid email or password')
+        setError("Invalid email or password");
       } else {
-        router.push('/dashboard')
-        router.refresh()
+        router.push("/dashboard");
+        router.refresh();
       }
     } catch {
-      setError('An error occurred. Please try again.')
+      setError("An error occurred. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   return (
     <div className="flex-1 flex items-center justify-center px-lg">
-      <div className="flex w-full max-w-xl items-center justify-center px-2">
+      <div className="flex w-full max-w-2xl items-center justify-center px-2">
         <div className="w-full">
-          <Link href="/" className="hidden lg:inline-flex items-center gap-1.5 text-caption text-mute hover:text-ink no-underline mb-lg transition-colors">
+          <Link
+            href="/"
+            className="hidden lg:inline-flex items-center gap-1.5 text-caption text-mute hover:text-ink no-underline mb-lg transition-colors"
+          >
             &larr; Back to home
           </Link>
 
-          <h1 className="text-display-md text-ink font-bold uppercase leading-[0.95] mb-1">{section.title}</h1>
+          <h1 className="text-display-md text-ink font-bold uppercase leading-[0.95] mb-1">
+            {section.title}
+          </h1>
           <p className="text-body-md text-mute mb-lg">{section.subtitle}</p>
 
           <form onSubmit={handleSubmit} className="space-y-lg">
@@ -69,7 +74,10 @@ export function LoginForm({ section }: { section: ILoginSection }) {
             )}
 
             <div>
-              <label htmlFor="email" className="block text-caption font-bold text-charcoal mb-sm uppercase tracking-[0.06em]">
+              <label
+                htmlFor="email"
+                className="block text-caption font-bold text-charcoal mb-sm uppercase tracking-[0.06em]"
+              >
                 Email
               </label>
               <input
@@ -83,7 +91,10 @@ export function LoginForm({ section }: { section: ILoginSection }) {
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-caption font-bold text-charcoal mb-sm uppercase tracking-[0.06em]">
+              <label
+                htmlFor="password"
+                className="block text-caption font-bold text-charcoal mb-sm uppercase tracking-[0.06em]"
+              >
                 Password
               </label>
               <input
@@ -107,14 +118,14 @@ export function LoginForm({ section }: { section: ILoginSection }) {
             <div className="grid grid-cols-2 gap-sm pt-2">
               <button
                 type="button"
-                onClick={() => signIn('google', { callbackUrl: '/dashboard' })}
+                onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
                 className="h-11 border border-ink bg-canvas text-ink text-caption font-bold uppercase tracking-[0.06em] hover:bg-surface-soft transition-colors cursor-pointer"
               >
                 Google
               </button>
               <button
                 type="button"
-                onClick={() => signIn('github', { callbackUrl: '/dashboard' })}
+                onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
                 className="h-11 border border-ink bg-canvas text-ink text-caption font-bold uppercase tracking-[0.06em] hover:bg-surface-soft transition-colors cursor-pointer"
               >
                 GitHub
@@ -126,11 +137,11 @@ export function LoginForm({ section }: { section: ILoginSection }) {
               disabled={isLoading}
               className="w-full h-11 bg-primary text-on-primary text-button-sm font-bold uppercase tracking-[0.08em] hover:bg-primary-deep transition-colors disabled:opacity-50 cursor-pointer border-none"
             >
-              {isLoading ? 'Signing in...' : 'Sign In'}
+              {isLoading ? "Signing in..." : "Sign In"}
             </button>
           </form>
         </div>
       </div>
     </div>
-  )
+  );
 }
