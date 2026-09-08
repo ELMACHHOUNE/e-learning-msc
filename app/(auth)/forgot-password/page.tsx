@@ -1,6 +1,8 @@
 import { getForgotPasswordSection } from '@/lib/site-content'
 import { ForgotPasswordForm } from './forgot-password-form'
 
+export const dynamic = 'force-dynamic'
+
 export default async function ForgotPasswordPage() {
   const section = await getForgotPasswordSection()
   return (
