@@ -8,6 +8,13 @@ import type {
   IOverviewStat,
   ITechStackCard,
   ITechStackSection,
+  INavbarSection,
+  IFooterSection,
+  IContactSection,
+  IFeaturedCoursesSection,
+  INavLink,
+  ILoginSection,
+  IForgotPasswordSection,
 } from '@/types'
 
 export const SITE_CONTENT_KEYS = {
@@ -15,6 +22,12 @@ export const SITE_CONTENT_KEYS = {
   overview: 'home.overview',
   roles: 'home.roles',
   techStack: 'home.tech_stack',
+  navbar: 'home.navbar',
+  footer: 'home.footer',
+  contact: 'home.contact',
+  featuredCourses: 'home.featured_courses',
+  login: 'auth.login',
+  forgotPassword: 'auth.forgot_password',
 } as const
 
 export type SiteContentKey = (typeof SITE_CONTENT_KEYS)[keyof typeof SITE_CONTENT_KEYS]
@@ -49,6 +62,42 @@ export const SITE_SECTIONS: SiteSectionMeta[] = [
     label: 'Home · Built with Modern Technologies',
     description:
       'The eyebrow, heading, and expandable technology cards shown in the dark section of the landing page.',
+  },
+  {
+    key: SITE_CONTENT_KEYS.navbar,
+    label: 'Home · Navbar',
+    description:
+      'The top navigation bar: brand name, brand image, and the navigation links shown on the landing page.',
+  },
+  {
+    key: SITE_CONTENT_KEYS.footer,
+    label: 'Home · Footer',
+    description:
+      'The footer: brand, tagline, portal links, legal links, copyright, and credit line.',
+  },
+  {
+    key: SITE_CONTENT_KEYS.contact,
+    label: 'Home · Contact Section',
+    description:
+      'The "GET IN TOUCH / CONTACT US" block: heading, description, WhatsApp number, and email.',
+  },
+  {
+    key: SITE_CONTENT_KEYS.featuredCourses,
+    label: 'Home · Featured Courses',
+    description:
+      'The "EXPLORE OUR PROGRAMS" section: eyebrow, heading, and the selection of up to 3 courses to feature.',
+  },
+  {
+    key: SITE_CONTENT_KEYS.login,
+    label: 'Login page',
+    description:
+      'The sign-in page: left panel eyebrow, tagline, background image, and the form heading + subtitle.',
+  },
+  {
+    key: SITE_CONTENT_KEYS.forgotPassword,
+    label: 'Forgot Password page',
+    description:
+      'The reset-password page: left panel title, heading, description, and the success state text.',
   },
 ]
 
@@ -154,6 +203,65 @@ export const DEFAULT_TECH_STACK_SECTION: ITechStackSection = {
       ],
     },
   ],
+}
+
+export const DEFAULT_NAVBAR_SECTION: INavbarSection = {
+  brandName: 'e-Teaching',
+  brandImage: '/images/icon.png',
+  navLinks: [{ label: 'Programs', href: '/programs' }],
+}
+
+export const DEFAULT_FOOTER_SECTION: IFooterSection = {
+  brandName: 'e-Teaching',
+  brandImage: '/images/icon.png',
+  tagline:
+    'Geometric precision in technical education. Built for administrators, instructors, and students who demand structure.',
+  portalTitle: 'System Portals',
+  portals: [
+    { label: 'Admin Registry', href: '/admin' },
+    { label: 'Instructor Console', href: '/dashboard' },
+    { label: 'Student Workspace', href: '/programs' },
+  ],
+  legalTitle: 'Legal & Compliance',
+  legalLinks: ['Privacy Policy', 'Terms of Service', 'Data Processing', 'Cookie Policy'],
+  copyright: 'e-Teaching. All rights reserved.',
+  credit: 'Built by ELMACHHOUNE',
+}
+
+export const DEFAULT_CONTACT_SECTION: IContactSection = {
+  eyebrow: 'GET IN TOUCH',
+  title: `LET'S CONNECT`,
+  heading: 'CONTACT US',
+  description:
+    'We\x27d love to hear from you. Reach out through any of the channels below and we\x27ll get back to you promptly.',
+  image: '/images/world.svg',
+  whatsappNumber: '212649455082',
+  whatsappDisplay: '+212 649 455 082',
+  email: 'business.elmachhoune@gmail.com',
+}
+
+export const DEFAULT_FEATURED_COURSES_SECTION: IFeaturedCoursesSection = {
+  eyebrow: 'FEATURED COURSES',
+  title: 'EXPLORE OUR PROGRAMS',
+  courseIds: [],
+}
+
+export const DEFAULT_LOGIN_SECTION: ILoginSection = {
+  eyebrow: 'E-TEACHING',
+  tagline: 'Structured learning. Measurable outcomes.',
+  image: '/images/login.png',
+  title: 'Welcome back',
+  subtitle: 'Sign in to your account',
+}
+
+export const DEFAULT_FORGOT_PASSWORD_SECTION: IForgotPasswordSection = {
+  leftTitle: 'Reset Password',
+  title: 'Forgot password?',
+  description:
+    'No worries. Enter your email and we\x27ll send you reset instructions.',
+  successTitle: 'Check your email',
+  successDescription:
+    'If an account exists with that email, we\x27ve sent password reset instructions.',
 }
 
 function asString(value: unknown): string {
@@ -265,8 +373,123 @@ export function sanitizeSiteContent(
       return sanitizeRoles(raw) as unknown as Record<string, unknown>
     case SITE_CONTENT_KEYS.techStack:
       return sanitizeTechStack(raw) as unknown as Record<string, unknown>
+    case SITE_CONTENT_KEYS.navbar:
+      return sanitizeNavbar(raw) as unknown as Record<string, unknown>
+    case SITE_CONTENT_KEYS.footer:
+      return sanitizeFooter(raw) as unknown as Record<string, unknown>
+    case SITE_CONTENT_KEYS.contact:
+      return sanitizeContact(raw) as unknown as Record<string, unknown>
+    case SITE_CONTENT_KEYS.featuredCourses:
+      return sanitizeFeaturedCourses(raw) as unknown as Record<string, unknown>
+    case SITE_CONTENT_KEYS.login:
+      return sanitizeLogin(raw) as unknown as Record<string, unknown>
+    case SITE_CONTENT_KEYS.forgotPassword:
+      return sanitizeForgotPassword(raw) as unknown as Record<string, unknown>
     default:
       throw new Error(`Unknown site content key: ${key}`)
+  }
+}
+
+export function sanitizeNavbar(raw: unknown): INavbarSection {
+  const source = (raw ?? {}) as Record<string, unknown>
+  const fallback = DEFAULT_NAVBAR_SECTION
+
+  const navLinks: INavLink[] = asRecords(source.navLinks)
+    .map((link) => ({
+      label: asString(link.label),
+      href: asString(link.href),
+    }))
+    .filter((link) => link.label)
+
+  return {
+    brandName: asString(source.brandName) || fallback.brandName,
+    brandImage: asString(source.brandImage) || fallback.brandImage,
+    navLinks: navLinks.length > 0 ? navLinks : fallback.navLinks,
+  }
+}
+
+export function sanitizeFooter(raw: unknown): IFooterSection {
+  const source = (raw ?? {}) as Record<string, unknown>
+  const fallback = DEFAULT_FOOTER_SECTION
+
+  const portals: INavLink[] = asRecords(source.portals)
+    .map((link) => ({
+      label: asString(link.label),
+      href: asString(link.href),
+    }))
+    .filter((link) => link.label)
+
+  return {
+    brandName: asString(source.brandName) || fallback.brandName,
+    brandImage: asString(source.brandImage) || fallback.brandImage,
+    tagline: asString(source.tagline) || fallback.tagline,
+    portalTitle: asString(source.portalTitle) || fallback.portalTitle,
+    portals: portals.length > 0 ? portals : fallback.portals,
+    legalTitle: asString(source.legalTitle) || fallback.legalTitle,
+    legalLinks:
+      asParagraphs(source.legalLinks).length > 0
+        ? asParagraphs(source.legalLinks)
+        : fallback.legalLinks,
+    copyright: asString(source.copyright) || fallback.copyright,
+    credit: asString(source.credit) || fallback.credit,
+  }
+}
+
+export function sanitizeContact(raw: unknown): IContactSection {
+  const source = (raw ?? {}) as Record<string, unknown>
+  const fallback = DEFAULT_CONTACT_SECTION
+
+  return {
+    eyebrow: asString(source.eyebrow) || fallback.eyebrow,
+    title: asString(source.title) || fallback.title,
+    heading: asString(source.heading) || fallback.heading,
+    description: asString(source.description) || fallback.description,
+    image: asString(source.image) || fallback.image,
+    whatsappNumber: asString(source.whatsappNumber) || fallback.whatsappNumber,
+    whatsappDisplay: asString(source.whatsappDisplay) || fallback.whatsappDisplay,
+    email: asString(source.email) || fallback.email,
+  }
+}
+
+export function sanitizeFeaturedCourses(raw: unknown): IFeaturedCoursesSection {
+  const source = (raw ?? {}) as Record<string, unknown>
+  const fallback = DEFAULT_FEATURED_COURSES_SECTION
+
+  const courseIds = Array.isArray(source.courseIds)
+    ? source.courseIds.map((id) => asString(id)).filter(Boolean)
+    : []
+
+  return {
+    eyebrow: asString(source.eyebrow) || fallback.eyebrow,
+    title: asString(source.title) || fallback.title,
+    courseIds,
+  }
+}
+
+export function sanitizeLogin(raw: unknown): ILoginSection {
+  const source = (raw ?? {}) as Record<string, unknown>
+  const fallback = DEFAULT_LOGIN_SECTION
+
+  return {
+    eyebrow: asString(source.eyebrow) || fallback.eyebrow,
+    tagline: asString(source.tagline) || fallback.tagline,
+    image: asString(source.image) || fallback.image,
+    title: asString(source.title) || fallback.title,
+    subtitle: asString(source.subtitle) || fallback.subtitle,
+  }
+}
+
+export function sanitizeForgotPassword(raw: unknown): IForgotPasswordSection {
+  const source = (raw ?? {}) as Record<string, unknown>
+  const fallback = DEFAULT_FORGOT_PASSWORD_SECTION
+
+  return {
+    leftTitle: asString(source.leftTitle) || fallback.leftTitle,
+    title: asString(source.title) || fallback.title,
+    description: asString(source.description) || fallback.description,
+    successTitle: asString(source.successTitle) || fallback.successTitle,
+    successDescription:
+      asString(source.successDescription) || fallback.successDescription,
   }
 }
 
@@ -296,6 +519,30 @@ export async function getRolesSection(): Promise<IRolesSection> {
 
 export async function getTechStackSection(): Promise<ITechStackSection> {
   return getSection(SITE_CONTENT_KEYS.techStack, sanitizeTechStack)
+}
+
+export async function getNavbarSection(): Promise<INavbarSection> {
+  return getSection(SITE_CONTENT_KEYS.navbar, sanitizeNavbar)
+}
+
+export async function getFooterSection(): Promise<IFooterSection> {
+  return getSection(SITE_CONTENT_KEYS.footer, sanitizeFooter)
+}
+
+export async function getContactSection(): Promise<IContactSection> {
+  return getSection(SITE_CONTENT_KEYS.contact, sanitizeContact)
+}
+
+export async function getFeaturedCoursesSection(): Promise<IFeaturedCoursesSection> {
+  return getSection(SITE_CONTENT_KEYS.featuredCourses, sanitizeFeaturedCourses)
+}
+
+export async function getLoginSection(): Promise<ILoginSection> {
+  return getSection(SITE_CONTENT_KEYS.login, sanitizeLogin)
+}
+
+export async function getForgotPasswordSection(): Promise<IForgotPasswordSection> {
+  return getSection(SITE_CONTENT_KEYS.forgotPassword, sanitizeForgotPassword)
 }
 
 export async function getAllSiteContent(): Promise<Array<{ key: string; content: Record<string, unknown> }>> {

@@ -1,7 +1,16 @@
-export default function AuthLayout({
+import { getNavbarSection } from '@/lib/site-content'
+import { SiteNavbar } from '@/components/shared/site-navbar'
+
+export default async function AuthLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  return <>{children}</>
+  const navbar = await getNavbarSection()
+  return (
+    <>
+      <SiteNavbar section={navbar} />
+      {children}
+    </>
+  )
 }
