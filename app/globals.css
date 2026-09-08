@@ -26,6 +26,7 @@
   --color-link: #0000ee;
 
   --font-sans: 'Inter Tight', 'Manrope', 'HK Grotesk Semi Condensed', system-ui, sans-serif;
+  --font-weight-700: 700;
 
   --text-display-xl: 56px;
   --text-display-xl--line-height: 0.95;

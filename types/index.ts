@@ -48,6 +48,62 @@ export interface IRolesSection {
   cards: IRoleCard[]
 }
 
+export interface INavLink {
+  label: string
+  href: string
+}
+
+export interface INavbarSection {
+  brandName: string
+  brandImage: string
+  navLinks: INavLink[]
+}
+
+export interface IFooterSection {
+  brandName: string
+  brandImage: string
+  tagline: string
+  portalTitle: string
+  portals: INavLink[]
+  legalTitle: string
+  legalLinks: string[]
+  copyright: string
+  credit: string
+}
+
+export interface IContactSection {
+  eyebrow: string
+  title: string
+  heading: string
+  description: string
+  image: string
+  whatsappNumber: string
+  whatsappDisplay: string
+  email: string
+}
+
+export interface IFeaturedCoursesSection {
+  eyebrow: string
+  title: string
+  courseIds: string[]
+}
+
+export interface ILoginSection {
+  eyebrow: string
+  tagline: string
+  image: string
+  title: string
+  subtitle: string
+}
+
+export interface IForgotPasswordSection {
+  leftTitle: string
+  title: string
+  description: string
+  successTitle: string
+  successDescription: string
+}
+
 export interface ISiteContent {
   _id: string
   key: string

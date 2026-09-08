@@ -5,7 +5,6 @@ import {
   ShieldAlert,
   Terminal,
   MessageSquare,
-  User,
   ArrowRight,
   BookOpen,
   Users,
@@ -14,7 +13,7 @@ import {
 } from "lucide-react";
 import { auth } from "@/lib/auth";
 import ExpandableCardDemo from "@/components/expandable-card-demo-standard";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { SiteNavbar } from "@/components/shared/site-navbar";
 import { connectToDatabase } from "@/lib/db";
 import Course from "@/models/Course";
 import {
@@ -22,13 +21,20 @@ import {
   getOverviewSection,
   getRolesSection,
   getTechStackSection,
+  getNavbarSection,
+  getFooterSection,
+  getContactSection,
+  getFeaturedCoursesSection,
 } from "@/lib/site-content";
-import { cn } from "@/lib/utils";
+import { cn, safeUrl, safeMailto, safePhoneUrl } from "@/lib/utils";
 import type {
   IHeroSection,
   IOverviewSection,
   IRolesSection,
   ITechStackSection,
+  IFooterSection,
+  IContactSection,
+  IFeaturedCoursesSection,
 } from "@/types";
 
 const roleIcons: Record<string, typeof Terminal> = {
@@ -40,8 +46,29 @@ const roleIcons: Record<string, typeof Terminal> = {
   check: CheckCircle2,
 };
 
+type CourseLite = {
+  _id: { toString(): string };
+  title: string;
+  description: string;
+  coverImage?: string;
+  price?: number;
+  durationInMonths: number;
+  totalSessions: number;
+};
+
 export default async function LandingPage() {
-  const [session, courses, hero, overview, roles, techStack] = await Promise.all([
+  const [
+    session,
+    allCourses,
+    hero,
+    overview,
+    roles,
+    techStack,
+    navbar,
+    footer,
+    contact,
+    featured,
+  ] = await Promise.all([
     auth(),
     connectToDatabase().then(() =>
       Course.find({ $or: [{ active: true }, { active: { $exists: false } }] })
@@ -49,14 +76,25 @@ export default async function LandingPage() {
           "title description coverImage price durationInMonths totalSessions",
         )
         .sort({ createdAt: -1 })
-        .limit(6)
-        .lean(),
+        .limit(100)
+        .lean() as unknown as CourseLite[],
     ),
     getHeroSection(),
     getOverviewSection(),
     getRolesSection(),
     getTechStackSection(),
+    getNavbarSection(),
+    getFooterSection(),
+    getContactSection(),
+    getFeaturedCoursesSection(),
   ]);
+
+  const featuredCourses = featured.courseIds.length > 0
+    ? featured.courseIds
+        .map((id) => allCourses.find((c) => c._id.toString() === id))
+        .filter((c): c is CourseLite => Boolean(c))
+        .slice(0, 3)
+    : allCourses.slice(0, 3);
 
   return (
     <>
@@ -85,7 +123,7 @@ export default async function LandingPage() {
             "@context": "https://schema.org",
             "@type": "ItemList",
             name: "Featured Programs",
-            itemListElement: courses.map((course, i) => ({
+            itemListElement: featuredCourses.map((course, i) => ({
               "@type": "ListItem",
               position: i + 1,
               item: {
@@ -98,161 +136,17 @@ export default async function LandingPage() {
           }),
         }}
       />
-      <ComponentA_NavBar user={session?.user} />
+      <SiteNavbar user={session?.user} section={navbar} />
       <ComponentB_Hero section={hero} />
       <ComponentB1_ElearningSection section={overview} />
       <ComponentC_Capabilities section={roles} />
-      <ComponentD_Courses courses={courses} />
+      <ComponentD_Courses courses={featuredCourses} section={featured} />
       <ComponentD1_Screens />
       <ComponentG_TechStack section={techStack} />
-      <section className="bg-surface-dark py-20 md:py-28">
-        <div className="max-w-[1440px] mx-auto px-6">
-          <p className="text-[10px] font-bold text-on-dark uppercase mb-3 tracking-[0.2em]">
-            GET IN TOUCH
-          </p>
-          <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-on-dark mb-12">
-            LET&apos;S CONNECT
-          </h2>
-          <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
-            <div className="w-full md:w-1/2">
-              <Image
-                src="/images/world.svg"
-                alt="World map"
-                width={2000}
-                height={857}
-                className="w-full h-auto object-contain opacity-80"
-              />
-            </div>
-            <div className="w-full md:w-1/2 flex flex-col gap-8">
-              <div>
-                <h3 className="text-2xl font-bold uppercase text-on-dark mb-4 leading-[0.95]">
-                  CONTACT US
-                </h3>
-                <p className="text-[16px] font-normal leading-[1.6] text-on-dark-mute max-w-[500px]">
-                  We&apos;d love to hear from you. Reach out through any of the
-                  channels below and we&apos;ll get back to you promptly.
-                </p>
-              </div>
-              <div className="flex flex-col gap-4">
-                <a
-                  href="https://wa.me/212649455082"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-3 text-on-dark-mute hover:text-on-dark transition-colors no-underline"
-                >
-                  <MessageSquare className="w-5 h-5 text-primary" />
-                  <span className="text-[16px] font-normal">
-                    +212 649 455 082
-                  </span>
-                </a>
-                <a
-                  href="mailto:business.elmachhoune@gmail.com"
-                  className="inline-flex items-center gap-3 text-on-dark-mute hover:text-on-dark transition-colors no-underline"
-                >
-                  <svg
-                    className="w-5 h-5 text-primary"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                    />
-                  </svg>
-                  <span className="text-[16px] font-normal">
-                    business.elmachhoune@gmail.com
-                  </span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-      <ComponentE_Footer />
-      <ComponentF_SupportWidget />
+      <ComponentH_Contact section={contact} />
+      <ComponentE_Footer section={footer} />
+      <ComponentF_SupportWidget section={contact} />
     </>
-  );
-}
-
-function ComponentA_NavBar({
-  user,
-}: {
-  user?:
-    | { name?: string | null; email?: string | null; image?: string | null }
-    | undefined;
-}) {
-  return (
-    <nav className="h-[60px] bg-canvas border-b border-hairline">
-      <div className="max-w-[1440px] mx-auto px-6 h-full flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-3 no-underline">
-          <Image
-            src="/images/icon.png"
-            alt="e-Teaching"
-            width={32}
-            height={32}
-            className="object-contain"
-          />
-          <span className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-ink">
-            e-Teaching
-          </span>
-        </Link>
-
-        <div className="hidden md:flex items-center gap-8">
-          {[{ label: "Programs", href: "/programs" }].map((item) => (
-            <Link
-              key={item.label}
-              href={item.href}
-              className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-ink no-underline hover:opacity-70 transition-opacity"
-            >
-              {item.label}
-            </Link>
-          ))}
-        </div>
-
-        <div className="flex items-center gap-4">
-          <ThemeToggle />
-          {user ? (
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-2 border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
-            >
-              {user.image ? (
-                <Image
-                  src={user.image}
-                  alt=""
-                  width={20}
-                  height={20}
-                  className="w-5 h-5 rounded-full object-cover"
-                />
-              ) : (
-                <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center font-700 text-button-sm text-on-primary">
-                  {user.name?.charAt(0)?.toUpperCase() ?? "U"}
-                </div>
-              )}
-              Dashboard
-            </Link>
-          ) : (
-            <>
-              <Link
-                href="/login"
-                className="text-ink no-underline hover:opacity-70 transition-opacity"
-              >
-                <User className="w-5 h-5" />
-              </Link>
-              <Link
-                href="/login"
-                className="border border-hairline-strong bg-canvas text-ink text-xs uppercase font-bold py-2 px-4 rounded-[2px] no-underline hover:bg-surface-soft transition-colors"
-              >
-                Login
-              </Link>
-            </>
-          )}
-        </div>
-      </div>
-    </nav>
   );
 }
 
@@ -383,25 +277,19 @@ function ComponentC_Capabilities({ section }: { section: IRolesSection }) {
 
 function ComponentD_Courses({
   courses,
+  section,
 }: {
-  courses: {
-    _id: { toString(): string };
-    title: string;
-    description: string;
-    coverImage?: string;
-    price?: number;
-    durationInMonths: number;
-    totalSessions: number;
-  }[];
+  courses: CourseLite[];
+  section: IFeaturedCoursesSection;
 }) {
   return (
     <section className="bg-canvas py-20 md:py-28">
       <div className="max-w-[1440px] mx-auto px-6">
         <p className="text-[10px] font-bold text-ink uppercase mb-3 tracking-[0.2em]">
-          FEATURED COURSES
+          {section.eyebrow}
         </p>
         <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-ink mb-12">
-          EXPLORE OUR PROGRAMS
+          {section.title}
         </h2>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -539,7 +427,81 @@ function ComponentG_TechStack({ section }: { section: ITechStackSection }) {
   );
 }
 
-function ComponentE_Footer() {
+function ComponentH_Contact({ section }: { section: IContactSection }) {
+  const whatsapp = safePhoneUrl(section.whatsappNumber);
+  const mail = safeMailto(section.email);
+  return (
+    <section className="bg-surface-dark py-20 md:py-28">
+      <div className="max-w-[1440px] mx-auto px-6">
+        <p className="text-[10px] font-bold text-on-dark uppercase mb-3 tracking-[0.2em]">
+          {section.eyebrow}
+        </p>
+        <h2 className="text-3xl md:text-[40px] font-bold uppercase leading-[0.95] tracking-normal text-on-dark mb-12">
+          {section.title}
+        </h2>
+        <div className="flex flex-col md:flex-row items-center gap-12 md:gap-20">
+          <div className="w-full md:w-1/2">
+            <Image
+              src={section.image || "/images/world.svg"}
+              alt="World map"
+              width={2000}
+              height={857}
+              className="w-full h-auto object-contain opacity-80"
+            />
+          </div>
+          <div className="w-full md:w-1/2 flex flex-col gap-8">
+            <div>
+              <h3 className="text-2xl font-bold uppercase text-on-dark mb-4 leading-[0.95]">
+                {section.heading}
+              </h3>
+              <p className="text-[16px] font-normal leading-[1.6] text-on-dark-mute max-w-[500px]">
+                {section.description}
+              </p>
+            </div>
+            <div className="flex flex-col gap-4">
+              {whatsapp && (
+                <a
+                  href={whatsapp}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-3 text-on-dark-mute hover:text-on-dark transition-colors no-underline"
+                >
+                  <MessageSquare className="w-5 h-5 text-primary" />
+                  <span className="text-[16px] font-normal">
+                    {section.whatsappDisplay}
+                  </span>
+                </a>
+              )}
+              {mail && (
+                <a
+                  href={mail}
+                  className="inline-flex items-center gap-3 text-on-dark-mute hover:text-on-dark transition-colors no-underline"
+                >
+                  <svg
+                    className="w-5 h-5 text-primary"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
+                  <span className="text-[16px] font-normal">{section.email}</span>
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ComponentE_Footer({ section }: { section: IFooterSection }) {
   return (
     <footer className="bg-surface-dark border-t border-divider-dark pt-16 pb-8 px-6">
       <div className="max-w-[1440px] mx-auto">
@@ -547,35 +509,30 @@ function ComponentE_Footer() {
           <div>
             <div className="flex items-center gap-3 mb-4">
               <Image
-                src="/images/icon.png"
-                alt="e-Teaching"
+                src={section.brandImage || "/images/icon.png"}
+                alt={section.brandName || "e-Teaching"}
                 width={28}
                 height={28}
                 className="object-contain brightness-0 invert opacity-80"
               />
               <span className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-on-dark">
-                e-Teaching
+                {section.brandName || "e-Teaching"}
               </span>
             </div>
             <p className="text-[14px] font-normal leading-[1.57] text-on-dark-mute">
-              Geometric precision in technical education. Built for
-              administrators, instructors, and students who demand structure.
+              {section.tagline}
             </p>
           </div>
 
           <div>
             <h4 className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-on-dark mb-4">
-              System Portals
+              {section.portalTitle}
             </h4>
             <ul className="space-y-2">
-              {[
-                { label: "Admin Registry", href: "/admin" },
-                { label: "Instructor Console", href: "/dashboard" },
-                { label: "Student Workspace", href: "/programs" },
-              ].map((link) => (
-                <li key={link.label}>
+              {section.portals.map((link) => (
+                <li key={link.href}>
                   <Link
-                    href={link.href}
+                    href={safeUrl(link.href) || "/programs"}
                     className="text-[14px] text-on-dark-mute hover:text-on-dark no-underline transition-colors"
                   >
                     {link.label}
@@ -587,15 +544,10 @@ function ComponentE_Footer() {
 
           <div>
             <h4 className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-on-dark mb-4">
-              Legal &amp; Compliance
+              {section.legalTitle}
             </h4>
             <ul className="space-y-2">
-              {[
-                "Privacy Policy",
-                "Terms of Service",
-                "Data Processing",
-                "Cookie Policy",
-              ].map((item) => (
+              {section.legalLinks.map((item) => (
                 <li key={item}>
                   <span className="text-[14px] text-on-dark-mute cursor-default">
                     {item}
@@ -608,11 +560,10 @@ function ComponentE_Footer() {
 
         <div className="border-t border-divider-dark mt-12 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-[12px] text-zinc-500 font-normal">
-            &copy; {new Date().getFullYear()} e-Teaching. All rights
-            reserved.
+            &copy; {new Date().getFullYear()} {section.copyright}
           </p>
           <p className="text-[12px] text-zinc-500 font-normal">
-            Built by <span className="text-on-dark">ELMACHHOUNE</span>.
+            {section.credit}
           </p>
         </div>
       </div>
@@ -620,10 +571,12 @@ function ComponentE_Footer() {
   );
 }
 
-function ComponentF_SupportWidget() {
+function ComponentF_SupportWidget({ section }: { section: IContactSection }) {
+  const whatsapp = safePhoneUrl(section.whatsappNumber);
+  if (!whatsapp) return null;
   return (
     <a
-      href="https://wa.me/212649455082"
+      href={whatsapp}
       target="_blank"
       rel="noopener noreferrer"
       className="fixed bottom-6 right-6 z-50 rounded-full h-12 w-12 bg-primary-deep border border-divider-dark flex items-center justify-center text-on-dark shadow-md hover:bg-surface-deep transition-all"
