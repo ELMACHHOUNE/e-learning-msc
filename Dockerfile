@@ -3,7 +3,7 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 
 # Install dependencies only (with native build toolchain if any package needs it)
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat && apk upgrade --no-cache
 
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -31,7 +31,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-RUN addgroup --system --gid 1001 nodejs \
+RUN apk upgrade --no-cache \
+  && addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 
 # Public assets (certificates, images, etc.)
