@@ -65,7 +65,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 z-10 flex items-end justify-center pb-14">
           <div className="text-center px-8">
             <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mb-3">
-              E-LEARNING MSC
+              E-TEACHING
             </p>
             <p className="text-display-md text-on-dark font-bold leading-[0.95]">
               Structured learning. Measurable outcomes.
@@ -77,7 +77,7 @@ export default function LoginPage() {
       <div className="bg-canvas flex items-center justify-center px-10 lg:px-16">
         <div className="w-full max-w-[400px] mx-auto">
           <div className="lg:hidden mb-10">
-            <Link href="/" className="text-display-md text-ink font-bold leading-[0.95] no-underline">e-learning-msc</Link>
+            <Link href="/" className="text-display-md text-ink font-bold leading-[0.95] no-underline">e-Teaching</Link>
           </div>
           <Link href="/" className="hidden lg:inline-flex items-center gap-1.5 text-[12px] font-medium text-mute hover:text-ink no-underline mb-8 transition-colors">
             &larr; Back to home

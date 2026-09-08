@@ -78,9 +78,9 @@ export function Navbar() {
     <nav className="h-16 bg-canvas border-b border-hairline px-md sm:px-xl flex items-center justify-between gap-md sticky top-0 z-50">
       <div className="flex items-center gap-md sm:gap-xl min-w-0">
         <Link href="/" className="flex items-center gap-3 no-underline shrink-0">
-          <Image src="/images/icon.png" alt="e-learning-msc" width={28} height={28} className="object-contain" />
+          <Image src="/images/icon.png" alt="e-Teaching" width={28} height={28} className="object-contain" />
           <span className="hidden md:inline text-heading-sm text-ink font-bold uppercase tracking-[0.144px] leading-none">
-            e-learning-msc
+            e-Teaching
           </span>
         </Link>
 

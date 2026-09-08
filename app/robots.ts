@@ -6,7 +6,19 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: ["/api/", "/loader"],
+        disallow: [
+          "/api/",
+          "/loader",
+          "/dashboard/",
+          "/admin/",
+          "/students/",
+          "/teach/",
+          "/labphase/",
+          "/courses/",
+          "/profile/",
+          "/graduations/",
+          "/instructors/",
+        ],
       },
       {
         userAgent: "Googlebot",
@@ -49,6 +61,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/api/"],
       },
     ],
-    sitemap: "https://e-learning-msc.vercel.app/sitemap.xml",
+    sitemap: "https://e-teaching.tech/sitemap.xml",
   };
 }

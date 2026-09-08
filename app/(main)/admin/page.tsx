@@ -365,6 +365,9 @@ export default function AdminPage() {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const loadedTabs = useRef<Set<string>>(new Set())
 
+  const [userPage, setUserPage] = useState(1);
+  const USERS_PER_PAGE = 10;
+
   const [modal, setModal] = useState<"user" | "course" | "guild" | "category" | null>(null);
   const [editId, setEditId] = useState<string | null>(null);
 
@@ -682,6 +685,7 @@ export default function AdminPage() {
   }
 
   function deleteItem(type: "user" | "course" | "guild", id: string) {
+    const tab = `${type}s` as Tab
     confirm({
       title: `Delete ${type}`,
       message: `This action cannot be undone.`,
@@ -695,8 +699,7 @@ export default function AdminPage() {
           return;
         }
         toast({ variant: 'success', title: `${type} deleted` });
-        loadedTabs.current.delete(type as string)
-        refetchTab(type as Tab);
+        refetchTab(tab);
       },
     });
   }
@@ -721,6 +724,13 @@ export default function AdminPage() {
       (!roleFilter || u.role === roleFilter) &&
       (u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       u.email.toLowerCase().includes(searchQuery.toLowerCase())),
+  );
+
+  const totalUserPages = Math.max(1, Math.ceil(filteredUsers.length / USERS_PER_PAGE));
+  const safeUserPage = Math.min(userPage, totalUserPages);
+  const paginatedUsers = filteredUsers.slice(
+    (safeUserPage - 1) * USERS_PER_PAGE,
+    safeUserPage * USERS_PER_PAGE,
   );
 
   return (
@@ -763,7 +773,10 @@ export default function AdminPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-mute" />
                 <input
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value)
+                    setUserPage(1)
+                  }}
                   placeholder="Search users..."
                   autoComplete="off"
                   className="w-full h-10 pl-10 pr-md bg-surface-soft text-ink text-body-sm rounded-none border-b border-hairline-strong focus-visible:outline-none"
@@ -771,7 +784,10 @@ export default function AdminPage() {
               </div>
               <select
                 value={roleFilter}
-                onChange={(e) => setRoleFilter(e.target.value)}
+                onChange={(e) => {
+                  setRoleFilter(e.target.value)
+                  setUserPage(1)
+                }}
                 className="h-10 px-3 bg-surface-soft text-ink text-body-sm rounded-none border-b border-hairline-strong focus-visible:outline-none cursor-pointer w-full sm:w-auto"
               >
                 <option value="">All roles</option>
@@ -820,7 +836,7 @@ export default function AdminPage() {
                 </tr>
               </thead>
               <tbody>
-                {filteredUsers.map((user) => (
+                {paginatedUsers.map((user) => (
                   <tr
                     key={user.id}
                     className="border-b border-hairline hover:bg-surface-soft/50"
@@ -875,6 +891,30 @@ export default function AdminPage() {
             </table>
           </div>
           )}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-md mt-lg">
+            <span className="text-caption text-mute">
+              {filteredUsers.length} user{filteredUsers.length === 1 ? '' : 's'}
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setUserPage((p) => Math.max(1, p - 1))}
+                disabled={safeUserPage <= 1}
+                className="h-9 px-3 bg-canvas border border-hairline-strong text-body-sm text-ink rounded-[2px] hover:bg-surface-soft transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Previous
+              </button>
+              <span className="text-body-sm text-mute px-2">
+                {safeUserPage} / {totalUserPages}
+              </span>
+              <button
+                onClick={() => setUserPage((p) => Math.min(totalUserPages, p + 1))}
+                disabled={safeUserPage >= totalUserPages}
+                className="h-9 px-3 bg-canvas border border-hairline-strong text-body-sm text-ink rounded-[2px] hover:bg-surface-soft transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                Next
+              </button>
+            </div>
+          </div>
         </motion.div>
       )}
 

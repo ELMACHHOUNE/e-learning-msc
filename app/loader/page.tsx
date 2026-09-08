@@ -46,7 +46,7 @@ export default function LoaderPage() {
 
         <div className="text-center">
           <p className="text-heading-sm text-ink font-700 uppercase tracking-[0.18em]">
-            e-learning-msc
+            e-Teaching
           </p>
           <p className="text-caption text-mute mt-sm tracking-[0.1em] font-mono">
             {progress}%

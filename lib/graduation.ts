@@ -4,7 +4,7 @@ import ProjectApplication from '@/models/ProjectApplication'
 import Guild from '@/models/Guild'
 import User from '@/models/User'
 
-export const ACADEMY_NAME = 'E-Learning MSC Academy'
+export const ACADEMY_NAME = 'e-Teaching Academy'
 
 export interface GraduationRecord {
   id: string

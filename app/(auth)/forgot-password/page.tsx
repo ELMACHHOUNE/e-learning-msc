@@ -30,7 +30,7 @@ export default function ForgotPasswordPage() {
           className="w-full max-w-sm"
         >
           <div className="lg:hidden mb-xxl">
-            <Link href="/login" className="text-heading-sm text-ink no-underline">e-learning-msc</Link>
+            <Link href="/login" className="text-heading-sm text-ink no-underline">e-Teaching</Link>
           </div>
 
           <Link href="/login" className="inline-flex items-center gap-2 text-body-sm text-mute hover:text-ink no-underline mb-xl">
