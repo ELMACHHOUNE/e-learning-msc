@@ -1,7 +1,7 @@
 {
-  "name": "e-learning-msc",
-  "short_name": "e-learning-msc",
-  "description": "A premium three-role e-learning management system.",
+  "name": "e-Teaching",
+  "short_name": "e-Teaching",
+  "description": "A premium learning management platform for administrators, instructors, and students.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",

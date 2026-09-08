@@ -34,7 +34,7 @@ export default async function ProgramsPage() {
         <div className="max-w-[1440px] mx-auto px-6 h-full flex items-center justify-between">
           <Link href="/" className="flex items-center gap-3 no-underline">
             <Image src="/images/icon.png" alt="" width={28} height={28} className="object-contain" />
-            <span className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-ink">e-learning-msc</span>
+            <span className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-ink">e-Teaching</span>
           </Link>
           <div className="hidden md:flex items-center gap-8">
             <Link href="/programs" className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-ink no-underline hover:opacity-70 transition-opacity">
@@ -139,7 +139,7 @@ export default async function ProgramsPage() {
         <div className="max-w-[1440px] mx-auto">
           <div className="border-t border-divider-dark pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
             <p className="text-[12px] text-zinc-500 font-normal">
-              &copy; {new Date().getFullYear()} e-learning-msc. All rights reserved.
+              &copy; {new Date().getFullYear()} e-Teaching. All rights reserved.
             </p>
           </div>
         </div>

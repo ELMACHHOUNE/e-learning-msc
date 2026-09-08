@@ -14,13 +14,13 @@ export default function NotFound() {
           >
             <Image
               src="/images/icon.png"
-              alt="e-learning-msc"
+              alt="e-Teaching"
               width={40}
               height={40}
               className="object-contain"
             />
             <span className="text-button-md font-700 uppercase tracking-[0.144px]">
-              e-learning-msc
+              e-Teaching
             </span>
           </Link>
           <p className="text-caption uppercase tracking-[0.18em] text-on-dark-mute">

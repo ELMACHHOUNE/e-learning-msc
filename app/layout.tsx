@@ -12,16 +12,19 @@ const interTight = Inter_Tight({
   display: "swap",
 });
 
-const baseUrl = "https://e-learning-msc.vercel.app";
+const baseUrl = "https://e-teaching.tech";
 
 export const metadata: Metadata = {
   title: {
-    default: "e-learning-msc — Structured Learning. Measurable Outcomes.",
-    template: "%s | e-learning-msc",
+    default: "e-Teaching — Structured Learning. Measurable Outcomes.",
+    template: "%s | e-Teaching",
   },
   description:
-    "A premium three-role e-learning management system for administrators, instructors, and students. Modular courses, live cohort tracking, attendance logging, and milestone validation.",
+    "e-Teaching is a premium learning management platform for administrators, instructors, and students. Modular courses, live cohort tracking, attendance logging, and milestone validation.",
   keywords: [
+    "e-Teaching",
+    "e-Teaching ELMACHHOUNE",
+    "ELMACHHOUNE",
     "e-learning",
     "LMS",
     "learning management system",
@@ -31,22 +34,22 @@ export const metadata: Metadata = {
     "cohort tracking",
     "student management",
     "EdTech",
-    "MSc",
-    "enterprise architecture",
+    "teacher platform",
+    "online learning",
   ],
   authors: [{ name: "ELMACHHOUNE" }],
   creator: "ELMACHHOUNE",
-  publisher: "e-learning-msc",
+  publisher: "e-Teaching",
   metadataBase: new URL(baseUrl),
   alternates: {
     canonical: "/",
   },
   openGraph: {
-    title: "e-learning-msc — Structured Learning. Measurable Outcomes.",
+    title: "e-Teaching — Structured Learning. Measurable Outcomes.",
     description:
-      "A premium three-role e-learning management system for administrators, instructors, and students.",
+      "A premium learning management platform for administrators, instructors, and students.",
     url: baseUrl,
-    siteName: "e-learning-msc",
+    siteName: "e-Teaching",
     locale: "en_US",
     type: "website",
     images: [
@@ -54,15 +57,15 @@ export const metadata: Metadata = {
         url: "/images/cover.png",
         width: 1200,
         height: 630,
-        alt: "e-learning-msc platform preview",
+        alt: "e-Teaching platform preview",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "e-learning-msc — Structured Learning. Measurable Outcomes.",
+    title: "e-Teaching — Structured Learning. Measurable Outcomes.",
     description:
-      "A premium three-role e-learning management system for administrators, instructors, and students.",
+      "A premium learning management platform for administrators, instructors, and students.",
     images: ["/images/cover.png"],
   },
   robots: {
@@ -82,6 +85,9 @@ export const metadata: Metadata = {
   },
   manifest: "/manifest.json",
   category: "education",
+  verification: {
+    google: "iV1UU0LDwkWCnmlmLn-fpebbGmX0kpdf2l5TPLC2Y-A",
+  },
 };
 
 export const viewport: Viewport = {
@@ -92,21 +98,23 @@ export const viewport: Viewport = {
 
 const jsonLd = {
   "@context": "https://schema.org",
-  "@type": "EducationalApplication",
-  name: "e-learning-msc",
+  "@type": "EducationalOrganization",
+  name: "e-Teaching",
+  alternateName: "e-Teaching ELMACHHOUNE",
   url: baseUrl,
   description:
-    "A premium three-role e-learning management system for administrators, instructors, and students.",
-  applicationCategory: "EducationalApplication",
-  operatingSystem: "Web",
-  author: {
+    "A premium learning management platform for administrators, instructors, and students, created by ELMACHHOUNE.",
+  founder: {
     "@type": "Person",
     name: "ELMACHHOUNE",
+    url: "https://github.com/ELMACHHOUNE",
   },
+  sameAs: ["https://github.com/ELMACHHOUNE"],
   offers: {
     "@type": "Offer",
     price: "0",
     priceCurrency: "USD",
+    category: "Education",
   },
 };
 

@@ -60,6 +60,44 @@ export default async function LandingPage() {
 
   return (
     <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "e-Teaching",
+            alternateName: "e-Teaching ELMACHHOUNE",
+            url: "https://e-teaching.tech",
+            author: { "@type": "Person", name: "ELMACHHOUNE", url: "https://github.com/ELMACHHOUNE" },
+            potentialAction: {
+              "@type": "SearchAction",
+              target: "https://e-teaching.tech/programs?q={search_term_string}",
+              "query-input": "required name=search_term_string",
+            },
+          }),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "ItemList",
+            name: "Featured Programs",
+            itemListElement: courses.map((course, i) => ({
+              "@type": "ListItem",
+              position: i + 1,
+              item: {
+                "@type": "Course",
+                name: course.title,
+                description: course.description,
+                url: `https://e-teaching.tech/programs/${course._id.toString()}`,
+              },
+            })),
+          }),
+        }}
+      />
       <ComponentA_NavBar user={session?.user} />
       <ComponentB_Hero section={hero} />
       <ComponentB1_ElearningSection section={overview} />
@@ -108,7 +146,7 @@ export default async function LandingPage() {
                   </span>
                 </a>
                 <a
-                  href="mailto:contact@e-learning-msc.com"
+                  href="mailto:business.elmachhoune@gmail.com"
                   className="inline-flex items-center gap-3 text-on-dark-mute hover:text-on-dark transition-colors no-underline"
                 >
                   <svg
@@ -125,7 +163,7 @@ export default async function LandingPage() {
                     />
                   </svg>
                   <span className="text-[16px] font-normal">
-                    contact@e-learning-msc.com
+                    business.elmachhoune@gmail.com
                   </span>
                 </a>
               </div>
@@ -152,13 +190,13 @@ function ComponentA_NavBar({
         <Link href="/" className="flex items-center gap-3 no-underline">
           <Image
             src="/images/icon.png"
-            alt="e-learning-msc"
+            alt="e-Teaching"
             width={32}
             height={32}
             className="object-contain"
           />
           <span className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-ink">
-            e-learning-msc
+            e-Teaching
           </span>
         </Link>
 
@@ -268,7 +306,7 @@ function ComponentB1_ElearningSection({ section }: { section: IOverviewSection }
           <div className="w-full md:w-[30%] shrink-0 flex justify-center">
             <Image
               src={section.image || "/images/icon.png"}
-              alt="e-learning-msc icon"
+              alt="e-Teaching icon"
               width={240}
               height={240}
               className="object-contain"
@@ -447,7 +485,7 @@ function ComponentD1_Screens() {
           <div className="relative aspect-[16/9] w-full overflow-hidden ">
             <Image
               src="/images/laptop-screen.webp"
-              alt="e-learning-msc desktop platform"
+              alt="e-Teaching desktop platform"
               fill
               sizes="(max-width: 1080px) 100vw, 1080px"
               className="object-contain"
@@ -459,7 +497,7 @@ function ComponentD1_Screens() {
             <div className="relative aspect-[9/18] w-full overflow-hidden">
               <Image
                 src="/images/mobile-screen.webp"
-                alt="e-learning-msc mobile platform"
+                alt="e-Teaching mobile platform"
                 fill
                 sizes="(max-width: 240px) 100vw, 240px"
                 className="object-contain"
@@ -472,7 +510,7 @@ function ComponentD1_Screens() {
             <div className="relative aspect-[9/18] w-full overflow-hidden">
               <Image
                 src="/images/mobile-screen.webp"
-                alt="e-learning-msc mobile platform"
+                alt="e-Teaching mobile platform"
                 fill
                 sizes="(max-width: 280px) 100vw, 280px"
                 className="object-cover"
@@ -510,13 +548,13 @@ function ComponentE_Footer() {
             <div className="flex items-center gap-3 mb-4">
               <Image
                 src="/images/icon.png"
-                alt="e-learning-msc"
+                alt="e-Teaching"
                 width={28}
                 height={28}
                 className="object-contain brightness-0 invert opacity-80"
               />
               <span className="text-[14.4px] font-bold uppercase tracking-[0.144px] text-on-dark">
-                e-learning-msc
+                e-Teaching
               </span>
             </div>
             <p className="text-[14px] font-normal leading-[1.57] text-on-dark-mute">
@@ -570,11 +608,11 @@ function ComponentE_Footer() {
 
         <div className="border-t border-divider-dark mt-12 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-[12px] text-zinc-500 font-normal">
-            &copy; {new Date().getFullYear()} e-learning-msc. All rights
+            &copy; {new Date().getFullYear()} e-Teaching. All rights
             reserved.
           </p>
           <p className="text-[12px] text-zinc-500 font-normal">
-            Designed with structural precision.
+            Built by <span className="text-on-dark">ELMACHHOUNE</span>.
           </p>
         </div>
       </div>

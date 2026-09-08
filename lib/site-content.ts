@@ -64,7 +64,7 @@ export const DEFAULT_OVERVIEW_SECTION: IOverviewSection = {
   eyebrow: 'PLATFORM OVERVIEW',
   title: 'STRUCTURED LEARNING. MEASURABLE OUTCOMES.',
   description:
-    'e-learning-msc delivers a disciplined, three-role architecture for technical education. Administrators define programs with precision. Instructors execute curriculum through live cohort tracking, attendance logging, and milestone validation. Students progress through modular pathways with clear metrics at every stage.',
+    'e-Teaching delivers a disciplined, three-role architecture for technical education. Administrators define programs with precision. Instructors execute curriculum through live cohort tracking, attendance logging, and milestone validation. Students progress through modular pathways with clear metrics at every stage.',
   image: '/images/icon.png',
   stats: [
     { value: '3', label: 'Platform Roles' },
