@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import DOMPurify from "dompurify";
 import { SidebarNavigation } from "@/components/shared/sidebar-navigation";
 import { Badge } from "@/components/ui";
 import {
@@ -322,7 +323,7 @@ export default function CourseDetailPage({
                           {selectedLesson.content ? (
                             <div
                               dangerouslySetInnerHTML={{
-                                __html: selectedLesson.content,
+                                __html: DOMPurify.sanitize(selectedLesson.content),
                               }}
                             />
                           ) : (

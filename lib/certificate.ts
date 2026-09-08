@@ -1,8 +1,14 @@
 import type { CertificateData } from '@/types/certificate'
 
 export function createCertificateFileName(studentName: string): string {
-  const sanitized = studentName.trim().replace(/\s+/g, '-')
-  return `certificate-${sanitized}.pdf`
+  const cleaned = studentName
+    .trim()
+    .replace(/[^a-zA-Z0-9-_ ]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, 80)
+  return `certificate-${cleaned || 'student'}.pdf`
 }
 
 export async function generateCertificate(
@@ -28,9 +34,7 @@ export async function downloadCertificate(data: CertificateData): Promise<string
   const link = document.createElement('a')
   link.href = url
   link.download = createCertificateFileName(data.studentFullName)
-  document.body.appendChild(link)
   link.click()
-  document.body.removeChild(link)
   URL.revokeObjectURL(url)
   return createCertificateFileName(data.studentFullName)
 }
