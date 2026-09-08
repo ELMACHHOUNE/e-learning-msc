@@ -2,6 +2,8 @@ import Image from 'next/image'
 import { getLoginSection } from '@/lib/site-content'
 import { LoginForm } from './login-form'
 
+export const dynamic = 'force-dynamic'
+
 export default async function LoginPage() {
   const login = await getLoginSection()
   return (
