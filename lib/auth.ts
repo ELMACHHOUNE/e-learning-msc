@@ -4,7 +4,7 @@ import Google from 'next-auth/providers/google'
 import GitHub from 'next-auth/providers/github'
 import bcrypt from 'bcryptjs'
 import { connectToDatabase } from '@/lib/db'
-import User from '@/models/User'
+import User, { type UserDocument } from '@/models/User'
 
 type AuthToken = {
   id: string
@@ -76,12 +76,39 @@ function getAuthInstance(): NextAuthInstance {
         signIn: '/login',
       },
       callbacks: {
-        jwt({ token, user, trigger, session }) {
+        async jwt({ token, user, account, trigger, session }) {
           const typedToken = token as typeof token & AuthToken
           if (user) {
-            typedToken.id = String(user.id)
-            typedToken.role = user.role
-            typedToken.picture = user.image ?? undefined
+            const isOAuth = account?.provider != null && account.provider !== 'credentials'
+            if (isOAuth) {
+              await connectToDatabase()
+              const email = (user.email ?? '').toLowerCase().trim()
+              if (email) {
+                const found = await User.findOne({ email }).select('-password').lean()
+                if (found) {
+                  typedToken.id = String(found._id)
+                  typedToken.role = found.role
+                  typedToken.picture = getSafeSessionImage(found.avatar) ?? user.image ?? undefined
+                  if (!found.avatar && user.image) {
+                    await User.updateOne({ _id: found._id }, { $set: { avatar: user.image } })
+                  }
+                } else {
+                  const created = await User.create({
+                    name: user.name && user.name.trim() ? user.name : (email.split('@')[0] || 'Student'),
+                    email,
+                    avatar: user.image ?? undefined,
+                    role: 'student',
+                  } as UserDocument)
+                  typedToken.id = String(created._id)
+                  typedToken.role = 'student'
+                  typedToken.picture = getSafeSessionImage(created.avatar) ?? user.image ?? undefined
+                }
+              }
+            } else {
+              typedToken.id = String(user.id)
+              typedToken.role = user.role
+              typedToken.picture = user.image ?? undefined
+            }
           }
           if (trigger === 'update' && session) {
             if (session.name) typedToken.name = session.name
