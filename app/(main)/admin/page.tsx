@@ -682,6 +682,7 @@ export default function AdminPage() {
   }
 
   function deleteItem(type: "user" | "course" | "guild", id: string) {
+    const tab = `${type}s` as Tab
     confirm({
       title: `Delete ${type}`,
       message: `This action cannot be undone.`,
@@ -695,8 +696,7 @@ export default function AdminPage() {
           return;
         }
         toast({ variant: 'success', title: `${type} deleted` });
-        loadedTabs.current.delete(type as string)
-        refetchTab(type as Tab);
+        refetchTab(tab);
       },
     });
   }
