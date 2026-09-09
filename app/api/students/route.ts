@@ -65,6 +65,10 @@ export async function GET() {
   }
 
   // instructor
+  if (!userId) {
+    return NextResponse.json({ students: [] })
+  }
+
   const guilds = await Guild.find({ instructorId: userId })
     .populate('courseId', 'title totalSessions')
     .lean()

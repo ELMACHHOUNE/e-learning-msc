@@ -110,6 +110,7 @@ export async function GET() {
       guilds: activeGuilds.map((g) => ({
         id: (g._id as { toString(): string }).toString(),
         name: (g as { name: string }).name,
+        courseId: (g.courseId as { _id?: { toString(): string } })?._id?.toString() ?? '',
         courseTitle: (g.courseId as { title?: string })?.title ?? 'Unknown',
         currentSession: (g as { currentSession: number }).currentSession,
         totalSessions: (g.courseId as { totalSessions?: number })?.totalSessions ?? 0,
@@ -135,6 +136,7 @@ export async function GET() {
     guilds: activeGuilds.map((g) => ({
       id: (g._id as { toString(): string }).toString(),
       name: (g as { name: string }).name,
+      courseId: (g.courseId as { _id?: { toString(): string } })?._id?.toString() ?? '',
       courseTitle: (g.courseId as { title?: string })?.title ?? 'Unknown',
       instructorName: (g.instructorId as { name?: string })?.name ?? 'Unknown',
       currentSession: (g as { currentSession: number }).currentSession,
