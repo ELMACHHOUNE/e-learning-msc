@@ -45,6 +45,7 @@ interface DashboardData {
   guilds?: {
     id: string;
     name: string;
+    courseId: string;
     courseTitle: string;
     currentSession: number;
     totalSessions: number;
@@ -346,7 +347,7 @@ function InstructorDashboard({ data }: { data: DashboardData }) {
                 </div>
               )}
               <Link
-                href={`/courses/${guild.id}`}
+                href={`/courses/${guild.courseId}`}
                 className="text-button-md text-ink underline no-underline hover:opacity-70 transition-opacity"
               >
                 View Details
@@ -607,6 +608,12 @@ function StudentDashboard({ data }: { data: DashboardData }) {
                   </div>
                 </div>
               )}
+              <Link
+                href={`/courses/${guild.courseId}`}
+                className="text-button-md text-ink underline no-underline hover:opacity-70 transition-opacity"
+              >
+                View Details
+              </Link>
             </motion.div>
           ))}
         </div>
