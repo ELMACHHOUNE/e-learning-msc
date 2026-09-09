@@ -166,7 +166,7 @@ export function SidebarNavigation({
                 }}
                 className={cn(
                   "w-full flex items-center justify-between px-lg py-md text-body-sm font-600 hover:bg-surface-soft transition-colors bg-transparent border-none cursor-pointer",
-                  isModuleSelected && "bg-primary/10 text-black",
+                  isModuleSelected && "bg-primary/10 text-ink",
                 )}
               >
                 {mod.title}
@@ -199,7 +199,7 @@ export function SidebarNavigation({
                             }}
                             className={cn(
                               "w-full flex items-center justify-between pl-xl pr-lg py-sm text-caption hover:bg-surface-soft bg-transparent border-none cursor-pointer",
-                              isChapterSelected && "text-black font-600",
+                              isChapterSelected && "text-ink font-600",
                             )}
                           >
                             {ch.title}
@@ -239,7 +239,7 @@ export function SidebarNavigation({
                                       className={cn(
                                         "w-full flex items-center gap-md pl-xxl pr-lg py-xs text-caption hover:bg-surface-soft bg-transparent border-none cursor-pointer text-left",
                                         isLessonSelected &&
-                                          "text-primary font-600 bg-primary/5",
+                                          "text-ink font-600 bg-primary/10",
                                         lesson.completed && "text-success",
                                       )}
                                     >

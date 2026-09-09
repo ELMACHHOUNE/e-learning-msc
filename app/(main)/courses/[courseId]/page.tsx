@@ -198,7 +198,7 @@ export default function CourseDetailPage({
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2 px-lg py-sm text-button-sm bg-transparent border-none cursor-pointer transition-colors rounded-pill shrink-0 whitespace-nowrap ${
                   isActive
-                    ? "bg-surface-dark text-black dark:bg-primary text-black"
+                    ? "bg-surface-dark text-on-dark dark:bg-primary dark:text-on-primary"
                     : "text-charcoal hover:text-ink"
                 }`}
               >
