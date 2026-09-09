@@ -608,12 +608,20 @@ function StudentDashboard({ data }: { data: DashboardData }) {
                   </div>
                 </div>
               )}
-              <Link
-                href={`/courses/${guild.courseId}`}
-                className="text-button-md text-ink underline no-underline hover:opacity-70 transition-opacity"
-              >
-                View Details
-              </Link>
+              <div className="flex items-center gap-lg">
+                <Link
+                  href={`/courses/${guild.courseId}`}
+                  className="text-button-md text-ink underline no-underline hover:opacity-70 transition-opacity"
+                >
+                  View Details
+                </Link>
+                <Link
+                  href="/sessions"
+                  className="text-button-md text-ink underline no-underline hover:opacity-70 transition-opacity"
+                >
+                  View Sessions
+                </Link>
+              </div>
             </motion.div>
           ))}
         </div>

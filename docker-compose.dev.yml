@@ -28,8 +28,8 @@ services:
       RUSTFS_CONSOLE_ENABLE: "true"
     command: ["/data"]
     ports:
-      - "9000:9000"
-      - "9001:9001"
+      - "${RUSTFS_S3_PORT:-9200}:9000"
+      - "${RUSTFS_CONSOLE_PORT:-9201}:9001"
 
   mongo-express:
     image: mongo-express:latest
