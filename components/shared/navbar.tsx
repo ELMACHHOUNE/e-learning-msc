@@ -17,6 +17,7 @@ import {
   Menu,
   X,
   Shield,
+  Video,
 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -49,6 +50,7 @@ export function Navbar() {
       ],
     }] : []),
     ...(role !== 'student' ? [{ href: '/students', label: role === 'admin' ? 'Students' : 'My Students', icon: Users }] : []),
+    ...(role === 'student' ? [{ href: '/sessions', label: 'Sessions', icon: Video }] : []),
     {
       label: 'LabPhase',
       icon: FlaskConical,

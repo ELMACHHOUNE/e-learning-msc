@@ -9,6 +9,8 @@ export interface SessionLogDocument extends Document {
   guildId: mongoose.Types.ObjectId
   sessionNumber: number
   date: Date
+  title?: string
+  link?: string
   records: IAttendanceRecord[]
   createdAt: Date
 }
@@ -23,6 +25,8 @@ const SessionLogSchema = new Schema<SessionLogDocument>(
     guildId: { type: Schema.Types.ObjectId, ref: 'Guild', required: true },
     sessionNumber: { type: Number, required: true },
     date: { type: Date, required: true },
+    title: { type: String },
+    link: { type: String },
     records: [AttendanceRecordSchema],
   },
   { timestamps: true }
