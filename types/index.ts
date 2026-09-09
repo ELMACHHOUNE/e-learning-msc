@@ -1,6 +1,21 @@
 export type Role = 'admin' | 'instructor' | 'student'
 export type AttendanceStatus = 'present' | 'absent' | 'late'
 
+export type OneToOneStatus = 'available' | 'booked' | 'cancelled'
+
+export interface IOneToOne {
+  _id: string
+  instructorId: string
+  studentId?: string
+  guildId: string
+  title?: string
+  date: Date | string
+  duration: number
+  status: OneToOneStatus
+  createdAt: Date | string
+  updatedAt: Date | string
+}
+
 export interface ITechStackCard {
   title: string
   description: string
