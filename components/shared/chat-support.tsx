@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { MessageCircle, X, Send } from 'lucide-react'
 import { useSession } from 'next-auth/react'
 
@@ -8,10 +8,15 @@ interface ChatMessage {
   id: string
   name: string
   email: string
+  authorEmail?: string
   message: string
   isAdmin?: boolean
   read?: boolean
   createdAt: string
+}
+
+function isStaffName(name?: string) {
+  return typeof name === 'string' && (name.startsWith('Admin (') || name.startsWith('Instructor ('))
 }
 
 export function ChatSupport() {
@@ -22,22 +27,38 @@ export function ChatSupport() {
   const [input, setInput] = useState('')
   const [sending, setSending] = useState(false)
   const listRef = useRef<HTMLDivElement>(null)
+  const markedRef = useRef<string | null>(null)
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch('/api/support/messages')
+      if (!res.ok) return
+      const data = await res.json()
+      setMessages(data.messages ?? data.conversation?.messages ?? [])
+      if (data.unreadCount !== undefined) setUnreadCount(data.unreadCount)
+    } catch {}
+  }, [])
 
   useEffect(() => {
-    if (!session) return
-    let cancelled = false
-    async function load() {
-      try {
-        const res = await fetch('/api/support/messages')
-        if (cancelled || !res.ok) return
-        const data = await res.json()
-        setMessages(data.messages ?? [])
-        if (data.unreadCount !== undefined) setUnreadCount(data.unreadCount)
-        if (open) await fetch('/api/support/messages', { method: 'PATCH' })
-      } catch {}
-    }
+    if (!session?.user?.email) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     load()
-    return () => { cancelled = true }
+  }, [session, load])
+
+  useEffect(() => {
+    if (!session?.user?.email) return
+    const id = setInterval(() => {
+      load()
+    }, 4000)
+    return () => clearInterval(id)
+  }, [session, load])
+
+  useEffect(() => {
+    if (!session || !open) return
+    const key = session.user?.email ?? session.user?.id
+    if (markedRef.current === key) return
+    markedRef.current = key
+    fetch('/api/support/messages', { method: 'PATCH' }).catch(() => {})
   }, [open, session])
 
   useEffect(() => {
@@ -73,6 +94,13 @@ export function ChatSupport() {
     }
   }
 
+  const isOwn = (msg: ChatMessage) => {
+    const myEmail = (session?.user?.email ?? '').toLowerCase()
+    if (!myEmail) return false
+    if (msg.authorEmail) return msg.authorEmail.toLowerCase() === myEmail
+    return !isStaffName(msg.name) && msg.email.toLowerCase() === myEmail
+  }
+
   return (
     <>
       <button
@@ -98,14 +126,13 @@ export function ChatSupport() {
               <p className="text-body-md text-mute text-center pt-xl">No messages yet</p>
             ) : (
               messages.map((msg) => {
-                const isAdmin = msg.name?.startsWith('Admin (')
-                const isOwn = !isAdmin
+                const own = isOwn(msg)
                 return (
-                  <div key={msg.id} className={`flex flex-col ${isOwn ? 'items-end' : 'items-start'}`}>
+                  <div key={msg.id} className={`flex flex-col ${own ? 'items-end' : 'items-start'}`}>
                     <span className="text-caption text-mute mb-xs">
-                      {isAdmin ? 'Support' : 'You'}
+                      {own ? 'You' : 'Support'}
                     </span>
-                    <div className={`px-md py-sm text-body-sm max-w-[80%] ${isOwn ? 'bg-primary text-on-primary' : 'bg-surface-soft text-ink'}`}>
+                    <div className={`px-md py-sm text-body-sm max-w-[80%] ${own ? 'bg-primary text-on-primary' : 'bg-surface-soft text-ink'}`}>
                       {msg.message}
                     </div>
                   </div>

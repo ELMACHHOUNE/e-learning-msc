@@ -173,6 +173,20 @@ interface ConversationData {
   messages: MessageData[]
 }
 
+function senderLabel(msg: MessageData, fallback: string) {
+  const name = msg.name
+  if (!name) return fallback
+  if (name.startsWith('Admin (')) {
+    const inner = name.slice(7, -1)
+    return inner ? `Admin · ${inner}` : 'Support'
+  }
+  if (name.startsWith('Instructor (')) {
+    const inner = name.slice(13, -1)
+    return inner ? `Instructor · ${inner}` : 'Instructor'
+  }
+  return name
+}
+
 function MessagesPanel() {
   const [conversations, setConversations] = useState<ConversationData[]>([]);
   const [selected, setSelected] = useState<ConversationData | null>(null);
@@ -180,6 +194,7 @@ function MessagesPanel() {
   const [replyText, setReplyText] = useState('');
   const [sending, setSending] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const selectedEmailRef = useRef<string | null>(null);
 
   async function fetchConversations() {
     try {
@@ -193,8 +208,31 @@ function MessagesPanel() {
     }
   }
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { fetchConversations() }, []);
+  useEffect(() => {
+    let cancelled = false
+    async function refresh() {
+      if (cancelled) return
+      await fetchConversations()
+      if (selectedEmailRef.current) {
+        try {
+          const res = await fetch(`/api/support/messages?email=${encodeURIComponent(selectedEmailRef.current)}`)
+          if (res.ok) {
+            const data = await res.json()
+            const conv = data.conversation ?? null
+            if (conv) {
+              setSelected((prev) => (prev && prev.email === conv.email ? { ...prev, ...conv } : prev))
+            }
+          }
+        } catch {}
+      }
+    }
+    refresh()
+    const id = setInterval(refresh, 4000)
+    return () => {
+      cancelled = true
+      clearInterval(id)
+    }
+  }, []);
 
   async function markAsRead(email: string) {
     await fetch('/api/support/messages', {
@@ -206,6 +244,7 @@ function MessagesPanel() {
   }
 
   async function selectConversation(conv: ConversationData) {
+    selectedEmailRef.current = conv.email
     setSelected(conv)
     await markAsRead(conv.email)
   }
@@ -263,7 +302,7 @@ function MessagesPanel() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col h-[calc(100vh-220px)]">
         <div className="flex items-center gap-md mb-lg">
           <button
-            onClick={() => setSelected(null)}
+            onClick={() => { selectedEmailRef.current = null; setSelected(null) }}
             className="bg-transparent border-none cursor-pointer text-ink hover:opacity-70 p-0"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -272,16 +311,19 @@ function MessagesPanel() {
           <span className="text-caption text-mute">{selected.email}</span>
         </div>
         <div className="flex-1 overflow-y-auto border border-hairline bg-canvas p-xl space-y-lg mb-lg">
-          {selected.messages.map((msg: MessageData) => (
-            <div key={msg.id} className={`flex flex-col ${msg.name?.startsWith('Admin (') ? 'items-end' : 'items-start'}`}>
-              <span className="text-caption text-mute mb-xs">
-                {msg.name?.startsWith('Admin (') ? 'Admin' : selected.name} &middot; {new Date(msg.createdAt).toLocaleString()}
-              </span>
-              <div className={`px-md py-sm text-body-sm max-w-[75%] ${msg.name?.startsWith('Admin (') ? 'bg-primary text-on-primary' : 'bg-surface-soft text-ink'}`}>
-                {msg.message}
+          {selected.messages.map((msg: MessageData) => {
+            const isAdminMsg = msg.name?.startsWith('Admin (')
+            return (
+              <div key={msg.id} className={`flex flex-col ${isAdminMsg ? 'items-end' : 'items-start'}`}>
+                <span className="text-caption text-mute mb-xs">
+                  {senderLabel(msg, selected.name)} &middot; {new Date(msg.createdAt).toLocaleString()}
+                </span>
+                <div className={`px-md py-sm text-body-sm max-w-[75%] ${isAdminMsg ? 'bg-primary text-on-primary' : 'bg-white border border-hairline text-ink'}`}>
+                  {msg.message}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
           <div ref={chatEndRef} />
         </div>
         <div className="flex gap-md">
