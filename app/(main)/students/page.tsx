@@ -69,6 +69,16 @@ function StudentChatModal({
       }
     }
     fetchConversation()
+    const id = setInterval(fetchConversation, 4000)
+    return () => clearInterval(id)
+  }, [student.email])
+
+  useEffect(() => {
+    fetch('/api/support/messages', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: student.email }),
+    }).catch(() => {})
   }, [student.email])
 
   useEffect(() => {
@@ -104,7 +114,10 @@ function StudentChatModal({
     }
   }
 
-  const isOwn = (msg: ChatMessage) => msg.name?.startsWith('Admin (') || msg.name?.startsWith('Instructor (')
+  const isOwn = (msg: ChatMessage) =>
+    msg.isAdmin !== undefined
+      ? msg.isAdmin
+      : Boolean(msg.name?.startsWith('Admin (') || msg.name?.startsWith('Instructor ('))
 
   return (
     <div

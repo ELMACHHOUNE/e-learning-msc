@@ -7,6 +7,7 @@ const MessageSchema = new Schema<MessageDocument>(
   {
     name: { type: String, required: true },
     email: { type: String, required: true },
+    authorEmail: { type: String },
     userId: { type: String },
     message: { type: String, required: true },
     isAdmin: { type: Boolean, default: false },
