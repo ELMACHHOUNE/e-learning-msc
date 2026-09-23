@@ -3,14 +3,25 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { signIn, useSession } from "next-auth/react";
+import { getProviders, signIn, useSession } from "next-auth/react";
 import type { ILoginSection } from "@/types";
+
+const OAuthProviders = ["google", "github"] as const;
 
 export function LoginForm({ section }: { section: ILoginSection }) {
   const router = useRouter();
   const { status } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  const [providers, setProviders] = useState<Record<string, { id: string; name: string; type: string }> | null>(
+    null,
+  );
+
+  useEffect(() => {
+    getProviders()
+      .then((p) => setProviders(p))
+      .catch(() => setProviders(null));
+  }, []);
 
   useEffect(() => {
     if (status === "authenticated") {
@@ -116,20 +127,30 @@ export function LoginForm({ section }: { section: ILoginSection }) {
             </div>
 
             <div className="grid grid-cols-2 gap-sm pt-2">
-              <button
-                type="button"
-                onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
-                className="h-11 border border-ink bg-canvas text-ink text-caption font-bold uppercase tracking-[0.06em] hover:bg-surface-soft transition-colors cursor-pointer"
-              >
-                Google
-              </button>
-              <button
-                type="button"
-                onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
-                className="h-11 border border-ink bg-canvas text-ink text-caption font-bold uppercase tracking-[0.06em] hover:bg-surface-soft transition-colors cursor-pointer"
-              >
-                GitHub
-              </button>
+              {OAuthProviders.map((providerId) => {
+                const available = providers ? Boolean(providers[providerId]) : true;
+                if (providers && !available) return null;
+                return (
+                  <button
+                    key={providerId}
+                    type="button"
+                    disabled={!available}
+                    title={
+                      available
+                        ? `Sign in with ${providerId}`
+                        : "This provider is not configured on the server"
+                    }
+                    onClick={() =>
+                      signIn(providerId, { callbackUrl: "/dashboard" }).catch(() =>
+                        setError("This sign-in provider is not available. Try another method."),
+                      )
+                    }
+                    className="h-11 border border-ink bg-canvas text-ink text-caption font-bold uppercase tracking-[0.06em] hover:bg-surface-soft transition-colors cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {providerId === "google" ? "Google" : "GitHub"}
+                  </button>
+                )
+              })}
             </div>
 
             <button
