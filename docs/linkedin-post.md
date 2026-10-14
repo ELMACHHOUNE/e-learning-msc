@@ -1,48 +1,47 @@
-# LinkedIn Post — AI-Powered E-Learning Platform
+# LinkedIn Post — E-Learning Platform
 
 ---
 
-Excited to share my AI Developer Bootcap final capstone project: an AI-powered e-learning platform!
+Excited to share my Developer Bootcamp final capstone project: a full-stack e-learning platform!
 
 **The Problem:**
-Traditional e-learning platforms are static — students can't interact with course content, instructors spend hours creating quizzes, and project feedback is subjective and inconsistent.
+Traditional e-learning platforms are static — instructors hand-track attendance and validate projects one by one, graduation is a manual process, and nobody can see how students actually engage with the material.
 
 **The Solution:**
-I integrated local AI capabilities directly into a full-stack e-learning platform, giving students a learning assistant, instructors an AI quiz generator, and automated project feedback — all while keeping humans in the loop.
+I built a three-role platform (Admin, Instructor, Student) covering the whole student lifecycle, plus a privacy-first analytics pipeline so engagement is measurable without handing visitor data to a third party.
 
 **What I Built:**
-- AI Learning Assistant that answers student questions grounded in actual course content
-- AI Quiz Generator that creates structured quizzes from course material for instructor review
-- AI Project Feedback that analyzes student submissions and provides actionable recommendations
+- Guild/cohort system with session-by-session attendance tracking
+- Lab phases with a 3-step project submission pipeline (presentation, git repo, deployment)
+- Automated graduation detection and PDF certificate generation
+- Real-time support chat and a public program catalog
+- First-party visitor analytics: hardened ingest, pseudonymous hashing, geolocation caching and an admin console
 
 **Tech Stack:**
-- Next.js 16 + TypeScript + Tailwind CSS
-- MongoDB + Mongoose
-- Ollama (local LLM inference) with phi4-mini
-- Docker containerization
-- NextAuth v5 for authentication
-- Zod for input/output validation
+- Next.js 16 + React 19 + TypeScript + Tailwind CSS v4
+- MongoDB 7 + Mongoose 9
+- RustFS (S3-compatible) for media, pdf-lib for certificates
+- Docker containerization behind an nginx reverse proxy with SSL
+- NextAuth v5 for authentication, Zod for validation
 
 **Key Engineering Decisions:**
-- Provider abstraction layer so Ollama can be swapped for OpenAI/Gemini later
-- Centralized prompt engineering with injection defense
-- Structured output validation — no raw LLM output reaches the client
-- Human-in-the-loop design — AI generates drafts, humans make decisions
-- All AI runs locally — no data leaves the server
+- Hash-first analytics — raw IPs are never persisted, only HMAC digests
+- Trust the proxy, not the header — the client IP is only believed when we control the proxy
+- Idempotent ingestion — every event carries a unique ID, so retries never double-count
+- Retention as a first-class concern — a TTL index driven from a single config value
+- Human-in-the-loop — instructors make every grading and graduation decision
 
 **What I Learned:**
-- Local LLMs are practical for development and demonstration
-- Prompt engineering is as important as the model itself
-- Validation is critical — LLMs produce unpredictable output
-- The provider abstraction pattern pays off when swapping models
-- Docker makes local AI infrastructure reproducible
+- Privacy by construction beats redaction after the fact, and it's the only approach that survives an audit
+- A public write endpoint is only as good as its guardrails
+- Deleting is engineering too — removing an unused service freed gigabytes of disk and an entire failure surface
 
 **Architecture:**
-Browser → Next.js API → Auth → RBAC → Input Validation → AI Service → Ollama → LLM → Output Validation → Response
+Browser → nginx → Next.js → Auth → RBAC → Validation → MongoDB / RustFS → Response
 
-The platform is fully containerized with Docker Compose, includes comprehensive documentation, and demonstrates full-stack engineering with AI integration.
+The platform is fully containerized with Docker Compose, deployed on Oracle Cloud, and includes comprehensive documentation.
 
-#AI #MachineLearning #NextJS #TypeScript #Docker #Ollama #Elearning #FullStack #Capstone #Engineering
+#NextJS #TypeScript #MongoDB #Docker #Privacy #Analytics #Elearning #FullStack #Capstone #Engineering
 
 ---
 

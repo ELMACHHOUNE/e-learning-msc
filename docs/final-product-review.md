@@ -2,30 +2,30 @@
 
 ## Problem Solved
 
-Traditional e-learning platforms are static — students consume content passively, instructors spend hours creating assessments manually, and project feedback is inconsistent and subjective. There is no way for students to interact with course material in real-time, and no tooling to help instructors scale their feedback.
+Traditional e-learning platforms are static - students consume content passively, instructors spend hours creating assessments manually, and progress tracking is fragmented across spreadsheets. There is no way to see how students actually engage with the material, and no tooling to help instructors scale their feedback.
 
 ## Target User
 
 - **Students** enrolled in coding bootcamp courses who need on-demand help understanding course material
-- **Instructors** who need to create quizzes efficiently and provide consistent, structured feedback on student projects
-- **Administrators** who manage courses, users, cohorts, and graduation records
+- **Instructors** who need to track attendance, validate project submissions and keep cohorts on schedule
+- **Administrators** who manage courses, users, cohorts, graduation records and platform-wide engagement
 
 ## Project Journey
 
-The project started as a standard e-learning platform with course management, user roles, and cohort tracking. It evolved through 35 development phases into an AI-powered platform by integrating local LLM capabilities using Ollama. The AI features were designed as additive enhancements — they enhance existing workflows without replacing human decision-making.
+The project started as a standard e-learning platform with course management, user roles, and cohort tracking. It evolved through 35 development phases into a three-role platform with guilds, lab phases, project validation, automated graduation and a first-party visitor analytics console.
 
 Key milestones:
-1. **Base platform** — Authentication, course management, guild/cohort system, lab phases, project submissions, attendance, graduation, and certificate generation
-2. **AI integration** — Provider abstraction, prompt engineering, output validation, and three AI features
-3. **Infrastructure** — Docker containerization with Ollama, MongoDB, RustFS (S3-compatible storage), and nginx reverse proxy
-4. **Security** — Authentication, RBAC, input/output validation, prompt injection defense
-5. **Documentation** — Architecture docs, API reference, prompt engineering guide, testing guide, demo script, interview prep
+1. **Base platform** - Authentication, course management, guild/cohort system, lab phases, project submissions, attendance, graduation, and certificate generation
+2. **Visitor analytics** - First-party ingestion, IP hashing, geolocation caching, rate limiting and retention TTL
+3. **Infrastructure** - Docker containerization with MongoDB, RustFS (S3-compatible storage), and nginx reverse proxy
+4. **Security** - Authentication, RBAC, input validation, proxy-trusted client IP handling
+5. **Documentation** - Architecture docs, analytics module guide, testing guide, demo script, interview prep
 
 ## Main Features
 
 ### Core Platform
 - **Three-role architecture** (Admin, Instructor, Student) with role-based dashboards
-- **Course management** with nested curriculum (modules → chapters → lessons)
+- **Course management** with nested curriculum (modules -> chapters -> lessons)
 - **Guild/cohort system** with instructor assignment and session tracking
 - **Lab phases** with 3-step project submission pipeline (presentation, git repo, deployment)
 - **Automated graduation** and PDF certificate generation using pdf-lib
@@ -33,36 +33,32 @@ Key milestones:
 - **Real-time support chat** with admin reply capability
 - **Public program catalog** with SEO optimization
 
-### AI Features
-- **AI Learning Assistant** — Students ask questions about course material; AI responds based on provided context with confidence ratings and suggested follow-ups
-- **AI Quiz Generator** — Instructors generate structured quizzes from course content; AI produces drafts for review before publishing
-- **AI Project Feedback** — Instructors get AI-powered analysis of student submissions; advisory feedback with strengths, issues, recommendations, and scores
+### Analytics
+- **First-party visitor analytics** - Page views and visits collected by a hardened public ingest endpoint
+- **Geolocation** - IPstack lookups, hashed and cached, with a failure backoff so quota is not burned
+- **Admin console** - Overview, geography, visitors, pages, events and retention, all server-rendered
 
 ### Infrastructure
-- **Docker Compose** with 6 services (app, MongoDB, Ollama, RustFS, nginx, mongo-express)
-- **Ollama** for local LLM inference (phi4-mini model, no external API calls)
+- **Docker Compose** with 5 services (app, MongoDB, RustFS, nginx, mongo-express)
 - **RustFS** (S3-compatible) for media storage
 - **Nginx** reverse proxy with SSL/TLS termination
 - **Automated seed scripts** for demo data with 6 graduated students
 
 ## Hardest Challenge
 
-**Structured output validation from LLMs.** Large language models produce unpredictable output formats. The hardest challenge was ensuring that every AI response conforms to a strict TypeScript type before it reaches the client. This required:
+**Pseudonymous visitor tracking without leaking identity.** Visitor analytics needs an IP to geolocate, but storing raw IPs would make the dataset personally identifiable and legally risky. The hardest challenge was building a pipeline that is useful for reporting yet anonymous by construction:
 
-1. Designing Zod schemas that capture the expected output structure
-2. Using Ollama's `format: 'json'` parameter to constrain output
-3. Implementing a validation layer that rejects malformed responses
-4. Handling edge cases where the model returns extra fields, wrong types, or truncated data
+1. Hashing IPs and visitor IDs with an HMAC key so the same visitor aggregates across visits but cannot be reversed
+2. Resolving every hash through a short-lived geolocation cache, with a failure backoff so a provider outage does not burn quota
+3. Trusting the client IP only when the app is fronted by a proxy we control, so a direct request cannot spoof its own address
+4. Enforcing a retention TTL and a hard cap on any reportable date range
 
-The second hardest challenge was **prompt injection defense** — preventing users from manipulating the AI by including instructions in their questions. This was solved by escaping `<`, `>`, and `&` characters and wrapping user input in XML-style delimiters.
+The second hardest challenge was **ingestion hardening** on a public, unauthenticated endpoint: body-size caps, per-IP rate limits, bot and internal-traffic exclusion, and idempotent event IDs so retries never double-count.
 
 ## Future Improvements
 
-1. **RAG (Retrieval-Augmented Generation)** — Replace full-content injection with semantic search over chunked documents
-2. **Conversation memory** — Store chat history for context-aware multi-turn conversations
-3. **Streaming responses** — Use Server-Sent Events for real-time token-by-token output
-4. **Rate limiting** — Prevent abuse with per-user request limits
-5. **Evaluation framework** — Automated quality metrics for AI responses
-6. **Multi-language support** — Extend AI prompts for non-English courses
-7. **Model switching UI** — Let admins choose between different Ollama models per feature
-8. **Admin AI dashboard** — Track AI usage, response quality, and error rates
+1. **Streaming ingest** - Ship events with `navigator.sendBeacon` so navigation never drops a page view
+2. **Funnel reports** - Cohort-level conversion from first visit to enrollment
+3. **Realtime dashboard** - Server-Sent Events instead of polling
+4. **Data export** - Scheduled CSV delivery by email
+5. **Longer retention** - Move from a TTL index to cold storage once the dataset outgrows the hot window

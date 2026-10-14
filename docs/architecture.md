@@ -24,65 +24,14 @@
 │         │                │                                │
 │  ┌──────▼────────────────▼──────────────────────────┐   │
 │  │              Service Layer                         │   │
-│  │  lib/auth.ts  lib/db.ts  lib/ai/*  lib/rustfs.ts │   │
-│  └──────┬──────────┬──────────┬──────────┬──────────┘   │
-└─────────┼──────────┼──────────┼──────────┼──────────────┘
-          │          │          │          │
-          ▼          ▼          ▼          ▼
-   ┌──────────┐ ┌────────┐ ┌────────┐ ┌────────┐
-   │ MongoDB  │ │ Ollama │ │ RustFS │ │  SSL   │
-   │  (27017) │ │(11434) │ │ (9000) │ │ Let's  │
-   │          │ │        │ │   S3   │ │Encrypt │
-   └──────────┘ └────────┘ └────────┘ └────────┘
-```
-
-## Request Flow — AI Learning Assistant
-
-This is the most important AI flow in the system:
-
-```
-1. Student types question in LearningAssistant component
-         │
-2. POST /api/ai/assistant { message, courseId }
-         │
-3. requireRole('student', 'instructor', 'admin')
-   └─ Verifies JWT session via NextAuth
-         │
-4. Zod validates request body (AssistantRequestSchema)
-         │
-5. Database lookup:
-   ├─ Verify course exists
-   └─ Verify student is enrolled (or is instructor/admin)
-         │
-6. Fetch course content from MongoDB:
-   ├─ Course title + description
-   └─ Current lesson content (if provided)
-         │
-7. Build prompt (lib/ai/prompts.ts):
-   ├─ System prompt: role, rules, output format
-   ├─ Context: course content wrapped in <context> tags
-   └─ User question wrapped in <student_question> tags
-         │
-8. Escape user input: < → [LT], > → [GT], & → [AMP]
-         │
-9. Call Ollama (lib/ai/client.ts):
-   ├─ POST http://ollama:11434/api/generate
-   ├─ model: phi4-mini
-   ├─ format: "json" (enforces JSON output)
-   └─ stream: false
-         │
-10. Parse JSON response
-         │
-11. Validate with Zod (AssistantResponseSchema):
-    ├─ answer: string (1-4000 chars)
-    ├─ confidence: "high" | "medium" | "low"
-    ├─ relevantTopics: string[] (max 5)
-    └─ suggestedFollowUp: string[] (max 5)
-         │
-12. Return validated response to client
-         │
-13. UI renders answer with AI badge, confidence indicator,
-    and clickable follow-up questions
+│  └──────┬──────────────────┬───────────────────────┘   │
+└─────────┼──────────────────┼───────────────────────────┘
+          │                  │
+          ▼                  ▼
+   ┌────────────┐    ┌────────────┐
+   │  MongoDB   │    │   RustFS   │
+   │  (27017)   │    │ (S3, 9000) │
+   └────────────┘    └────────────┘
 ```
 
 ## Data Flow — Course Content
@@ -163,13 +112,8 @@ ensureGraduation() called (lib/graduation.ts)
 | Framework | Next.js 16 | App Router, SSR, API routes in one stack |
 | Database | MongoDB + Mongoose | Flexible schema for nested curriculum |
 | Auth | NextAuth v5 | JWT sessions, OAuth, role-based |
-| AI | Ollama (local) | No API costs, data privacy, Docker integration |
-| Model | phi4-mini | 3.8B params, runs on CPU, good JSON output |
+| Validation | Zod | Type-safe schemas for request input |
 | Storage | RustFS (S3) | Self-hosted, compatible with AWS SDK |
-| Validation | Zod | Type-safe schemas for input and AI output |
 | PDF | pdf-lib | Template-based certificate generation |
 | UI | Tailwind CSS + Framer Motion | Utility-first + animations |
 | Container | Docker Compose | Reproducible multi-service setup |
-```
-
-Return the confirmation message "File created successfully" when done.

@@ -1,4 +1,4 @@
-# Demo Script — AI-Powered E-Learning Platform
+# Demo Script — E-Learning Platform
 
 ## Duration: 3-5 minutes
 
@@ -7,16 +7,16 @@
 ### 0:00–0:30 — Problem & Introduction
 
 **Script:**
-"This is an AI-powered e-learning platform built for my AI Developer Bootcamp capstone. The problem: traditional e-learning platforms are static — students can't interact with course content, instructors spend hours creating quizzes, and project feedback is subjective.
+"This is a full-stack e-learning platform built for my Developer Bootcamp capstone. The problem: traditional e-learning platforms give you no signal — instructors spend hours on attendance and project validation, and nobody knows how students actually engage with the material.
 
-My solution: integrate local AI capabilities directly into the platform using Ollama, giving students a learning assistant, instructors an AI quiz generator, and project feedback automation — all while keeping humans in the loop."
+My solution: a three-role platform that runs the whole student lifecycle — enrollment, guilds, lab phases, project validation, attendance, graduation and certificates — plus a first-party analytics console so engagement is measurable without shipping visitor data to a third party."
 
 ---
 
 ### 0:30–1:30 — Existing Platform
 
 **Script:**
-"Let me show you the existing platform first. It's a full-stack application built with Next.js 16, TypeScript, MongoDB, and Docker.
+"Let me show you the platform first. It's a full-stack application built with Next.js 16, TypeScript, MongoDB, and Docker.
 
 [Show the dashboard]
 Here's the role-based dashboard. Admins see analytics, instructors see their guilds, students see their progress.
@@ -25,83 +25,65 @@ Here's the role-based dashboard. Admins see analytics, instructors see their gui
 Students navigate through modules, chapters, and lessons. The content is stored in MongoDB with a nested curriculum structure.
 
 [Show lab phases]
-Lab phases let instructors create hands-on projects. Students submit their work through a 3-step validation pipeline."
+Lab phases let instructors create hands-on projects. Students submit their work through a 3-step validation pipeline — presentation, git repo, then deployment."
 
 ---
 
-### 1:30–2:30 — AI Learning Assistant
+### 1:30–2:30 — Student Lifecycle
 
 **Script:**
-"Now let me show the AI features. I'll go to a course and click the AI Assistant tab.
+"Now let me show the operational core — the part an instructor lives in every week.
 
-[Open AI Assistant]
-Students can ask questions about the course material. The assistant receives the course context from MongoDB and responds based on that content.
-
-[Type a question]
-Notice the confidence rating — it shows whether the AI is confident in its answer. The suggested follow-up questions help students explore deeper.
-
-The key architectural points:
-- All AI calls go through our Next.js API routes
-- Authentication is verified server-side
-- The course content is fetched from MongoDB
-- The prompt is constructed with delimiters to prevent injection
-- The AI response is validated with Zod schemas before returning to the client"
-
----
-
-### 2:30–3:15 — AI Quiz Generator
-
-**Script:**
-"For instructors, we have the AI Quiz Generator.
-
-[Open Teach → AI Quiz Generator]
-Instructors select a course and lesson, choose the number of questions and difficulty level.
-
-[Generate a quiz]
-The AI generates structured quiz data — questions, options, correct answers, and explanations.
-
-But this is just a draft. Instructors can edit questions, change answers, regenerate, and save as a draft. The quiz is never automatically published. This is the human-in-the-loop design.
-
-[Show the draft with edit controls]"
-
----
-
-### 3:15–3:45 — AI Project Feedback
-
-**Script:**
-"Finally, AI Project Feedback.
+[Open Teach → Attendance]
+Attendance is tracked per session, per guild. The instructor marks present, absent or late, and it's persisted against the cohort.
 
 [Open LabPhase → Student Projects]
-When an instructor expands a student's project submission, they can generate AI feedback.
+Each project submission goes through three validated steps with a score on each. The instructor validates; nothing is auto-graded.
 
-[Click Generate AI Feedback]
-The AI analyzes the submission — presentation, git repo, and deployment URLs — and provides structured feedback: summary, strengths, issues, recommendations, and a score.
-
-This is advisory only. The instructor makes the final evaluation."
+[Show a graduation record]
+When skills are complete, graduation is triggered automatically and a certificate PDF is generated from a template."
 
 ---
 
-### 3:45–4:30 — Architecture, Security, Testing
+### 2:30–3:15 — Visitor Analytics
+
+**Script:**
+"The part I'm proudest of is the analytics console, because it is entirely first-party — we do not embed a third-party tracking script.
+
+[Open Admin → Analytics]
+Page views and visits are collected by our own hardened ingest endpoint.
+
+The key architectural points:
+- IPs are never stored raw — they are HMAC-hashed with a server-side key
+- Geolocation goes through IPstack and is cached, with a failure backoff so an outage does not burn quota
+- The client IP is only trusted when the app is fronted by our own nginx proxy
+- There is a body-size cap, a per-IP rate limit, and a retention TTL index"
+
+---
+
+### 3:15–3:45 — Security & Infrastructure
 
 **Script:**
 "Let me show the architecture.
 
-[Show the health endpoint]
-The AI health endpoint shows Ollama is running with the phi4-mini model.
-
-The architecture follows a clean separation:
-- Provider abstraction — we can swap Ollama for OpenAI later
-- Centralized prompts — no scattered prompt strings
-- Input validation — Zod schemas on both input and output
-- Error handling — custom error types for different failure modes
+The platform runs as five containers: the Next.js app, MongoDB, RustFS for media, nginx as the reverse proxy, and mongo-express for browsing data.
 
 Security:
-- All AI endpoints require authentication
-- Role-based access — students only get the assistant
-- Ollama URL is server-side only
-- User input is escaped in prompts
+- JWT sessions with a one-hour expiry
+- Role-based access on every route handler via requireRole
+- Secrets only ever read from environment variables, never bundled to the browser
+- Media is stored as objects in RustFS and streamed back through a signed route — never written to public/"
 
-The model runs locally in Docker — no external API calls, no data leaves the server."
+---
+
+### 3:45–4:30 — Testing & Engineering
+
+**Script:**
+"Under the hood:
+- Input validation with Zod on every route handler
+- A Node-native test suite covering IP normalization, geolocation caching, report aggregation and security guards
+- ESLint and strict TypeScript run before anything merges
+- Media and certificate handling are isolated in lib/ so the UI never talks to S3 directly"
 
 ---
 
@@ -110,13 +92,11 @@ The model runs locally in Docker — no external API calls, no data leaves the s
 **Script:**
 "In summary, this platform demonstrates:
 - Full-stack engineering with Next.js and TypeScript
-- AI integration with a local LLM via Ollama
-- Structured output validation with Zod
-- Prompt engineering with injection defense
-- Human-in-the-loop AI design
-- Docker containerization
+- A three-role domain model with real operational workflows
+- A privacy-first analytics pipeline built from scratch
+- Docker containerization with a production reverse proxy
 - Comprehensive documentation
 
-Future improvements would include RAG for better context retrieval, conversation history, streaming responses, and an evaluation framework for response quality.
+Future improvements would include cohort funnel reports, realtime dashboard updates, and moving analytics beyond the hot retention window into cold storage.
 
 Thank you."

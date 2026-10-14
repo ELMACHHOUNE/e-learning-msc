@@ -9,7 +9,7 @@ You are working on my existing e-learning platform:
 - Production domain: `https://e-teaching.tech`
 - Project/repository: `e-learning-msc`
 - Deployment: Oracle Cloud VPS using Docker Compose
-- Existing services include the application, MongoDB 7, Nginx, Ollama, RustFS, and Mongo Express.
+- Existing services include the application, MongoDB 7, Nginx, RustFS, and Mongo Express.
 - The application container is currently exposed internally on port 3000.
 - MongoDB is currently exposed internally/on port 27017.
 - RustFS is currently mapped from host port 9200 to container port 9000.
@@ -759,7 +759,7 @@ Ensure:
 - Existing Nginx routing continues to work.
 - Existing application ports remain unchanged unless necessary.
 - Health checks continue to function.
-- Existing Ollama and RustFS services are not modified without a clear technical reason.
+- Existing RustFS and Mongo Express services are not modified without a clear technical reason.
 
 Do not run destructive commands.
 

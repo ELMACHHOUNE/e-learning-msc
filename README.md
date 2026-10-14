@@ -5,9 +5,9 @@
 # E-Learning MSC
 
 > **AI Developer Bootcamp — Capstone Project**
-> An AI-powered e-learning platform with local LLM integration via Ollama.
+> A full-featured e-learning platform built on Next.js and MongoDB.
 
-A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CSS. Three-role architecture (Admin, Instructor, Student) with course management, guild/cohort system, lab phases, project submission & validation, attendance tracking, automated graduation & certificate generation, and real-time support chat. AI features include a Learning Assistant, Quiz Generator, and Project Feedback — all powered by local LLM inference.
+A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CSS. Three-role architecture (Admin, Instructor, Student) with course management, guild/cohort system, lab phases, project submission & validation, attendance tracking, automated graduation & certificate generation, and real-time support chat, plus a first-party visitor analytics console.
 
 ## Tech Stack
 
@@ -18,7 +18,6 @@ A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CS
 | Styling | Tailwind CSS v4 + Framer Motion |
 | Database | MongoDB via Mongoose 9 |
 | Auth | NextAuth.js v5 (beta) — Credentials + Google/GitHub OAuth |
-| AI | Ollama (local LLM inference) + phi4-mini |
 | Certificates | PDF generation via pdf-lib (template-based, placeholder erasure) |
 | Charts | Recharts |
 | Icons | Lucide React |
@@ -46,7 +45,6 @@ A full-featured e-learning platform built with Next.js, MongoDB, and Tailwind CS
 
 - Node.js 18+
 - MongoDB instance (local or Atlas)
-- Docker & Docker Compose (for Ollama and services)
 
 ### Environment Variables
 
@@ -85,54 +83,6 @@ npm run dev         # http://localhost:3000
 ```
 
 Login credentials after seeding: check `scripts/seed.ts` for default admin/instructor/student accounts.
-
-### AI Setup (Ollama)
-
-The AI features use Ollama for local LLM inference. Ollama runs as a Docker service.
-
-#### Quick Start
-
-```bash
-# Start all services including Ollama
-docker compose up -d
-
-# Pull the AI model (one-time setup)
-docker compose exec ollama ollama pull phi4-mini
-
-# Verify Ollama is running
-curl http://localhost:11434/api/tags
-
-# Verify the model is available
-docker compose exec ollama ollama list
-```
-
-#### Model Selection
-
-**Default model: `phi4-mini`** (3.8B parameters)
-
-- Small enough for Docker with 4-8GB RAM
-- Good structured output quality
-- Fast inference for interactive use (15-25 tok/s on CPU)
-
-Alternative: `llama3.1:8b` for higher quality (requires more resources).
-
-#### Environment Variables
-
-```env
-OLLAMA_BASE_URL=http://ollama:11434  # Docker service name
-OLLAMA_MODEL=phi4-mini                # Model to use
-AI_PROVIDER=ollama                    # Provider abstraction
-```
-
-#### Verification
-
-```bash
-# Check AI health endpoint
-curl http://localhost:3000/api/ai/health
-
-# Expected response:
-# {"available":true,"provider":"ollama","model":"phi4-mini","modelLoaded":true}
-```
 
 ---
 
@@ -320,13 +270,6 @@ Source files live at the **project root** (there is no `src/` directory); the `@
 ├── components/
 │   ├── admin/
 │   │   └── course-editor.tsx            # Full course content builder (modules/chapters/lessons)
-│   ├── ai/                              # AI feature components
-│   │   ├── index.ts                     # Barrel export
-│   │   ├── learning-assistant.tsx       # Student chat widget
-│   │   ├── quiz-generator.tsx           # Instructor quiz builder
-│   │   ├── project-feedback.tsx         # Instructor feedback display
-│   │   └── ai-badge.tsx                 # AI-generated badge
-│   ├── certificate/
 │   │   └── certificate-dialog.tsx       # Certificate preview & download dialog
 │   ├── dashboard/
 │   │   └── admin-charts.tsx             # Recharts analytics (pie, bar, donut, horizontal bar)
@@ -340,17 +283,6 @@ Source files live at the **project root** (there is no `src/` directory); the `@
 │   │   └── index.ts                     # Barrel export
 │   └── ui/                              # Reusable primitives (Button, Badge, Card, Avatar, Input, Alert, ConfirmDialog, Progress, ImageUpload, RichTextEditor)
 ├── lib/
-│   ├── ai/                              # AI service layer
-│   │   ├── index.ts                     # Barrel exports
-│   │   ├── client.ts                    # Ollama HTTP client
-│   │   ├── provider.ts                  # AIProvider interface + OllamaProvider
-│   │   ├── prompts.ts                   # Centralized prompt builders
-│   │   ├── schemas.ts                   # Zod schemas for AI output
-│   │   ├── assistant.ts                 # Learning assistant logic
-│   │   ├── quiz-generator.ts            # Quiz generation logic
-│   │   ├── project-reviewer.ts          # Project feedback logic
-│   │   └── errors.ts                    # AI-specific error types
-│   ├── auth.ts                          # NextAuth config, getCurrentUser(), requireRole()
 │   ├── certificate.ts                   # Client helper: generate/download certificate PDFs
 │   ├── db.ts                            # Cached MongoDB connection (connectToDatabase)
 │   ├── graduation.ts                    # ensureGraduation() + ACADEMY_NAME config
@@ -430,7 +362,6 @@ Taxonomy for courses and lab phases. `name` (unique)
 Support chat: `name`, `email`, `message`, `isAdmin`, `read`, timestamps
 
 ### AIConversation
-Chat history for AI Learning Assistant: `userId`, `courseId`, `contentId`, `messages[]` (role, content, confidence, createdAt)
 
 ### AIQuizDraft
 Quiz drafts for instructor review: `createdBy`, `courseId`, `title`, `description`, `questions[]`, `difficulty`, `status` (draft|approved|rejected), `aiModel`, `aiGenerationTime`
@@ -463,11 +394,6 @@ Quiz drafts for instructor review: `createdBy`, `courseId`, `title`, `descriptio
 | `/api/certificates/mine` | GET | Authenticated (current user's certificates) |
 | `/api/certificates/generate` | POST | Admin/Instructor/Student (renders certificate PDF) |
 | `/api/upload` | POST | Authenticated (base64 image → RustFS, returns `/uploads/...` URL) |
-| `/api/ai/assistant` | POST | Student (AI learning assistant) |
-| `/api/ai/quiz` | POST | Instructor/Admin (AI quiz generation) |
-| `/api/ai/quiz/drafts` | GET, POST | Instructor/Admin (quiz draft management) |
-| `/api/ai/project-review` | POST | Instructor/Admin (AI project feedback) |
-| `/api/ai/health` | GET | Public (AI service health check) |
 | `/uploads/[...path]` | GET | Public (streams stored RustFS objects to the browser) |
 
 ## Features
@@ -518,37 +444,6 @@ Quiz drafts for instructor review: `createdBy`, `courseId`, `title`, `descriptio
 - Fixed bottom-right intercom-style widget
 - Conversations grouped by email
 - Admin reply with read/unread tracking
-
-### AI Features
-
-#### AI Learning Assistant
-Students can ask questions about their course material. The assistant receives relevant course context and responds based on the provided content. Features include:
-- Context-aware responses grounded in course material
-- Confidence ratings (high/medium/low)
-- Suggested follow-up questions
-- Clear AI-generated labeling
-
-**Location:** Course detail page → "AI Assistant" tab
-
-#### AI Quiz Generator
-Instructors generate quiz questions from course content. The AI produces structured quiz data that instructors can review, edit, and approve before publishing. Features include:
-- Configurable question count (1-20)
-- Difficulty levels (easy/medium/hard)
-- Editable questions and answers
-- Draft saving for review
-- Human-in-the-loop approval
-
-**Location:** Teach → AI Quiz Generator
-
-#### AI Project Feedback
-Instructors get AI-powered analysis of student project submissions. The feedback is advisory — instructors make final evaluation decisions. Features include:
-- Completeness and structure analysis
-- Strengths and issues identification
-- Actionable recommendations
-- Score with reasoning (0-100)
-- Clear AI-generated labeling
-
-**Location:** LabPhase → Student Projects → Expand project → "Generate AI Feedback"
 
 ### Public Pages
 - Program listing with course cards (cover, title, description, duration, sessions, modules, price)
@@ -602,12 +497,7 @@ npm run assign:grad    # Assign one student graduate data by email
 | [Final Product Review](docs/final-product-review.md) | Problem solved, features, challenges, future improvements |
 | [Architecture](docs/architecture.md) | System diagram, request flow, data flow |
 | [Portfolio Case Study](docs/portfolio-case-study.md) | Full case study for portfolio presentation |
-| [AI Architecture](docs/ai-architecture.md) | AI system design and request lifecycle |
-| [Prompt Engineering](docs/prompt-engineering.md) | Prompt design and injection defense |
-| [API Reference](docs/api.md) | API endpoint documentation |
-| [AI Testing](docs/ai-testing.md) | AI testing strategy |
 | [Demo Script](docs/demo-script.md) | 3-5 minute presentation script |
-| [Interview Questions](docs/interview-questions.md) | 15 interview Q&A pairs |
 | [LinkedIn Post](docs/linkedin-post.md) | LinkedIn project post draft |
 | [Release Checklist](docs/final-release-checklist.md) | Final release audit |
 
