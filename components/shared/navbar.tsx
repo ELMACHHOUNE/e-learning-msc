@@ -19,6 +19,7 @@ import {
   Shield,
   Video,
   CalendarClock,
+  BarChart3,
 } from 'lucide-react'
 import { Avatar } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
@@ -36,6 +37,7 @@ export function Navbar() {
     { href: '/dashboard', label: 'Dashboard', icon: GraduationCap },
     ...(role === 'admin' ? [
       { href: '/admin', label: 'Admin', icon: Shield },
+      { href: '/admin/analytics', label: 'Analytics', icon: BarChart3 },
       { href: '/instructors', label: 'Instructors', icon: Users },
       { href: '/graduations', label: 'Graduations', icon: GraduationCap },
     ] : []),
