@@ -7,8 +7,6 @@ import Certificate from '@/models/Certificate'
 import ProjectApplication from '@/models/ProjectApplication'
 import Guild from '@/models/Guild'
 import SessionLog from '@/models/SessionLog'
-import AIConversation from '@/models/AIConversation'
-import AIQuizDraft from '@/models/AIQuizDraft'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireRole('admin')
@@ -38,8 +36,6 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
 
   await Certificate.deleteMany({ studentId: id })
   await ProjectApplication.deleteMany({ studentId: id })
-  await AIConversation.deleteMany({ userId: id })
-  await AIQuizDraft.deleteMany({ createdBy: id })
   await Guild.updateMany({ studentIds: id }, { $pull: { studentIds: id } })
   await SessionLog.updateMany(
     { 'records.studentId': id },

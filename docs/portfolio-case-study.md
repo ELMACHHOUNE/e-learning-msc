@@ -1,35 +1,35 @@
-# Portfolio Case Study — AI-Powered E-Learning Platform
+# Portfolio Case Study — E-Learning Platform
 
 ## Project Summary
 
-A full-stack e-learning platform with integrated AI capabilities, built as an AI Developer Bootcap capstone project. The platform serves three user roles (Admin, Instructor, Student) and uses local LLM inference via Ollama to provide students with a learning assistant, instructors with quiz generation, and project feedback automation.
+A full-stack e-learning platform built as a Developer Bootcamp capstone project. The platform serves three user roles (Admin, Instructor, Student) and covers the full student lifecycle — enrollment, cohorts, lab phases, project validation, attendance, automated graduation and certificates — plus a privacy-first visitor analytics console.
 
 **Live URL:** [e-teaching.tech](https://e-teaching.tech)
 **Repository:** [GitHub](https://github.com/ELMACHHOUNE/e-learning-msc)
 
 ## Problem
 
-Traditional e-learning platforms are passive content delivery systems. Students consume material without interaction, instructors spend hours creating assessments manually, and project feedback varies between evaluators. There is no tooling to bridge the gap between static content and active learning.
+Traditional e-learning platforms are passive content delivery systems with no operational core. Instructors track attendance and validate projects by hand, project feedback varies between evaluators, and once a student graduates there is no record anyone can query. On top of that, engagement is invisible — the platform has no idea how many people actually read the material.
 
 ## Target User
 
-| Role              | Need                                                                          |
-| ----------------- | ----------------------------------------------------------------------------- |
-| **Student**       | On-demand help understanding course material without waiting for office hours |
-| **Instructor**    | Efficient quiz creation and consistent, structured project feedback           |
-| **Administrator** | Centralized management of courses, users, cohorts, and graduation records     |
+| Role              | Need                                                                   |
+| ----------------- | ---------------------------------------------------------------------- |
+| **Student**       | See where they are in the program and what is due next                 |
+| **Instructor**    | Run attendance and project validation across their guilds without toil |
+| **Administrator** | Centralized management of courses, users, cohorts and graduations      |
 
 ## Solution
 
-I built a full-stack e-learning platform and integrated local AI capabilities using Ollama. The AI features are designed as additive enhancements with human-in-the-loop oversight — AI generates drafts, humans make decisions.
+I built a full-stack e-learning platform around the operational workflows that actually cost an instructor time, and added a first-party analytics pipeline so engagement is measurable without shipping visitor data to a third party.
 
 ### Key Technical Decisions
 
-1. **Provider abstraction layer** — The `AIProvider` interface allows swapping Ollama for OpenAI/Gemini without changing application code
-2. **Structured output validation** — Every AI response is validated against Zod schemas before reaching the client
-3. **Prompt injection defense** — User input is escaped and wrapped in XML-style delimiters
-4. **Human-in-the-loop** — Quiz drafts require instructor approval; project feedback is advisory only
-5. **Local inference** — All AI runs in Docker via Ollama; no data leaves the server
+1. **Hash-first analytics** — Raw IPs are never persisted; they are HMAC-hashed with a server-side key so visits aggregate per visitor but cannot be reversed
+2. **Trust the proxy, not the header** — The client IP is only believed when the app is fronted by our own nginx, otherwise anyone can spoof their address
+3. **Cache with a failure backoff** — Geolocation lookups are cached, and a provider outage triggers a cooldown window so quota is not burned
+4. **Retention as a first-class concern** — A TTL index and a hard cap on reportable date ranges, driven from one config value
+5. **Idempotent ingestion** — Every event carries a unique ID, so client retries never double-count a page view
 
 ## Features
 
@@ -42,22 +42,23 @@ I built a full-stack e-learning platform and integrated local AI capabilities us
 - Automated graduation detection and PDF certificate generation
 - Attendance tracking, support chat, and public program catalog
 
-### AI Integration
+### Visitor Analytics
 
-- **AI Learning Assistant** — Context-aware student Q&A grounded in course material
-- **AI Quiz Generator** — Structured quiz creation with editable drafts
-- **AI Project Feedback** — Advisory analysis of student submissions with scoring
+- **First-party ingestion** — A hardened public endpoint with body caps, per-IP rate limits and idempotent event IDs
+- **Pseudonymous identity** — HMAC-hashed visitor and IP identifiers, never raw addresses
+- **Geolocation** — IPstack lookups cached per IP hash with a failure backoff
+- **Admin console** — Overview, geography, visitors, pages, events and retention, all admin-gated
 
 ### Infrastructure
 
-- Docker Compose with 6 services (app, MongoDB, Ollama, RustFS, nginx, mongo-express)
+- Docker Compose with 5 services (app, MongoDB, RustFS, nginx, mongo-express)
 - Nginx reverse proxy with SSL/TLS termination
-- RustFS (S3-compatible) for media storage
+- RustFS (S3-compatible) for media storage, streamed back through a signed route
 - Automated seed scripts with demo data
 
 ## Personal Role
 
-This is a solo capstone project. I designed the architecture, implemented all features, wrote the AI integration layer, set up the Docker infrastructure, configured the production deployment on Oracle Cloud, and created all documentation.
+This is a solo capstone project. I designed the architecture, implemented all features, built the analytics module end to end, set up the Docker infrastructure, configured the production deployment on Oracle Cloud behind nginx, and created all documentation.
 
 ## Tech Stack
 
@@ -66,46 +67,45 @@ This is a solo capstone project. I designed the architecture, implemented all fe
 | Frontend       | Next.js 16, React 19, TypeScript, Tailwind CSS v4, Framer Motion |
 | Backend        | Next.js API Routes, NextAuth v5, Zod                             |
 | Database       | MongoDB 7, Mongoose 9                                            |
-| AI             | Ollama, phi4-mini (3.8B), custom prompt engineering              |
+| Analytics      | First-party ingest, HMAC hashing, IPstack geolocation, Recharts  |
 | Storage        | RustFS (S3-compatible), pdf-lib for certificates                 |
 | Infrastructure | Docker Compose, nginx, Oracle Cloud                              |
-| DevOps         | GitHub, ESLint, TypeScript strict mode                           |
+| DevOps         | GitHub, ESLint, TypeScript strict mode, Node test runner         |
 
 ## Challenges
 
-### 1. Structured Output from LLMs
+### 1. Measuring engagement without storing identity
 
-**Challenge:** LLMs produce unpredictable output formats. The UI needs consistent data structures.
-**Solution:** Zod schemas validate every AI response. Ollama's `format: 'json'` parameter constrains output at the model level. Malformed responses are rejected with controlled errors.
+**Challenge:** Visitor analytics needs an IP to geolocate, but persisting raw IPs makes the dataset personally identifiable.
+**Solution:** The IP is HMAC-hashed with a key that never leaves the server. Every geolocation lookup goes through a cache keyed by that hash, and the stored event carries only the hash plus the resolved country/city.
 
-### 2. Prompt Injection
+### 2. Trusting the client IP safely
 
-**Challenge:** Users could include instructions in their questions to manipulate the AI.
-**Solution:** User input is escaped (`<` → `[LT]`, `>` → `[GT]`, `&` → `[AMP]`) and wrapped in XML-style delimiters. System prompts instruct the AI to ignore instructions in user content.
+**Challenge:** Behind a reverse proxy, `X-Forwarded-For` is attacker-controlled. Reading it unconditionally lets anyone forge their own geography.
+**Solution:** A single config flag decides whether the proxy's address is trusted. Nginx sets `X-Real-IP` to the real peer, and the flag is only enabled when the app is fronted by that proxy.
 
-### 3. CPU-Only Inference
+### 3. A public ingestion endpoint
 
-**Challenge:** No GPU available in the development environment. LLM inference is 5-10x slower on CPU.
-**Solution:** Selected phi4-mini (3.8B params) — small enough for CPU, good JSON output quality. Response times are acceptable for educational use (5-15 seconds).
+**Challenge:** The collector is unauthenticated by necessity, which makes it an abuse vector.
+**Solution:** Body-size cap, per-IP rate limit, a cap on events per request, bot and internal-traffic exclusion, and idempotent event IDs so retries are free.
 
-### 4. Docker Model Persistence
+### 4. Fitting analytics into 30 GB
 
-**Challenge:** Ollama models are 2+ GB. Re-downloading on every container rebuild wastes time.
-**Solution:** Named Docker volume (`ollama_data`) persists downloaded models across container rebuilds.
+**Challenge:** The deployment target had a 30 GB root disk shared by Docker, MongoDB and object storage, and image builds ran out of space mid-copy.
+**Solution:** Dropped the unused local LLM service and its model volume, pruned build cache between releases, and capped the builder heap so the build does not balloon.
 
 ## Learning Outcomes
 
-1. **AI Integration** — Learned that prompt engineering is as important as model selection. Structured output requires careful schema design.
-2. **Provider Abstraction** — The interface pattern paid off immediately when switching from phi3:mini to phi4-mini.
-3. **Validation is Critical** — LLMs produce unpredictable output. Without Zod validation, the UI would break on malformed responses.
-4. **Docker Orchestration** — Managing 6 services with health checks, volumes, and environment variables taught me production-grade containerization.
-5. **Human-in-the-Loop** — AI in education must be advisory, not autonomous. The design reflects this principle.
+1. **Privacy by construction** — Hashing at the edge of the pipeline is far simpler than redacting afterwards, and it is the only approach that survives an audit.
+2. **Configuration is a security boundary** — One flag decides whether a request header is believed. Getting that wrong is a data-integrity bug, not a style choice.
+3. **Rate limits are part of the design** — A public write endpoint is only as good as its guardrails.
+4. **Docker orchestration** — Managing services with health checks, volumes and environment variables taught me production-grade containerization, and how quickly disk fills up if you do not prune.
+5. **Deleting is engineering too** — Removing an unused service freed gigabytes and removed an entire failure surface, which was worth more than any feature built on top of it.
 
 ## Future Improvements
 
-1. **RAG** — Replace full-content injection with semantic search over chunked documents
-2. **Conversation memory** — Multi-turn chat with context persistence
-3. **Streaming responses** — Server-Sent Events for token-by-token output
-4. **Evaluation framework** — Automated quality metrics for AI responses
-5. **Rate limiting** — Per-user request limits to prevent abuse
-6. **Multi-language** — Extend AI prompts for non-English courses
+1. **Cohort funnels** — Conversion from first visit to enrollment
+2. **Streaming ingest** — `navigator.sendBeacon` so navigation never drops a page view
+3. **Realtime console** — Server-Sent Events instead of polling
+4. **Data export** — Scheduled CSV delivery by email
+5. **Cold storage** — Move analytics past the hot retention window into archived exports

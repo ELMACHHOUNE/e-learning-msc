@@ -9,10 +9,8 @@ import {
   FileText,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
 } from "lucide-react";
 import LogoSpinner from "@/components/shared/logo-spinner";
-import LearningAssistant from "@/components/ai/learning-assistant";
 
 interface LessonNode {
   title: string;
@@ -42,7 +40,7 @@ interface CourseContent {
   content: ModuleNode[];
 }
 
-type ContentTab = "courses" | "assessment" | "resources" | "assistant";
+type ContentTab = "courses" | "assessment" | "resources";
 
 export default function CourseDetailPage({
   params,
@@ -188,7 +186,6 @@ export default function CourseDetailPage({
               label: "These Resources Can Help You",
               icon: FileText,
             },
-            { id: "assistant" as const, label: "AI Assistant", icon: Sparkles },
           ].map((tab) => {
             const Icon = tab.icon;
             const isActive = activeTab === tab.id;
@@ -208,19 +205,6 @@ export default function CourseDetailPage({
             );
           })}
         </div>
-
-        {activeTab === "assistant" && (
-          <div className="flex-1 overflow-y-auto px-md lg:px-xxl py-xxl">
-            <div className="max-w-3xl mx-auto">
-              <LearningAssistant
-                courseId={course.id}
-                courseTitle={course.title}
-                contentId={selectedLesson?.id}
-                contentTitle={selectedLesson?.title}
-              />
-            </div>
-          </div>
-        )}
 
         {selectedModule && activeTab === "courses" && (
           <div className="flex-1 overflow-y-auto px-md lg:px-xxl py-xxl">

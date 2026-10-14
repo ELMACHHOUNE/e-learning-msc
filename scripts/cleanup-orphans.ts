@@ -4,7 +4,6 @@ import Certificate from '@/models/Certificate'
 import ProjectApplication from '@/models/ProjectApplication'
 import Guild from '@/models/Guild'
 import SessionLog from '@/models/SessionLog'
-import AIConversation from '@/models/AIConversation'
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/e-learning-msc'
 
@@ -22,7 +21,6 @@ async function main() {
 
   const deletedCerts = await Certificate.deleteMany({ studentId: { $nin: users } })
   const deletedProjects = await ProjectApplication.deleteMany({ studentId: { $nin: users } })
-  const deletedConversations = await AIConversation.deleteMany({ userId: { $nin: users } })
 
   const guilds = await Guild.find().select('_id studentIds')
   let removedFromGuilds = 0
@@ -48,7 +46,6 @@ async function main() {
   console.log(`\nCleanup done:
   certificates deleted: ${deletedCerts.deletedCount} (of ${orphanCertCount} total)
   project applications deleted: ${deletedProjects.deletedCount}
-  AI conversations deleted: ${deletedConversations.deletedCount}
   stale student refs removed from guilds: ${removedFromGuilds}
   stale attendance records removed: ${removedRecords}`)
 }

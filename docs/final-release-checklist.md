@@ -2,10 +2,9 @@
 
 ## 1. Deployment / Local Setup
 
-- [x] Docker Compose starts all 6 services (app, mongo, ollama, rustfs, nginx, mongo-express)
+- [x] Docker Compose starts all 5 services (app, mongo, rustfs, nginx, mongo-express)
 - [x] Application accessible at http://localhost:3000 (direct) or http://localhost (via nginx)
-- [x] Ollama model pulled and loaded (phi4-mini)
-- [x] AI health endpoint returns `{"available":true,"provider":"ollama","model":"phi4-mini"}`
+- [x] Visitor analytics collector returns 204 on ingest
 - [x] Database seeded with demo data (npm run seed)
 - [x] Login works for all 3 roles (admin, instructor, student)
 - [x] Production deployment documented (Oracle Cloud + Docker Compose)
@@ -26,26 +25,12 @@
 - [x] Public program catalog — SEO-optimized course listing pages
 - [x] File uploads — Image upload to RustFS (S3-compatible storage)
 
-## 3. AI Features
-
-- [x] AI Learning Assistant — Student Q&A grounded in course content
-- [x] AI Quiz Generator — Structured quiz creation with editable drafts
-- [x] AI Project Feedback — Advisory analysis with strengths/issues/recommendations
-- [x] AI Health endpoint — Public status check for Ollama connectivity
-- [x] Input validation — Zod schemas on all AI request bodies
-- [x] Output validation — Zod schemas on all AI responses before client delivery
-- [x] Prompt injection defense — Input escaping + XML-style delimiters
-- [x] Human-in-the-loop — Quiz drafts require approval; feedback is advisory
-- [x] AI-generated content labeled — Badges mark AI-produced content
-- [x] Provider abstraction — AIProvider interface allows model swapping
 
 ## 4. Security
 
 - [x] No secrets in source code (all via .env files)
 - [x] .gitignore covers .env, .env.local, .env.*.local
-- [x] Ollama URL server-side only (never exposed to browser)
-- [x] System prompts never exposed to users
-- [x] User input escaped in prompts (XML injection prevention)
+- [x] IPstack key server-side only (never exposed to browser)
 - [x] JWT sessions with 1-hour expiry
 - [x] Middleware protects all authenticated routes
 - [x] Role-based access control on all API endpoints
@@ -67,10 +52,10 @@
 - [x] docs/final-product-review.md — Problem, solution, features, challenges
 - [x] docs/architecture.md — System diagram, request flow, data flow
 - [x] docs/portfolio-case-study.md — Full case study for portfolio
-- [x] docs/ai-architecture.md — AI system design and request lifecycle
+- [x] docs/architecture.md � System design and request lifecycle
 - [x] docs/prompt-engineering.md — Prompt design and injection defense
 - [x] docs/api.md — API endpoint reference
-- [x] docs/ai-testing.md — AI testing strategy
+- [x] docs/analytics-ipstack.md � Visitor analytics module
 - [x] docs/final-release-checklist.md — This document
 - [x] docs/demo-script.md — 3-5 minute presentation script
 - [x] docs/interview-questions.md — 15 interview Q&A
@@ -101,10 +86,10 @@
 
 ## Known Limitations
 
-1. No conversation memory (stateless AI — each request is independent)
+
 2. No streaming responses (blocks until full response)
 3. No RAG (injects full lesson content, not semantic search)
 4. CPU-only inference (5-15 second response times)
-5. No rate limiting on AI endpoints
+5. Analytics ingestion is rate limited per IP, admin reports are not paginated beyond the range cap
 6. No automated testing with real LLM (mocked only)
 7. No A/B testing framework for prompt optimization
