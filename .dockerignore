@@ -5,7 +5,6 @@ out
 .gitignore
 .env*
 !.env.example
-!.env.docker
 Dockerfile
 docker-compose.yml
 .dockerignore

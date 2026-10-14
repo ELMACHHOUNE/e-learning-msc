@@ -6,12 +6,12 @@
 - **Purpose**: Production-ready code
 - **Deploy**: Directly to VPS (e-teaching.tech)
 - **Protection**: Requires PR review, passes CI
-- **Config**: `.env.production.example` → `.env`, `docker-compose.prod.yml`, `nginx/nginx.conf`
+- **Config**: `.env.example` → `.env`, `docker-compose.prod.yml`, `nginx/nginx.conf`
 
 ### `dev` (Development)
 - **Purpose**: Active development, feature branches merge here
 - **Deploy**: Local development, staging
-- **Config**: `.env.development.example` → `.env.local`, `docker-compose.dev.yml`, `nginx/nginx.dev.conf`
+- **Config**: `.env.example` → `.env.local`, `docker-compose.dev.yml`, `nginx/nginx.dev.conf`
 
 ### Feature Branches
 - Create from `dev`: `git checkout -b feature/my-feature dev`
@@ -32,7 +32,7 @@ git checkout dev
 npm run dev
 
 # Option 2: Run with Docker (matches production)
-docker compose -f docker-compose.dev.yml --env-file .env.development.example up -d
+docker compose -f docker-compose.dev.yml up -d
 # Access at http://localhost
 ```
 
@@ -43,7 +43,7 @@ git checkout main
 git pull origin main
 
 # Setup environment (first time only)
-cp .env.production.example .env
+cp .env.example .env
 # Edit .env with your production values
 
 # Deploy
@@ -62,11 +62,9 @@ cp .env.production.example .env
 
 | File | Purpose | Committed |
 |------|---------|-----------|
-| `.env.example` | Template for local dev | Yes |
-| `.env.development.example` | Dev Docker Compose template | Yes |
-| `.env.production.example` | Prod Docker Compose template | Yes |
-| `.env.local` | Your local overrides | No (gitignored) |
-| `.env` | Production overrides | No (gitignored) |
+| `.env.example` | The only tracked template — every variable, both environments | Yes |
+| `.env.local` | Dev overrides (`cp .env.example .env.local`) | No (gitignored) |
+| `.env` | Docker Compose / VPS (`cp .env.example .env`, auto-loaded) | No (gitignored) |
 
 ## Docker Compose Files
 
@@ -114,8 +112,7 @@ docker compose -f docker-compose.prod.yml restart nginx
 ├── docker-compose.prod.yml     # Production
 ├── Dockerfile                  # Production build
 ├── Dockerfile.dev              # Development (hot reload)
-├── .env.development.example            # Dev environment template
-├── .env.production.example             # Prod environment template
+├── .env.example                 # The only tracked env file (template + reference)
 └── scripts/
     ├── deploy.sh               # Deploy script
     ├── setup-branch.sh         # Branch setup helper
