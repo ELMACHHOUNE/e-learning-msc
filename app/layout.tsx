@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter_Tight } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 import Providers from "@/components/shared/session-provider";
+import { AnalyticsTracker } from "@/components/analytics";
 import { AlertContainer } from "@/components/ui/alert";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import "./globals.css";
@@ -141,6 +142,7 @@ export default function RootLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} disableTransitionOnChange>
           <Providers>
             {children}
+            <AnalyticsTracker />
             <AlertContainer />
             <ConfirmDialog />
           </Providers>

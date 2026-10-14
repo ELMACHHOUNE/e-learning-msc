@@ -20,10 +20,17 @@ Full-featured e-learning platform: Next.js 16 (App Router, Turbopack), TypeScrip
 npm run dev            # Turbopack dev server → http://localhost:3000
 npm run build          # Production build
 npm run lint           # ESLint (eslint-config-next) — run before finishing a task
+npm run typecheck      # tsc --noEmit
+npm test               # Node built-in runner over tests/**/*.test.ts
 npm run seed           # Reset demo data (scripts/seed.ts) — now ALSO creates 6 graduates
 npm run seed:grad      # Extra additive graduation data (legacy — main seed covers this)
 npm run assign:grad    # assign:grad <email> — graduate a single student by email
+npm run analytics:indexes  # Idempotent analytics index + retention-TTL bootstrap
+npm run analytics:purge    # Delete analytics rows older than ANALYTICS_RETENTION_DAYS
 ```
+
+Tests live in `tests/` and run on Node's built-in runner via `tsx` — no extra test framework.
+See `docs/analytics-ipstack.md` for the full visitor-analytics module.
 
 Seed/assign scripts run via `tsx --env-file=.env.local` — a `.env.local` with `MONGODB_URI` is required.
 
@@ -80,28 +87,34 @@ docker compose down       # stop (data persists in the mongodb_data / rustfs_dat
 | `app/(main)/layout.tsx` | Authenticated shell (navbar, sidebar, chat widget) |
 | `app/public/` → actually `app/programs/` | Public program catalog + detail pages |
 | `app/api/` | Route handlers: `admin/`, `auth/[...nextauth]` (NextAuth handlers), `certificates/`, `courses/`, `dashboard/`, `instructors/`, `projects/`, `students/`, `support/`, `upload/`, `user/` |
+| `app/(main)/admin/analytics/` | Tabbed admin analytics console (Overview · Geography · Visitors · Pages · Events · Settings) |
+| `app/api/analytics/collect/` | Public, hardened first-party event ingestion (POST only) |
+| `app/api/admin/analytics/` | Admin-only reports (`?report=overview|timeseries|geography|visitors|pages|referrers|events|provider-status|export`) + `indexes/` for the idempotent TTL bootstrap |
 | `app/api/upload/` | File/image upload endpoint (stores in RustFS) |
 | `app/uploads/[...path]/` | Streams stored RustFS objects back to the browser (signed S3 GET, `/uploads/<folder>/<name>` URLs) |
 | `app/robots.ts`, `app/sitemap.ts` | SEO metadata |
 | `app/loader/` | Loading route group |
 | `components/admin/` | `course-editor.tsx` and admin tooling |
+| `components/analytics/` | Tracker, filters, KPI/panel primitives, Recharts wrappers, sortable data table |
 | `components/certificate/` | CertificateDialog + student certificate cards |
 | `components/dashboard/` | Recharts analytics components |
 | `components/shared/` | `navbar.tsx`, `sidebar-navigation.tsx`, `chat-support.tsx`, `session-provider.tsx`, `logo-spinner.tsx`, public `index.ts` barrel |
 | `components/ui/` | Reusable primitives |
+| `lib/analytics/` | `config`, `ip`, `paths`, `device`, `rate-limit`, `ipstack`, `ingest`, `reports`, `indexes` (see `docs/analytics-ipstack.md`) |
 | `lib/auth.ts` | NextAuth config + `getCurrentUser()`, `requireRole(...)` |
 | `lib/db.ts` | Cached global Mongoose connection (`connectToDatabase`) |
 | `lib/graduation.ts` | `ensureGraduation()` graduation logic + `ACADEMY_NAME` |
 | `lib/rustfs.ts` | S3 client (RUSTFS_*), bucket init, `uploadObject()`/`getObject()` helpers |
 | `lib/certificate.ts` | Client helper for generating/downloading certificate PDFs |
 | `lib/utils.ts` | `cn()`, `formatDate()`, `truncate()`, `safeUrl()`, `safeMailto()`, `safePhoneUrl()` |
-| `models/` | 10 Mongoose models (incl. CourseContent, Certificate) |
-| `types/` | TS interfaces (`index.ts`), `certificate.ts`, NextAuth augmentation `next-auth.d.ts` |
+| `models/` | Mongoose models (incl. CourseContent, Certificate, AnalyticsEvent/Session/GeoCache) |
+| `types/` | TS interfaces (`index.ts`, `certificate.ts`, `analytics.ts`), NextAuth augmentation `next-auth.d.ts` |
+| `tests/` | Node built-in runner suites (`npm test`) |
 | `hooks/` | `use-outside-click.tsx` |
 | `proxy.ts` | Auth middleware (`export default auth(...)`) |
 | `nginx/nginx.conf` | Reverse-proxy front door (port 80 → `app:3000`, sets `X-Forwarded-*`) |
 | `public/certificates/PDF/` | Branded certificate template |
-| `scripts/` | `seed.ts`, `seed-graduations.ts`, `assign-graduate.ts` |
+| `scripts/` | `seed.ts`, `seed-graduations.ts`, `assign-graduate.ts`, `ensure-analytics-indexes.ts`, `purge-analytics.ts` |
 
 ## Data Models (Mongoose)
 
@@ -117,6 +130,13 @@ All in `models/` with the pattern `mongoose.models.X ?? mongoose.model('X', sche
 - **Certificate** — graduation record with unique sequential `certificateId` (`CERT-YYYY-####`)
 - **Category** — unique `name` (shared by courses + lab phases)
 - **Message** — support chat: `name`, `email`, `message`, `isAdmin`, `read`, timestamps
+- **AnalyticsEvent** — page view / engagement event: `eventId` (unique), `eventType`, `occurredAt`, `receivedAt` (TTL), `sessionId`, `visitorIdHash`, `ipHash`, `path`, geo, device, `isInternal`, `isBot`
+- **AnalyticsSession** — visit: `sessionId` (unique), `visitorIdHash`, `startedAt`, `lastSeenAt`, `pageViewCount`, `landingPath`/`exitPath`, geo, device
+- **AnalyticsGeoCache** — keyed geolocation cache: `ipHash` (unique), `status`, `geo`, `expiresAt` (TTL)
+
+> Mongoose derives collection names from the model name, so these live in `analyticsevents`,
+> `analyticssessions` and `analyticsgeocaches`. Always read `Model.collection.collectionName`
+> instead of hard-coding a name.
 
 ## Key Conventions & Patterns
 
@@ -132,4 +152,4 @@ All in `models/` with the pattern `mongoose.models.X ?? mongoose.model('X', sche
 
 ## Verification
 
-Before finishing a task run `npm run lint`. For type changes also ensure `npx tsc --noEmit` stays clean. Changes touching the DB, auth, or certificates should be exercised against a local MongoDB with `npm run seed` first.
+Before finishing a task run `npm run lint` and `npm run typecheck`. Changes touching the DB, auth, or certificates should be exercised against a local MongoDB with `npm run seed` first. Run `npm test` for logic-heavy work and `npm run build` before any release.

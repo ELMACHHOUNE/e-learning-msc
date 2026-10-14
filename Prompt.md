@@ -1,1796 +1,909 @@
-You are the lead senior software engineer responsible for upgrading my existing project into a production-oriented AI-powered e-learning platform.
+# TASK: Integrate IPstack Visitor Analytics into e-teaching.tech / e-learning-msc
 
-PROJECT:
-E-Learning MSC
+## 1. Role and objective
 
-REPOSITORY:
-ELMACHHOUNE/e-learning-msc
+Act as a senior full-stack engineer, analytics architect, database designer, UI/UX engineer, security engineer, and DevOps engineer.
 
-OBJECTIVE:
-Transform the existing e-learning platform into an AI-powered e-learning platform suitable for my AI Developer Bootcamp final capstone.
+You are working on my existing e-learning platform:
 
-IMPORTANT:
-This is an EXISTING, WORKING project.
+- Production domain: `https://e-teaching.tech`
+- Project/repository: `e-learning-msc`
+- Deployment: Oracle Cloud VPS using Docker Compose
+- Existing services include the application, MongoDB 7, Nginx, Ollama, RustFS, and Mongo Express.
+- The application container is currently exposed internally on port 3000.
+- MongoDB is currently exposed internally/on port 27017.
+- RustFS is currently mapped from host port 9200 to container port 9000.
+- Nginx is mapped to host port 80.
+- Mongo Express is mapped to host port 8585.
+- The existing frontend and backend architecture must be discovered from the repository before making changes.
 
-The project already runs locally with Docker and its existing services are working.
+Your mission is to implement a production-ready **Visitor Analytics & Intelligence** module in the existing admin dashboard using IPstack for IP-based geolocation.
 
-DO NOT rewrite the application from scratch.
+The implementation must integrate with the existing application. Do not create a separate application, replace the current dashboard, rebuild the project from scratch, or change unrelated functionality.
 
-DO NOT replace working architecture unnecessarily.
+## 2. Mandatory first step: inspect the existing project
 
-DO NOT break existing functionality.
-
-DO NOT make speculative changes.
-
-First understand the existing architecture completely, then integrate AI cleanly into the existing architecture.
-
-The final result must look like an engineer-designed AI system, not a simple "ChatGPT button".
-
-==================================================
-PHASE 0 — PROJECT SAFETY RULES
-==============================
-
-Before modifying anything:
-
-1. Inspect the entire repository.
-
-2. Inspect:
-   - package.json
-   - Dockerfile
-   - docker-compose files
-   - environment files and .env.example
-   - Next.js configuration
-   - middleware/proxy configuration if present
-   - authentication implementation
-   - authorization/RBAC
-   - database connection
-   - MongoDB models
-   - API routes
-   - frontend components
-   - dashboard architecture
-   - course architecture
-   - lab/project architecture
-   - RustFS/object storage integration
-   - certificate system
-   - Docker/Nginx configuration
-   - existing scripts
-   - existing tests
-   - GitHub workflows
-   - documentation
-
-3. Search for:
-   - OpenAI
-   - Gemini
-   - Ollama
-   - LLM
-   - AI
-   - LangChain
-   - embeddings
-   - vector
-   - RAG
-   - prompt
-   - chat
-   - model
-   - inference
-
-4. Confirm what AI functionality currently exists.
-
-IMPORTANT:
-Do not assume AI exists because a variable, comment, or dependency exists.
-
-5. Identify the current architecture.
-
-6. Identify all existing user roles and permissions.
-
-7. Identify how students access courses and course content.
-
-8. Identify how instructors manage courses, lab phases, projects, and students.
-
-9. Identify how admins manage the platform.
-
-10. Identify the most appropriate locations where AI functionality should be integrated.
-
-11. Before changing files, produce an internal implementation plan.
-
-Do not stop after the analysis if the architecture is clear enough to proceed.
-
-==================================================
-PHASE 1 — CURRENT ARCHITECTURE AUDIT
-====================================
-
-Perform a complete technical audit.
-
-Analyze:
-
-### Frontend
+Before writing code, inspect the entire relevant codebase.
 
 Identify:
 
-- Next.js App Router structure
-- server components
-- client components
-- layouts
-- dashboards
-- navigation
-- reusable UI components
-- forms
-- loading states
-- error states
-- authentication-dependent UI
-- role-dependent UI
+- Framework and version.
+- Whether the application uses Next.js App Router, Pages Router, React with Express, or another architecture.
+- Existing frontend routing and layouts.
+- Existing admin dashboard, navigation, and role-based access control.
+- Authentication and session management.
+- User roles and permission checks.
+- MongoDB connection patterns, models, indexes, and migrations.
+- Existing API routes/controllers and validation conventions.
+- Current charting and table libraries.
+- Existing design system, UI components, theme, typography, spacing, icons, and responsive breakpoints.
+- Existing Dockerfiles, Docker Compose files, environment variables, Nginx configuration, and production startup commands.
+- Existing tests, linting, type-checking, and build commands.
+- Any existing analytics, logging, or visitor tracking code.
 
-### Backend
+Read relevant files before modifying them.
 
-Identify:
+Produce a concise implementation plan based on the actual architecture, then implement the feature. Do not stop after producing the plan.
 
-- API routes
-- server actions if present
-- authentication
-- authorization
-- validation
-- error handling
-- database operations
-- storage operations
-- external service integrations
+Reuse existing dependencies and components wherever practical. Do not introduce a second routing system, a second database connection layer, or unnecessary UI libraries.
 
-### Database
+If the repository already contains analytics functionality, extend it instead of duplicating it.
 
-Identify:
+## 3. API integration and secret management
 
-- User
-- Course
-- CourseContent
-- Guild
-- LabPhase
-- ProjectApplication
-- SessionLog
-- Certificate
-- Category
-- Message
-- any other models
+Provider: IPstack by APILayer.
 
-Understand their relationships.
+Documentation:
 
-### Authentication
+- https://apilayer.com/products/ipstack/
+- https://ipstack.com/json-ip-api/
+- https://marketplace.apilayer.com/ip_to_location-api/tabs/api_docs
 
-Determine:
+Use the official IPstack endpoint and response schema appropriate to the account and subscription.
 
-- how sessions are created
-- how users are authenticated
-- how current user is retrieved
-- how roles are enforced
-- how protected API routes work
+Common endpoint format:
 
-### Infrastructure
+GET https://api.ipstack.com/{ip_address}?access_key=ACCESS_KEY
 
-Understand:
+Requester lookup, if supported by the selected account:
 
-- Docker
-- Docker Compose
-- MongoDB
-- RustFS
-- Nginx
-- networking
-- ports
-- volumes
-- environment variables
-- health checks
+GET https://api.ipstack.com/check?access_key=ACCESS_KEY
 
-### Testing
+The API key must never be hardcoded.
 
-Determine what tests already exist.
+Use a server-only environment variable:
 
-Do not remove existing tests.
+IPSTACK_ACCESS_KEY=replace_with_rotated_key
 
-==================================================
-PHASE 2 — DESIGN THE AI ARCHITECTURE
-====================================
+Optionally support:
 
-The target architecture should be:
+IPSTACK_BASE_URL=https://api.ipstack.com
+IPSTACK_TIMEOUT_MS=3000
+IPSTACK_CACHE_TTL_HOURS=168
+ANALYTICS_RETENTION_DAYS=90
+ANALYTICS_ENABLED=true
 
-User
-↓
-Next.js UI
-↓
-Next.js API Route
-↓
-Authentication
-↓
-Authorization / RBAC
-↓
-Input Validation
-↓
-AI Service Layer
-↓
-Ollama
-↓
-Local LLM
-↓
-Structured AI Response
-↓
-Validation
-↓
-Application Logic
-↓
-Database when necessary
-↓
-Response to UI
-
-The AI provider MUST NOT be called directly from React/browser code.
-
-The Ollama URL and model configuration must remain server-side.
-
-Create a provider abstraction so the application does not become tightly coupled to Ollama.
-
-For example, design something conceptually similar to:
-
-lib/ai/
-client.ts
-provider.ts
-prompts.ts
-schemas.ts
-assistant.ts
-quiz-generator.ts
-project-reviewer.ts
-
-Use the project's existing conventions if they differ.
-
-Do not blindly create these exact files if another architecture is more appropriate.
-
-The important requirement is separation of concerns.
-
-==================================================
-PHASE 3 — OLLAMA
-================
-
-Use Ollama as the local development LLM provider.
-
-First verify whether Ollama is installed/available in the current environment.
-
-Because the application already uses Docker, prefer running Ollama through Docker Compose.
-
-Do NOT unnecessarily require the developer to install Ollama directly on Windows/Linux/macOS if Docker can provide the service.
-
-Add an Ollama service to the existing Docker Compose architecture.
-
-The conceptual architecture should become:
-
-Next.js
-MongoDB
-RustFS
-Mongo Express if already used
-Nginx if applicable
-Ollama
-
-Use a persistent Docker volume for Ollama models.
-
-Do not store models inside the application container.
-
-Configure Ollama through environment variables.
-
-For example:
-
-OLLAMA_BASE_URL=http://ollama:11434
-OLLAMA_MODEL=<chosen-model>
-
-Do not hard-code the model throughout the source code.
-
-The exact model should be selected based on:
-
-- available RAM
-- CPU
-- GPU availability
-- Docker environment
-- expected response quality
-- reasonable local development performance
-
-Before choosing the final model, inspect the environment and explain why it was selected.
-
-Prefer a practical instruct model that works reliably with structured output.
-
-Do not automatically download an unnecessarily huge model.
-
-If a model requires excessive resources, choose a smaller model.
-
-The final documentation must explain:
-
-- how Ollama starts
-- how the model is pulled
-- how to verify Ollama
-- how to verify the model
-- how the application communicates with Ollama
-
-The setup should be reproducible.
-
-If Docker Compose does not automatically pull the model, provide a documented initialization mechanism.
-
-For example, use an initialization script or documented command.
-
-Do NOT download the model during every application startup.
-
-The model must persist across restarts.
-
-==================================================
-PHASE 4 — AI FEATURE #1
-AI LEARNING ASSISTANT
-=====================
-
-Implement a real AI Learning Assistant.
-
-Purpose:
-
-Students should be able to ask questions about their learning material.
-
-The assistant should receive relevant course context.
-
-Do not build a generic chatbot disconnected from the platform.
-
-The assistant should understand:
-
-- current course
-- current lesson/content when available
-- student role
-- relevant educational context
-
-The system should avoid pretending to know information that is not contained in the supplied context.
-
-Design the API around a structure similar to:
-
-POST /api/ai/assistant
-
-Input should contain only the minimum necessary information.
-
-For example:
-
-{
-"message": "...",
-"courseId": "...",
-"contentId": "..."
-}
-
-Do not trust user-provided userId.
-
-Always obtain the authenticated user from the existing authentication system.
-
-Validate all inputs.
-
-Use Zod or the project's existing validation mechanism.
-
-The API must:
-
-1. authenticate the user
-2. verify the user is allowed to access the course
-3. retrieve relevant course/content information from MongoDB
-4. construct a controlled prompt
-5. call the AI provider
-6. validate the AI response
-7. return the result
-
-Do not expose:
-
-- Ollama URL
-- internal infrastructure
-- API keys
-- system prompts
-- database credentials
-
-to the browser.
-
-Implement:
-
-- loading state
-- empty state
-- error state
-- retry
-- reasonable conversation UX
-- clear indication that responses are AI-generated
-
-Do not create a fake streaming experience if streaming is not properly implemented.
-
-==================================================
-PHASE 5 — AI FEATURE #2
-AI QUIZ GENERATOR
-=================
-
-Implement an instructor-facing AI Quiz Generator.
-
-This should be a meaningful AI feature.
-
-An instructor should be able to select:
-
-- course
-- lesson/content
-- number of questions
-- difficulty
-
-The AI should generate structured quiz data.
-
-Example conceptual output:
-
-{
-"title": "...",
-"questions": [
-{
-"question": "...",
-"options": [
-"...",
-"...",
-"...",
-"..."
-],
-"correctAnswer": "...",
-"explanation": "..."
-}
-]
-}
-
-Do NOT trust raw LLM JSON.
-
-Use structured output if supported by the selected Ollama model/API.
-
-Then validate the response with Zod.
-
-If validation fails:
-
-- do not save the result
-- return a controlled error
-- optionally retry once with a correction prompt
-
-Never blindly persist invalid AI output.
-
-The instructor MUST review generated content before it becomes official.
-
-The AI should generate a draft, not automatically publish it.
-
-This is important for human-in-the-loop AI design.
-
-The UI should allow the instructor to:
-
-- generate
-- review
-- edit
-- regenerate
-- approve
-
-before saving/publishing.
-
-==================================================
-PHASE 6 — AI FEATURE #3
-AI PROJECT FEEDBACK
-===================
-
-Implement an AI-assisted project/lab feedback feature.
-
-Use the existing project/lab submission architecture.
-
-The AI should analyze a student's project submission where the existing application already provides relevant information.
-
-The AI can evaluate:
-
-- completeness
-- structure
-- technical quality
-- potential issues
-- missing requirements
-- improvement suggestions
-
-The output should be structured.
-
-For example:
-
-{
-"summary": "...",
-"strengths": [],
-"issues": [],
-"recommendations": [],
-"score": {
-"value": 0,
-"max": 100,
-"reasoning": "..."
-}
-}
-
-IMPORTANT:
-
-Do not allow the AI to become the final authority on student evaluation.
-
-The instructor must remain responsible for final validation.
-
-Clearly label AI-generated feedback.
-
-Do not automatically fail/pass a student based solely on AI output.
-
-If the existing project submission model does not contain enough information to implement this safely, adapt the feature to the existing architecture rather than inventing fake data.
-
-==================================================
-PHASE 7 — PROMPT ENGINEERING
-============================
-
-Create a centralized prompt architecture.
-
-Do not scatter giant prompt strings throughout API routes.
-
-Create reusable prompt builders/templates.
-
-For example:
-
-- assistant system prompt
-- quiz generation prompt
-- project review prompt
-
-Prompts should:
-
-1. define the AI role
-2. define the educational context
-3. define available information
-4. define output requirements
-5. prevent unsupported claims
-6. require concise useful responses
-7. protect against prompt injection from course content/user input where possible
-
-Treat course content and student input as untrusted data.
-
-Do not allow user-controlled content to override the system's intended behavior.
-
-Use clear delimiters around retrieved content.
-
-Example conceptual structure:
-
-SYSTEM INSTRUCTIONS
-
-<context>
-COURSE CONTENT
-</context>
-
-<student_question>
-USER INPUT
-</student_question>
-
-Do not expose system prompts to users.
-
-Create:
-
-docs/prompt-engineering.md
-
-Document:
-
-- prompt design
-- context injection
-- structured outputs
-- validation
-- prompt injection considerations
-- human-in-the-loop design
-
-==================================================
-PHASE 8 — AI RESPONSE SCHEMAS
-=============================
-
-Create strict schemas for AI outputs.
-
-Use Zod or the existing validation library.
-
-Create schemas for:
-
-- assistant response
-- quiz response
-- project feedback response
-
-AI output must pass validation before application logic uses it.
-
-Handle:
-
-- invalid JSON
-- incomplete output
-- unexpected fields
-- wrong types
-- hallucinated structure
-- provider errors
-- timeouts
-
-Do not allow malformed AI output to crash the application.
-
-==================================================
-PHASE 9 — ERROR HANDLING
-========================
-
-Implement robust AI error handling.
-
-Handle:
-
-- Ollama unavailable
-- Ollama container stopped
-- model missing
-- request timeout
-- malformed response
-- validation failure
-- database failure
-- unauthorized request
-- forbidden course access
-- rate limiting if implemented
-- unexpected exceptions
-
-Return safe API responses.
-
-Do not return:
-
-- stack traces
-- internal file paths
-- environment variables
-- database connection strings
-- internal infrastructure details
-
-Use the project's existing error handling conventions.
-
-==================================================
-PHASE 10 — SECURITY
-===================
-
-Perform a security review specifically for AI.
+These values are examples and should be adapted to the existing configuration system.
 
 Requirements:
 
-### Authentication
+- Add the required environment variable names to `.env.example`, without real secrets.
+- Update the actual deployment instructions for Docker Compose.
+- Read secrets only in server-side code.
+- Never use `NEXT_PUBLIC_` or another public prefix for the IPstack secret.
+- Never return the secret in API responses, logs, error messages, HTML, client-side bundles, or source maps.
+- Never commit `.env` files containing secrets.
+- Do not rebuild Docker images with secrets embedded in image layers.
+- Validate configuration at application startup where appropriate.
+- If the key is absent, disable geolocation enrichment gracefully and show an actionable configuration warning to authorized administrators.
+- Use HTTPS.
+- Add request timeouts, safe error handling, and bounded retries only where appropriate.
+- Handle invalid keys, inactive accounts, quota exhaustion, restricted features, invalid IPs, and network errors.
+- Never fabricate successful geolocation data when a lookup fails.
 
-All AI endpoints must require authentication.
+IMPORTANT: The previously shared key should be considered exposed. I will rotate it and provide the replacement through the production environment. Do not reuse or reproduce the exposed value.
 
-### Authorization
+## 4. Analytics architecture
 
-Respect existing roles.
+Implement first-party analytics with IPstack enrichment.
 
-Student:
+Separate the following concepts:
 
-- learning assistant
-- appropriate student AI features
+1. Page views: each eligible page-view event.
+2. Visits/sessions: grouped browsing activity within a defined session window.
+3. Unique visitors: privacy-conscious pseudonymous identifiers over a selected reporting period.
+4. Authenticated users: application users who have signed in, where their role and identity are available to authorized administrators.
+5. Engagement events: meaningful interactions such as course-page visits, lesson openings, and navigation.
+6. Geolocation: country, region, and city inferred from the visitor's public IP.
+7. Operational events: ingestion failures, geolocation failures, duplicate events, and quota errors.
 
-Instructor:
+Do not treat these metrics as interchangeable.
 
-- quiz generation
-- project feedback
-- appropriate instructor features
+Define a sessionization policy, such as a 30-minute inactivity timeout, and document it. Handle new sessions and returning sessions consistently.
 
-Admin:
+Use UTC timestamps in storage and convert them to the selected display timezone in the dashboard.
 
-- only if justified by existing architecture
+### 4.1 Page-view tracking
 
-Do not allow users to access another user's private information.
+Track eligible navigation and page-view events across the public website and authenticated application routes.
 
-### Input validation
+Support:
 
-Validate all incoming fields.
+- Initial page loads.
+- Client-side navigation in single-page applications.
+- Next.js navigation, if applicable.
+- Page title.
+- Normalized pathname.
+- Referrer hostname or approved referrer metadata.
+- Timestamp.
+- Session identifier.
+- Pseudonymous visitor identifier.
+- Device category.
+- Browser family.
+- Operating system family.
+- Country, region, and city when available.
 
-Apply reasonable limits to:
+Do not collect full query strings by default because they can contain tokens, email addresses, search terms, or other sensitive information.
 
-- message length
-- context length
-- number of quiz questions
-- other AI parameters
+Strip fragments, remove sensitive query parameters, and normalize routes before storage.
 
-### Prompt injection
+Do not record:
 
-Treat user/course content as untrusted input.
+- Passwords.
+- Authentication tokens.
+- Cookies.
+- Authorization headers.
+- Form contents.
+- Private message contents.
+- Full IP addresses in general-purpose analytics event documents.
+- Student grades, assessment answers, or other educational records as analytics properties.
 
-Do not let content override system instructions.
+Respect existing consent mechanisms and applicable privacy requirements. If consent is required, do not initialize nonessential tracking until the required consent is obtained.
 
-### Secrets
+### 4.2 Exclude internal and artificial traffic
 
-Never expose:
+Provide configurable exclusions for:
 
-- MongoDB credentials
-- Ollama internal URL where unnecessary
-- future cloud AI API keys
-- authentication secrets
+- Authorized administrators, if enabled.
+- Internal/staging environments.
+- Localhost and private/test traffic.
+- Known health-check endpoints.
+- Automated monitoring requests.
+- Duplicate event submissions.
+- Identified bots and crawlers when detection is reliable.
 
-### Rate limiting
+Allow authorized administrators to include or exclude internal traffic from reports.
 
-Evaluate whether AI endpoints require rate limiting.
+Do not classify all visitors as bots merely because they have unusual user agents.
 
-If the project has no rate-limiting infrastructure, implement a lightweight appropriate mechanism or clearly document the limitation and provide a clean extension point.
+Clearly label filtered reports and make the exclusion policy configurable.
 
-Do not introduce an unnecessarily complex external infrastructure dependency just for this feature.
+### 4.3 Reliable event ingestion
 
-==================================================
-PHASE 11 — DATABASE
-===================
+Implement a secure analytics ingestion endpoint using the existing routing architecture.
 
-Before creating new MongoDB models, determine whether persistence is actually necessary.
+For example, adapt the naming to the current application:
 
-Do NOT store every AI request by default.
+POST /api/analytics/collect
 
-If conversation history is useful, design a proper model.
+The client should send a minimal event payload such as:
 
-If quiz drafts need persistence, use the existing course/content architecture when appropriate.
+- Event type.
+- Normalized pathname.
+- Page title, if safe.
+- Client-generated event UUID.
+- Session identifier.
+- Pseudonymous visitor identifier.
+- Necessary navigation metadata.
 
-If AI project feedback should be saved, design it so that:
+The server must generate the authoritative timestamp.
 
-- AI-generated feedback is distinguishable from instructor feedback
-- timestamps exist
-- author/source is clear
-- instructor approval is clear
-- old feedback can be identified
+Validate all input using the project's existing validation library, or an appropriate existing framework validator.
 
-Do not modify existing schemas unnecessarily.
+Requirements:
 
-Preserve backward compatibility.
+- Enforce a small request-body limit.
+- Allow only known event types.
+- Validate UUIDs and identifier formats.
+- Prevent arbitrary MongoDB query operators from entering stored data.
+- Rate-limit ingestion.
+- Add duplicate-event protection using an idempotency key or unique event ID.
+- Reject malformed requests.
+- Avoid returning internal errors to clients.
+- Never trust client-submitted IP addresses or geolocation values.
+- Never allow a client to choose an arbitrary IP address for geolocation lookup.
+- Use the trusted server request context to determine the visitor IP.
 
-==================================================
-PHASE 12 — FRONTEND UX
-======================
+If Nginx is behind another proxy, configure trusted proxy handling carefully. Trust forwarding headers only from explicitly trusted reverse proxies. Do not blindly accept arbitrary `X-Forwarded-For` values.
 
-Integrate AI naturally into the existing UI.
+Do not expose analytics ingestion as an unrestricted administrative or database-writing endpoint.
 
-Do not make the application look like a separate AI demo.
+## 5. IPstack geolocation service
 
-Follow the existing:
+Create a reusable server-side service following the existing project conventions.
 
-- Tailwind design
-- components
-- typography
-- spacing
-- responsive behavior
-- dark/light theme if present
-- icons
-- loading patterns
+Responsibilities:
 
-Add:
+- Determine whether an IP address is eligible for enrichment.
+- Reject invalid, loopback, private, link-local, reserved, and other non-public addresses from external geolocation requests.
+- Handle IPv4 and IPv6.
+- Avoid looking up the server's own public IP as if it were the visitor.
+- Check the geolocation cache before calling IPstack.
+- Use a bounded timeout.
+- Validate the API response.
+- Normalize available fields into an internal schema.
+- Record a safe error status if enrichment fails.
+- Avoid repeated lookups for the same IP.
+- Never block page rendering while waiting for IPstack.
+- Respect subscription limitations and API usage limits.
+
+Normalize supported fields when present:
+
+- Country code and country name.
+- Continent code and name.
+- Region code and region name.
+- City.
+- Postal code only if justified and enabled.
+- Latitude and longitude.
+- Timezone.
+- ISP and ASN.
+- Connection type.
+- Security indicators only when included in the actual plan.
 
-### Student
+Do not assume that every field is available on the free subscription. Inspect actual API responses and handle absent or null fields.
 
-AI Learning Assistant.
+IP geolocation represents an estimate of network location. Do not label city-level IP results as the visitor's exact physical location or precise GPS coordinates.
+
+Do not add browser geolocation or GPS tracking.
+
+### 5.1 Cache and quota management
+
+Implement caching using the existing infrastructure where suitable, with MongoDB as a fallback if there is no appropriate cache.
+
+Cache keys should be derived using a server-side HMAC or similarly secure keyed hash of the normalized IP, not the raw IP itself.
+
+Use an appropriate TTL, such as seven days, and make it configurable.
+
+Cache successful lookups. Apply a shorter retry/backoff window to temporary failures to avoid repeatedly consuming the provider's quota.
+
+Do not cache malformed or unauthorized responses indefinitely.
 
-### Instructor
+Never send an IPstack request for every page view. Enrich a visitor at most once per cache period, subject to privacy rules and consent.
 
-AI Quiz Generator.
+Track internal provider usage:
 
-AI Project Feedback.
+- Lookup attempts.
+- Successful lookups.
+- Failed lookups.
+- Cache hits.
+- Rate-limit or quota errors.
+- Last successful lookup.
+- Remaining quota, only if the provider actually exposes a reliable measurement.
 
-The UI must clearly distinguish:
+Do not invent quota values or claim access to provider billing data that the API does not expose.
 
-AI-generated content
-vs
-human-approved content.
+If IPstack becomes unavailable, analytics collection and reporting must continue without geolocation enrichment.
 
-Provide useful states:
+## 6. MongoDB data model
 
-- idle
-- loading
-- success
-- error
-- retry
-- empty
-- validation failure
+Follow the existing model conventions. Add collections or equivalent schemas only where necessary.
 
-Do not freeze the page while AI requests execute.
+Potential entities:
 
-==================================================
-PHASE 13 — AI SERVICE ABSTRACTION
-=================================
+### AnalyticsEvent
 
-Design the AI service so Ollama is the current provider, but the application is not permanently locked to Ollama.
+- `_id`
+- `eventId`
+- `eventType`
+- `occurredAt`
+- `receivedAt`
+- `sessionId`
+- `visitorIdHash`
+- `path`
+- `pageTitle`
+- `referrerHost`
+- `countryCode`
+- `countryName`
+- `regionName`
+- `city`
+- `deviceType`
+- `browserFamily`
+- `osFamily`
+- `isInternal`
+- `isBot`
+- Minimal approved event metadata.
 
-Create a provider abstraction.
+### AnalyticsSession
 
-Conceptually:
+- `sessionId`
+- `visitorIdHash`
+- `startedAt`
+- `lastSeenAt`
+- `endedAt`, if reliably determined
+- `pageViewCount`
+- `landingPath`
+- `exitPath`
+- `countryCode`
+- `regionName`
+- `city`
+- `deviceType`
+- `browserFamily`
+- `osFamily`
+- `isInternal`
+- `isBot`
 
-AIProvider
-generateText()
-generateStructured()
-healthCheck()
+### GeoCache
 
-Then:
+- `ipHash`
+- `normalizedGeoData`
+- `status`
+- `fetchedAt`
+- `expiresAt`
 
-OllamaProvider
+### Analytics settings
 
-Later we could add:
+Use the existing configuration mechanism if one exists. Otherwise store only the minimal operational settings necessary.
 
-OpenAIProvider
-GeminiProvider
+These are suggested schemas, not instructions to create redundant collections. Consolidate where practical and preserve the existing architecture.
 
-without changing application-level features.
+### Database requirements
 
-Do not over-engineer this.
+- Add appropriate indexes for date ranges, country, event type, path, session ID, and unique event ID.
+- Use TTL indexes where appropriate and supported.
+- Make event ingestion idempotent.
+- Prevent unbounded growth of sessions and event metadata.
+- Avoid full collection scans for common dashboard queries.
+- Use aggregation pipelines for grouped reports.
+- Paginate detailed tables.
+- Use projections to limit returned data.
+- Set maximum reporting ranges for expensive queries.
+- Consider pre-aggregated daily metrics if traffic volume justifies them.
+- Ensure concurrent updates do not double-count sessions or page views.
 
-Keep the abstraction small and practical.
+Never store raw IP addresses indefinitely by default. Prefer keyed pseudonymous hashes and short-lived transient IP processing for geolocation. If raw IP processing is strictly necessary, document the purpose, retention period, access controls, and privacy implications before implementing it.
 
-==================================================
-PHASE 14 — AI HEALTH CHECK
-==========================
+## 7. Admin dashboard navigation
 
-Implement an internal health check for AI.
+Add an **Analytics** navigation entry to the existing admin sidebar or navigation menu.
 
-The application should be able to determine whether:
+Reuse the current dashboard layout and navigation conventions.
 
-- Ollama is reachable
-- configured model exists
-- AI service is operational
+Potential routes, adjusted to the actual project:
 
-Do not expose sensitive infrastructure information to normal users.
+- `/admin/analytics`
+- `/admin/analytics/visitors`
+- `/admin/analytics/geography`
+- `/admin/analytics/pages`
+- `/admin/analytics/events`
+- `/admin/analytics/settings`
 
-If an admin/system health page already exists, integrate the AI health status there if appropriate.
+Do not create all routes if a well-organized single analytics route with tabs or sections fits the existing project better.
 
-Otherwise create a small internal health endpoint following the project's existing architecture.
+Restrict all analytics pages, API endpoints, exports, and settings to authorized administrators using server-side authorization.
 
-Example conceptual endpoint:
+Do not rely on hiding the navigation link as an access-control mechanism.
 
-GET /api/ai/health
+If the platform has multiple roles, define and document which roles can access aggregate statistics, user-linked details, exports, and analytics configuration.
 
-The endpoint should return safe information such as:
+## 8. Analytics overview dashboard
 
-{
-"available": true,
-"provider": "ollama"
-}
-
-Do not expose credentials.
-
-==================================================
-PHASE 15 — DOCKER INTEGRATION
-=============================
-
-Update Docker Compose carefully.
-
-Existing services must continue working.
-
-Expected architecture:
-
-services:
-app
-mongo
-rustfs
-mongo-express if currently used
-nginx if currently used
-ollama
-
-Add:
-
-- Ollama volume
-- appropriate network
-- health check if practical
-- environment configuration
-
-The Next.js application must communicate with:
-
-http://ollama:11434
-
-inside Docker.
-
-IMPORTANT:
-
-Do not use localhost from the Next.js container to reach Ollama.
-
-Inside Docker:
-
-localhost means the current container.
-
-Use the Docker service name.
-
-Document the difference between:
-
-Docker-to-Docker communication
-
-and
-
-host-to-container communication.
-
-==================================================
-PHASE 16 — MODEL INITIALIZATION
-===============================
-
-Create a reliable local setup process.
-
-For example:
-
-1. Start infrastructure.
-2. Start Ollama.
-3. Pull model.
-4. Verify model.
-5. Start application.
-
-The exact implementation should fit the existing project.
-
-Avoid downloading the model every time docker compose starts.
-
-The model must persist using a named Docker volume.
-
-Provide clear commands in documentation.
-
-For example conceptually:
-
-docker compose up -d ollama
-
-then:
-
-docker compose exec ollama ollama pull <MODEL>
-
-Then verify.
-
-Use the actual model selected for this project.
-
-==================================================
-PHASE 17 — TESTING
-==================
-
-Add tests for AI functionality.
-
-At minimum test:
-
-### AI assistant
-
-- authenticated request succeeds
-- unauthenticated request rejected
-- unauthorized course access rejected
-- invalid input rejected
-- provider failure handled
-
-### Quiz generator
-
-- valid structured output accepted
-- invalid output rejected
-- instructor-only access
-- generated content is not automatically published
-
-### Project feedback
-
-- authorized access
-- invalid AI response handled
-- instructor approval remains required
-
-### AI provider
-
-Test:
-
-- successful response
-- timeout
-- unavailable Ollama
-- malformed response
-
-Mock Ollama in automated tests.
-
-Do NOT require a real LLM running for every unit test.
-
-Tests should be deterministic.
-
-If the project currently lacks a testing framework, choose an appropriate lightweight setup compatible with the existing Next.js/TypeScript architecture.
-
-Document how to run tests.
-
-==================================================
-PHASE 18 — LINT / TYPECHECK / BUILD
-===================================
-
-After implementation run:
-
-- lint
-- typecheck
-- tests
-- production build
-
-Fix all errors introduced by the implementation.
-
-Do not suppress TypeScript errors with:
-
-any
-
-unless absolutely necessary.
-
-Do not disable ESLint rules simply to make the build pass.
-
-Do not hide errors.
-
-==================================================
-PHASE 19 — ENVIRONMENT VARIABLES
-================================
-
-Create/update:
-
-.env.example
-
-Document AI configuration.
-
-For example:
-
-OLLAMA_BASE_URL=http://ollama:11434
-OLLAMA_MODEL=<selected-model>
-
-Use the actual variable naming convention of the project.
-
-Never commit:
-
-.env
-.env.local
-real secrets
-real credentials
-real API keys
-
-Do not expose Ollama configuration through NEXT*PUBLIC*\* variables unless there is a legitimate browser-side requirement.
-
-The browser should call our own Next.js API.
-
-==================================================
-PHASE 20 — SECURITY AUDIT OF EXISTING PROJECT
-=============================================
-
-Because this is a capstone, use this opportunity to perform a broader security audit.
-
-Inspect:
-
-- authentication
-- authorization
-- API routes
-- input validation
-- file upload
-- object storage
-- MongoDB queries
-- password handling
-- session handling
-- secrets
-- Docker configuration
-- Nginx
-- CORS if applicable
-- exposed admin functionality
-- exposed infrastructure
-
-Identify vulnerabilities.
-
-Fix issues that are clearly safe to fix without breaking functionality.
-
-For larger changes, document them instead of making risky modifications.
-
-Also inspect Git history for accidentally committed secrets.
-
-If secrets are found:
-
-DO NOT print the secret values.
-
-Report only:
-
-- file
-- type of secret
-- commit/location
-
-Then explain the required remediation.
-
-==================================================
-PHASE 21 — DOCUMENTATION
-========================
-
-Update README.md professionally.
-
-Add:
-
-## AI Features
-
-Explain:
-
-1. AI Learning Assistant
-2. AI Quiz Generator
-3. AI Project Feedback
-
-Explain that Ollama is used for local LLM inference.
-
-Add:
-
-## AI Architecture
-
-Explain the flow:
-
-Browser
-→ Next.js
-→ Auth
-→ AI API
-→ AI Service
-→ Ollama
-→ LLM
-→ Validation
-→ Response
-
-Add:
-
-## Local AI Setup
-
-Explain exactly:
-
-1. install prerequisites
-2. clone repository
-3. configure environment
-4. start Docker
-5. start Ollama
-6. pull model
-7. verify model
-8. start application
-9. verify AI
-
-Include exact commands based on the final implementation.
-
-Add:
-
-## AI Environment Variables
-
-Document variables without exposing secrets.
-
-Add:
-
-## Testing
-
-Document commands.
-
-==================================================
-PHASE 22 — CREATE AI ARCHITECTURE DOCUMENT
-==========================================
-
-Create:
-
-docs/ai-architecture.md
+Build a polished overview page using the platform's existing visual language.
 
 Include:
 
-1. Purpose
-2. AI use cases
-3. Architecture diagram
-4. Request lifecycle
-5. Authentication
-6. Authorization
-7. Prompt construction
-8. Ollama integration
-9. Structured output
-10. Validation
-11. Error handling
-12. Security
-13. Human-in-the-loop
-14. Future provider abstraction
+### KPI cards
 
-Include a Mermaid diagram if compatible with the repository documentation.
+- Total page views.
+- Total sessions.
+- Unique visitors.
+- New visitors.
+- Returning visitors.
+- Average pages per session.
+- Engagement rate, only if its definition is documented.
+- Average session duration, only when the data supports a valid calculation.
+- Top country.
+- Geolocation coverage rate.
 
-Example conceptual architecture:
+Each KPI should show its comparison against the previous equivalent period when enough data exists.
 
-flowchart TD
-U[User]
-UI[Next.js UI]
-API[Next.js API]
-AUTH[Authentication]
-RBAC[Authorization]
-VALIDATE[Input Validation]
-AI[AI Service]
-OLLAMA[Ollama]
-MODEL[Local LLM]
-OUTPUT[Output Validation]
-DB[(MongoDB)]
+Provide a meaningful empty state for a new installation.
 
-```
-U --> UI
-UI --> API
-API --> AUTH
-AUTH --> RBAC
-RBAC --> VALIDATE
-VALIDATE --> AI
-AI --> OLLAMA
-OLLAMA --> MODEL
-MODEL --> OUTPUT
-OUTPUT --> API
-API --> UI
-```
+Never display fabricated sample metrics in production.
 
-Adapt the diagram to the actual final architecture.
+### Main traffic chart
 
-==================================================
-PHASE 23 — CREATE PROMPT ENGINEERING DOCUMENT
-=============================================
+A time-series chart displaying:
 
-Create:
+- Page views.
+- Sessions.
+- Unique visitors.
 
-docs/prompt-engineering.md
+Allow the administrator to toggle individual series.
 
-Explain:
+Use the project's existing chart library. If none exists, choose a maintained library compatible with the installed framework.
 
-- system instructions
-- user input
-- educational context
-- delimiters
-- prompt injection defense
-- structured output
-- schema validation
-- hallucination mitigation
-- human review
-- limitations of local LLMs
+Support daily aggregation for longer date ranges and finer granularity for short ranges where appropriate.
 
-Include examples of the architecture of prompts, but do not expose sensitive internal prompts if they contain secrets or implementation-sensitive information.
+### Other overview sections
 
-==================================================
-PHASE 24 — CREATE AI TESTING DOCUMENT
-=====================================
+- Top countries.
+- Top cities.
+- Top pages.
+- Top referrer sources.
+- Device distribution.
+- Browser distribution.
+- Operating system distribution.
+- Recent visitor activity.
+- Latest analytics events.
+- Geolocation enrichment status.
 
-Create:
+Use compact, readable visualizations and avoid overwhelming the page.
 
-docs/ai-testing.md
+## 9. Detailed geography analytics
+
+Create a dedicated geography view.
+
+Provide summary cards and charts for:
+
+- Visitors by country.
+- Sessions by country.
+- Page views by country.
+- Visitors by region.
+- Visitors by city.
+- Country-level trend over time.
+- City-level traffic rankings.
+- Percentage of visits with known country, region, and city.
+
+Provide a searchable, sortable, paginated country table with:
+
+- Country.
+- Country code or flag.
+- Unique visitors.
+- Sessions.
+- Page views.
+- Share of total traffic.
+- Change versus previous period.
+
+Provide a city table with:
+
+- City.
+- Region.
+- Country.
+- Unique visitors.
+- Sessions.
+- Page views.
+
+Add a country filter that updates the related charts and tables.
+
+Add a city search/filter where useful.
+
+A map is optional. If a suitable mapping library already exists, use it. Otherwise prioritize charts and tables over adding a heavy mapping dependency.
+
+Never imply that an IP address identifies an exact building or person.
+
+## 10. Detailed visitor analytics
+
+Build a visitor analytics page with:
+
+- Total visitors.
+- New versus returning visitors.
+- Visitors by date.
+- Session counts.
+- Pages per session.
+- Traffic by device.
+- Traffic by browser.
+- Traffic by operating system.
+- Geography summaries.
+- Recent activity.
+
+If the platform has authenticated users, optionally show an authorized, privacy-conscious distinction between authenticated and anonymous traffic.
+
+Do not expose students' personal details unnecessarily.
+
+Avoid a permanent per-person surveillance interface. Use pseudonymous identifiers for ordinary visitor analysis. If account-level drill-down is genuinely required for legitimate platform administration, restrict it to authorized roles and document the purpose and access policy.
+
+A visitor detail view, if implemented, should prioritize aggregated session behavior and avoid showing raw IP addresses or unnecessary identity information.
+
+## 11. Page and referrer analytics
+
+Create a detailed pages report.
+
+Include:
+
+- Page path.
+- Page title.
+- Page views.
+- Unique visitors.
+- Sessions.
+- Entrances.
+- Exits.
+- Average time on page, only when supported by reliable event timing.
+- Trend over time.
+
+Add filters for date, country, device type, and page path.
+
+Normalize dynamic routes so individual resource identifiers do not create uncontrolled cardinality.
+
+Do not store sensitive route parameters.
+
+Create a referrer report showing:
+
+- Referrer hostname.
+- Sessions.
+- Page views.
+- Share of traffic.
+
+Distinguish direct traffic from missing referrer data where possible, but do not assume that every missing referrer means direct navigation.
+
+## 12. Events and activity analytics
+
+Support a controlled event vocabulary, for example:
+
+- `page_view`
+- `session_start`
+- `session_end`, only when reliably determined
+- `course_view`
+- `lesson_view`
+- `navigation_click`, only where justified
+- `search_submitted`, without recording sensitive query content
+- `download_started`, without storing private file names
+- `login_success`, if approved and already compatible with authentication logging
+
+Use existing business events where available instead of duplicating them.
+
+Do not automatically instrument every button or every user action.
+
+Do not collect keystrokes, form values, private messages, or student assessment answers.
+
+Provide an events table with:
+
+- Event type.
+- Timestamp.
+- Page path.
+- Country.
+- Device category.
+- Session identifier, pseudonymous.
+- Relevant safe metadata.
+
+Add search, filtering, pagination, and CSV export where appropriate.
+
+All event metadata must be allowlisted, size-limited, and sanitized.
+
+## 13. Global filters and date handling
+
+Provide a consistent filter bar across the analytics pages.
+
+Support:
+
+- Today.
+- Yesterday.
+- Last 7 days.
+- Last 30 days.
+- Last 90 days.
+- Custom date range.
+- Country.
+- Region.
+- City.
+- Device.
+- Browser.
+- Operating system.
+- Page path.
+- Internal traffic inclusion/exclusion.
+
+Use explicit date boundaries and a consistent reporting timezone.
+
+Default to the previous 30 days if suitable.
+
+Clearly display the active reporting period.
+
+When filters change, update all relevant KPI cards, charts, and tables consistently.
+
+Do not calculate percentages by averaging percentages from different groups. Use the appropriate underlying totals.
+
+Prevent invalid date ranges and excessive database queries.
+
+## 14. API endpoints for reporting
+
+Follow the project's existing API architecture. The following are logical examples, not a requirement to create every endpoint separately:
+
+- `POST /api/analytics/collect`
+- `GET /api/admin/analytics/overview`
+- `GET /api/admin/analytics/timeseries`
+- `GET /api/admin/analytics/geography`
+- `GET /api/admin/analytics/visitors`
+- `GET /api/admin/analytics/pages`
+- `GET /api/admin/analytics/referrers`
+- `GET /api/admin/analytics/events`
+- `GET /api/admin/analytics/provider-status`
+- `GET /api/admin/analytics/export`
+
+Implement only the endpoints that fit the existing architecture.
+
+Requirements:
+
+- Enforce authorization server-side.
+- Validate and clamp all query parameters.
+- Use pagination and safe sorting.
+- Use aggregation pipelines with appropriate indexes.
+- Set response size limits.
+- Return a consistent response format.
+- Avoid exposing database documents directly.
+- Handle unavailable or incomplete geolocation data.
+- Return safe error messages.
+- Avoid leaking infrastructure details.
+- Add suitable cache headers for administrative responses.
+- Never publicly expose provider usage or administrative statistics.
+
+Do not add a public API for arbitrary IP lookups.
+
+## 15. UI and design system
+
+The new module must look native to the existing e-learning platform.
+
+Before implementing any component, inspect the existing pages and identify the design patterns already in use.
+
+Preserve:
+
+- Current colors and theme.
+- Typography.
+- Sidebar.
+- Header.
+- Navigation behavior.
+- Spacing and layout conventions.
+- Border radius.
+- Existing icon family.
+- Existing chart and table styling.
+- Loading skeletons.
+- Toast notifications.
+- Dark mode, if already supported.
+- Responsive behavior.
+- Existing reusable components.
+
+Do not redesign the entire application.
+
+Do not introduce an unrelated visual identity.
+
+Use a professional analytics-dashboard presentation with:
+
+- Clear hierarchy.
+- Compact KPI cards.
+- Consistent chart titles and legends.
+- Useful empty states.
+- Skeleton loading states.
+- Error and retry states.
+- Searchable tables.
+- Sticky table headers when consistent with the existing UI.
+- Responsive filters.
+- Accessible labels, focus indicators, and keyboard navigation.
+
+Avoid unnecessary animation and decorative elements that reduce readability.
+
+All tables and charts must work on mobile and desktop.
+
+## 16. Performance and scalability
+
+The feature must not noticeably slow down course pages, authentication, or normal navigation.
+
+Requirements:
+
+- Use asynchronous event delivery.
+- Do not block page rendering on analytics requests.
+- Batch or deduplicate events when appropriate.
+- Avoid a database write for every React render.
+- Avoid duplicate tracking caused by React Strict Mode or repeated navigation callbacks.
+- Use efficient indexes.
+- Limit dashboard query ranges.
+- Cache expensive aggregate results briefly where appropriate.
+- Cancel stale frontend requests when filters change.
+- Debounce search input.
+- Paginate detailed tables.
+- Avoid excessive polling.
+- Avoid creating an analytics request loop.
+- Ensure the analytics service fails independently of the main application.
+
+Keep the implementation compatible with the VPS's actual available memory and CPU.
+
+Do not introduce Redis, Kafka, Elasticsearch, or another major service unless the existing architecture and measured workload genuinely justify it.
+
+## 17. Security and privacy requirements
+
+This is a real educational platform with authenticated users and potentially sensitive learner activity.
+
+Implement the following safeguards:
+
+- Server-side authorization on every administrative endpoint.
+- Secret management through environment variables.
+- Trusted-proxy configuration.
+- Input validation and output sanitization.
+- Rate limiting.
+- Event deduplication.
+- Bounded payload sizes.
+- Safe error logging.
+- No raw IP addresses in general-purpose logs.
+- No API keys or tokens in logs.
+- No raw IP addresses in browser-visible event payloads.
+- Configurable data retention and deletion.
+- Privacy-conscious visitor identifiers.
+- Documented session and visitor counting definitions.
+- Appropriate consent behavior.
+- Restricted CSV export access.
+- Audit logging for sensitive administrative actions, using the existing audit mechanism if available.
+
+Do not implement fingerprinting based on canvas, fonts, audio, or other invasive browser characteristics.
+
+Do not attempt to bypass VPNs, proxies, browser privacy protections, or user consent.
+
+Do not identify a person based solely on geolocation data.
+
+Use only the provider fields available under the configured subscription.
+
+Add a short privacy and operational document explaining what is collected, why, where it is stored, who can access it, and how long it is retained.
+
+## 18. Deployment integration
+
+Inspect the existing Docker Compose configuration and production deployment process.
+
+Do not change the currently running service topology unnecessarily.
+
+Update the relevant environment configuration so that the application receives the rotated IPstack key at runtime.
+
+Ensure:
+
+- The key is not baked into Docker images.
+- The key is not copied into a publicly served directory.
+- The application can start if IPstack is temporarily unavailable.
+- MongoDB indexes are created safely.
+- Database migrations or initialization tasks are idempotent.
+- Existing volumes are preserved.
+- Existing course data and users remain intact.
+- Existing Nginx routing continues to work.
+- Existing application ports remain unchanged unless necessary.
+- Health checks continue to function.
+- Existing Ollama and RustFS services are not modified without a clear technical reason.
+
+Do not run destructive commands.
+
+Do not remove Docker volumes.
+
+Do not reset the database.
+
+Do not perform a production deployment or restart services without my authorization.
+
+Provide exact commands for applying the changes after the implementation has been reviewed.
+
+## 19. Testing requirements
+
+Add tests using the project's existing testing framework.
+
+At minimum, test:
+
+### Event collection
+
+- Valid page-view events.
+- Invalid payloads.
+- Duplicate event IDs.
+- Malformed identifiers.
+- Oversized payloads.
+- Rate-limited clients.
+- Missing or malformed paths.
+- Server-generated timestamps.
+- Trusted-proxy IP handling.
+
+### IPstack integration
+
+- Successful lookup.
+- Missing API key.
+- Invalid API key.
+- Quota exhaustion.
+- Provider timeout.
+- Network failure.
+- Invalid response.
+- Private IP rejection.
+- IPv4 and IPv6.
+- Cache hits.
+- Cache expiration.
+- Missing optional response fields.
+
+### Reporting
+
+- Date-range boundaries.
+- Country aggregation.
+- City aggregation.
+- Unique visitor calculations.
+- Sessionization.
+- New versus returning visitors.
+- Page rankings.
+- Pagination.
+- Filtering.
+- Empty datasets.
+- Missing geolocation data.
+
+### Authorization and security
+
+- Anonymous users cannot access admin reports.
+- Non-admin users cannot access restricted reports.
+- Public clients cannot access arbitrary IP lookup endpoints.
+- No API key is exposed to the frontend.
+- Invalid sort and filter parameters are rejected.
+- Export endpoints enforce authorization.
+
+### UI
+
+- Loading state.
+- Empty state.
+- Error state.
+- Date filter changes.
+- Country filtering.
+- Responsive tables.
+- Charts with missing or zero-valued data.
+
+Use mocked IPstack responses in automated tests. Automated tests must not consume real API quota.
+
+Run the project's existing lint, type-check, tests, and production build commands.
+
+Fix any regressions introduced by the implementation.
+
+## 20. Documentation and deliverables
+
+Create or update a concise implementation document, for example:
+
+`docs/analytics-ipstack.md`
 
 Document:
 
-- unit testing
-- API testing
-- mocked AI provider
-- schema validation
-- failure scenarios
-- security testing
-- prompt injection testing
-- Ollama availability testing
-- deterministic testing strategy
+- Architecture and data flow.
+- Required environment variables.
+- How to configure the API key.
+- How geolocation caching works.
+- How the visitor and session metrics are calculated.
+- Which fields are available only on certain provider plans.
+- Database indexes and retention.
+- Privacy and consent assumptions.
+- How to run migrations or initialize indexes.
+- How to run tests.
+- How to build and deploy.
+- How to troubleshoot provider errors and quota limits.
+- How to disable analytics safely.
 
-Explain why tests should not depend on a live LLM.
+At the end, provide:
 
-==================================================
-PHASE 25 — FINAL CAPSTONE DOCUMENTATION
-=======================================
+1. A summary of what was implemented.
+2. The files created and modified.
+3. The database changes and indexes.
+4. The API endpoints created.
+5. The analytics pages and charts added.
+6. The environment variables that must be configured.
+7. The tests and build checks executed, with actual results.
+8. Any remaining limitations.
+9. Exact deployment commands for review and later execution.
+10. A checklist of anything that still requires manual configuration.
 
-Update/create:
+## 21. Execution strategy
 
-docs/final-product-review.md
-docs/final-release-checklist.md
-docs/architecture.md
-docs/portfolio-case-study.md
+Work incrementally:
 
-These must reflect the actual AI-powered implementation.
+Phase 1: Inspect the codebase and establish the real architecture.
 
-Do not write fictional claims.
+Phase 2: Design the analytics data model and secure ingestion pipeline.
 
-The documentation must be based on what was actually implemented.
+Phase 3: Implement server-side IPstack integration, caching, and error handling.
 
-The project description should evolve toward:
+Phase 4: Implement aggregation queries and protected reporting APIs.
 
-AI-Powered E-Learning Platform
+Phase 5: Integrate the Analytics navigation and dashboard pages.
 
-but use a professional name that fits the actual implementation.
+Phase 6: Implement detailed geography, visitors, pages, and events reports.
 
-==================================================
-PHASE 26 — README QUALITY
-=========================
+Phase 7: Add privacy controls, retention, indexes, and security protections.
 
-The README should contain:
+Phase 8: Add automated tests and documentation.
 
-# Project Name
+Phase 9: Run checks, inspect the diff, and prepare deployment instructions.
 
-One sentence description.
+Do not stop at mockups or frontend-only components. Implement working data collection, persistent storage, real reporting queries, actual chart data, and protected APIs.
 
-## Problem
+Do not invent historical analytics data. If the platform has never tracked visits, explain that historical reports will begin when tracking is activated. Existing Nginx logs may provide limited historical request data, but only import them if a safe, well-defined import is feasible and clearly distinguish imported request counts from true page views and sessions.
 
-What problem does this platform solve?
+Preserve all existing functionality and keep the code maintainable.
 
-## Solution
-
-How does the platform solve it?
-
-## AI Capabilities
-
-What AI features exist?
-
-## Core Features
-
-Existing platform capabilities.
-
-## AI Architecture
-
-High-level architecture.
-
-## Tech Stack
-
-Include:
-
-- Next.js
-- TypeScript
-- React
-- Tailwind
-- MongoDB
-- Mongoose
-- NextAuth
-- RustFS
-- Docker
-- Ollama
-- selected LLM
-
-Only mention technologies actually used.
-
-## Requirements
-
-Document:
-
-- Node
-- Docker
-- Docker Compose
-- Ollama only if actually required outside Docker
-
-## Installation
-
-Exact steps.
-
-## Environment Variables
-
-Complete .env.example documentation.
-
-## Running Locally
-
-Exact Docker commands.
-
-## AI Setup
-
-Exact Ollama/model commands.
-
-## Testing
-
-Exact commands.
-
-## API Examples
-
-Include useful AI API examples.
-
-Do not expose secrets.
-
-## Architecture
-
-Link to architecture documentation.
-
-## Security
-
-Link to security documentation if created.
-
-## Screenshots
-
-Add screenshots when available.
-
-## Future Improvements
-
-Include:
-
-- RAG
-- embeddings
-- vector database
-- provider switching
-- evaluation framework
-- streaming
-- observability
-
-Only present these as future work if they are not implemented.
-
-==================================================
-PHASE 27 — API DOCUMENTATION
-============================
-
-Create:
-
-docs/api.md
-
-Document AI endpoints.
-
-For each endpoint include:
-
-- method
-- route
-- authentication
-- authorization
-- request body
-- validation
-- response
-- error responses
-
-Example:
-
-POST /api/ai/assistant
-
-POST /api/ai/quiz
-
-POST /api/ai/project-review
-
-GET /api/ai/health
-
-Use the actual final routes.
-
-==================================================
-PHASE 28 — CAPSTONE DEMONSTRATION
-=================================
-
-Create:
-
-docs/demo-script.md
-
-Create a 3–5 minute demo.
-
-Structure:
-
-0:00–0:30
-Problem and project introduction.
-
-0:30–1:30
-Existing platform.
-
-1:30–2:30
-AI Learning Assistant.
-
-2:30–3:15
-AI Quiz Generator.
-
-3:15–3:45
-AI Project Feedback.
-
-3:45–4:30
-Architecture/security/testing.
-
-4:30–5:00
-Conclusion and future improvements.
-
-The demo should prove that the AI is actually integrated into the application.
-
-==================================================
-PHASE 29 — INTERVIEW PREPARATION
-================================
-
-Create:
-
-docs/interview-questions.md
-
-Prepare answers for at least:
-
-1. Why did you choose Ollama?
-2. Why did you integrate AI into this project instead of creating a separate AI application?
-3. How does the application prevent users from calling the LLM directly?
-4. How do you protect AI endpoints?
-5. How do you validate LLM output?
-6. How do you handle hallucinations?
-7. How do you handle prompt injection?
-8. Why use structured output?
-9. Why is human approval required for AI-generated quizzes/project feedback?
-10. How would you move from Ollama to OpenAI/Gemini in production?
-11. How would you implement RAG?
-12. How would you evaluate AI quality?
-13. How would you handle thousands of AI requests?
-14. How would you reduce AI latency?
-15. What are the limitations of your current implementation?
-
-Answers must reflect the actual project.
-
-==================================================
-PHASE 30 — LINKEDIN POST
-========================
-
-Create:
-
-docs/linkedin-post.md
-
-Write a professional LinkedIn project announcement.
-
-Mention:
-
-- project problem
-- engineering solution
-- AI integration
-- Ollama
-- Next.js
-- TypeScript
-- MongoDB
-- Docker
-- lessons learned
-
-Do not exaggerate.
-
-==================================================
-PHASE 31 — GITHUB QUALITY
-=========================
-
-Prepare the repository for public review.
-
-Check:
-
-- repository name
-- repository description
-- README
-- topics
-- screenshots
-- docs
-- .gitignore
-- .env.example
-- no secrets
-- no temporary files
-- no unnecessary generated files
-- no credentials
-- no debugging code
-- no console spam
-- no TODOs that indicate unfinished critical functionality
-
-Do not delete useful project files without reason.
-
-==================================================
-PHASE 32 — PERFORMANCE
-======================
-
-Evaluate AI performance.
-
-Consider:
-
-- model size
-- response latency
-- context size
-- timeout
-- token/output limits
-- concurrent requests
-- Docker resources
-
-Do not implement premature optimization.
-
-Document practical limitations.
-
-If streaming is not implemented, document it as a future improvement.
-
-==================================================
-PHASE 33 — OPTIONAL FUTURE RAG ARCHITECTURE
-===========================================
-
-Do NOT implement RAG unless it is genuinely justified and can be implemented cleanly within the available time/resources.
-
-However, design the architecture so RAG can be added later.
-
-Future architecture:
-
-Course documents
-↓
-Chunking
-↓
-Embeddings
-↓
-Vector Database
-↓
-Semantic Search
-↓
-Relevant Context
-↓
-Ollama
-↓
-Grounded Answer
-
-Document this as a future improvement unless implemented.
-
-Do not claim that the current assistant is RAG-based if it is not.
-
-==================================================
-PHASE 34 — QUALITY GATE
-=======================
-
-Before considering the implementation complete, run:
-
-1. TypeScript check
-2. ESLint
-3. Tests
-4. Production build
-5. Docker Compose validation
-6. Start all services
-7. Verify MongoDB
-8. Verify RustFS
-9. Verify Ollama
-10. Verify model
-11. Verify Next.js
-12. Verify AI health
-13. Test AI assistant
-14. Test quiz generation
-15. Test project feedback
-16. Test unauthorized access
-17. Test invalid input
-18. Test Ollama unavailable
-19. Test malformed AI output
-20. Test application restart
-
-Do not declare success if critical tests fail.
-
-==================================================
-PHASE 35 — FINAL REPORT
-=======================
-
-At the end, provide a detailed implementation report.
-
-Include:
-
-### 1. What was analyzed
-
-### 2. Existing architecture
-
-### 3. What was changed
-
-### 4. New files
-
-### 5. Modified files
-
-### 6. AI architecture
-
-### 7. Ollama setup
-
-### 8. Selected model
-
-Explain why it was selected.
-
-### 9. AI features
-
-### 10. Security improvements
-
-### 11. Tests added
-
-### 12. Documentation added
-
-### 13. Commands to run locally
-
-### 14. Known limitations
-
-### 15. Future improvements
-
-### 16. Files that need manual review
-
-### 17. Remaining TODOs
-
-==================================================
-CRITICAL ENGINEERING RULES
-==========================
-
-1. DO NOT rewrite the project.
-2. DO NOT remove working functionality.
-3. DO NOT change authentication unnecessarily.
-4. DO NOT change database architecture unnecessarily.
-5. DO NOT expose secrets.
-6. DO NOT put Ollama calls in browser code.
-7. DO NOT trust LLM output.
-8. DO NOT store unvalidated AI output.
-9. DO NOT allow AI to make final academic decisions automatically.
-10. DO NOT fabricate project features.
-11. DO NOT claim RAG if RAG is not implemented.
-12. DO NOT use fake AI responses.
-13. DO NOT hard-code the model name everywhere.
-14. DO NOT hard-code the Ollama URL throughout the application.
-15. DO NOT use localhost for Docker-to-Docker communication.
-16. DO NOT make automated tests depend on a running LLM.
-17. DO NOT suppress errors just to make builds pass.
-18. DO NOT use `any` unnecessarily.
-19. DO NOT disable ESLint unnecessarily.
-20. DO NOT introduce unnecessary dependencies.
-21. Prefer existing project utilities and conventions.
-22. Keep the architecture modular.
-23. Keep AI provider-specific code isolated.
-24. Keep authentication and authorization server-side.
-25. Treat all user/course content as untrusted input.
-26. Validate both API input and AI output.
-27. Keep instructor approval in the loop for generated educational content.
-28. Preserve existing Docker services.
-29. Preserve existing MongoDB data compatibility.
-30. Make the final project understandable to another engineer.
-
-==================================================
-IMPORTANT EXECUTION STRATEGY
-============================
-
-Do not make all changes blindly in one step.
-
-Work incrementally.
-
-Recommended order:
-
-STEP 1
-Audit repository.
-
-STEP 2
-Design AI architecture.
-
-STEP 3
-Implement Ollama Docker integration.
-
-STEP 4
-Verify Ollama independently.
-
-STEP 5
-Implement AI provider abstraction.
-
-STEP 6
-Implement AI health check.
-
-STEP 7
-Implement AI Learning Assistant.
-
-STEP 8
-Test assistant.
-
-STEP 9
-Implement AI Quiz Generator.
-
-STEP 10
-Test quiz generator.
-
-STEP 11
-Implement AI Project Feedback.
-
-STEP 12
-Test project feedback.
-
-STEP 13
-Perform security review.
-
-STEP 14
-Add automated tests.
-
-STEP 15
-Run lint/typecheck/build.
-
-STEP 16
-Update Docker documentation.
-
-STEP 17
-Update README.
-
-STEP 18
-Create architecture documentation.
-
-STEP 19
-Create prompt engineering documentation.
-
-STEP 20
-Create AI testing documentation.
-
-STEP 21
-Create capstone documentation.
-
-STEP 22
-Create demo script.
-
-STEP 23
-Create interview questions.
-
-STEP 24
-Perform final repository audit.
-
-==================================================
-VERY IMPORTANT
-==============
-
-Before each major modification:
-
-- inspect the relevant existing code
-- understand its conventions
-- make the smallest clean change
-- verify the change
-- continue
-
-If you discover an architectural problem that prevents safe AI integration:
-
-STOP and explain the issue before making a risky change.
-
-If a requirement conflicts with existing architecture:
-
-prefer preserving working functionality and propose the safest integration.
-
-Do not invent missing information.
-
-Use actual file paths and actual project structures.
-
-At the end, provide me with:
-
-- complete list of changed files
-- complete list of created files
-- exact commands needed to start Ollama
-- exact command needed to pull the selected model
-- exact Docker Compose commands
-- exact test commands
-- exact URLs/endpoints to test
-- final architecture summary
-- known limitations
-- recommended next steps
-
-The goal is not simply "add AI".
-
-The goal is to transform this existing e-learning application into a credible AI engineering capstone demonstrating:
-
-- full-stack engineering
-- AI integration
-- local LLM infrastructure
-- prompt engineering
-- structured LLM outputs
-- validation
-- authentication
-- authorization
-- security
-- testing
-- Docker
-- documentation
-- human-in-the-loop AI
-- production-oriented architecture
-- engineering decision making
-
-Do the work carefully and professionally.
+**Begin by inspecting the repository, then implement the complete feature using the project's actual architecture and established coding conventions.**

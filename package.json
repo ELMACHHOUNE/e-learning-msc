@@ -7,9 +7,13 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test tests/**/*.test.ts",
     "seed": "npx tsx --env-file=.env.local scripts/seed.ts",
     "seed:grad": "npx tsx --env-file=.env.local scripts/seed-graduations.ts",
-    "assign:grad": "npx tsx --env-file=.env.local scripts/assign-graduate.ts"
+    "assign:grad": "npx tsx --env-file=.env.local scripts/assign-graduate.ts",
+    "analytics:indexes": "tsx --env-file=.env.local scripts/ensure-analytics-indexes.ts",
+    "analytics:purge": "tsx --env-file=.env.local scripts/purge-analytics.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1106.0",
@@ -41,6 +45,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4.3.3",
+    "tsx": "^4.20.3",
     "typescript": "^6"
   },
   "overrides": {
