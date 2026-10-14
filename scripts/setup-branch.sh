@@ -20,17 +20,17 @@ npm ci
 # Setup environment
 if [ "$BRANCH" = "dev" ]; then
     if [ ! -f ".env.local" ]; then
-        cp .env.development .env.local
-        echo "Created .env.local from .env.development"
+        cp .env.example .env.local
+        echo "Created .env.local from .env.example"
         echo "Please edit .env.local with your local settings"
     fi
     echo "Development environment ready!"
     echo "Run: npm run dev"
-    echo "Or with Docker: docker compose -f docker-compose.dev.yml --env-file .env.development up -d"
+    echo "Or with Docker: docker compose -f docker-compose.dev.yml up -d"
 else
     if [ ! -f ".env" ]; then
-        cp .env.production .env
-        echo "Created .env from .env.production"
+        cp .env.example .env
+        echo "Created .env from .env.example"
         echo "Please edit .env with your production settings"
     fi
     echo "Production environment ready!"

@@ -154,18 +154,18 @@ curl http://localhost:3000/api/ai/health
 
 ### Development (dev branch)
 
-**Files:** `docker-compose.dev.yml`, `Dockerfile.dev`, `nginx/nginx.dev.conf`, `.env.development`
+**Files:** `docker-compose.dev.yml`, `Dockerfile.dev`, `nginx/nginx.dev.conf`, `.env.example`
 
 ```bash
 # Switch to dev branch
 git checkout dev
 
 # First-time setup
-cp .env.development .env.local
+cp .env.example .env.local
 # Edit .env.local if needed
 
 # Build & start (hot reload enabled)
-docker compose -f docker-compose.dev.yml --env-file .env.development up -d --build
+docker compose -f docker-compose.dev.yml up -d --build
 
 # Access at http://localhost:3000 (direct) or http://localhost (via nginx)
 # Mongo Express: http://localhost:8585 (admin/admin)
@@ -180,7 +180,7 @@ docker compose -f docker-compose.dev.yml down
 
 ### Production (main branch)
 
-**Files:** `docker-compose.prod.yml`, `Dockerfile`, `nginx/nginx.conf`, `.env.production`
+**Files:** `docker-compose.prod.yml`, `Dockerfile`, `nginx/nginx.conf`, `.env.example`
 
 ```bash
 # On VPS, switch to main
@@ -188,11 +188,11 @@ git checkout main
 git pull origin main
 
 # First-time setup
-cp .env.production .env
-# Edit .env with production values (AUTH_SECRET, AUTH_URL, etc.)
+cp .env.example .env
+# Edit .env with production values (AUTH_SECRET, AUTH_URL, IPSTACK_ACCESS_KEY, etc.)
 
 # Build & start
-docker compose -f docker-compose.prod.yml --env-file .env up -d --build
+docker compose -f docker-compose.prod.yml up -d --build
 
 # Access at https://e-teaching.tech (SSL via certbot)
 # Mongo Express: http://localhost:8585
@@ -206,8 +206,8 @@ docker compose -f docker-compose.prod.yml down
 
 | Task | Development | Production |
 |------|-------------|------------|
-| Build | `docker compose -f docker-compose.dev.yml --env-file .env.development build` | `docker compose -f docker-compose.prod.yml --env-file .env build` |
-| Start | `docker compose -f docker-compose.dev.yml --env-file .env.development up -d` | `docker compose -f docker-compose.prod.yml --env-file .env up -d` |
+| Build | `docker compose -f docker-compose.dev.yml build` | `docker compose -f docker-compose.prod.yml build` |
+| Start | `docker compose -f docker-compose.dev.yml up -d` | `docker compose -f docker-compose.prod.yml up -d` |
 | Logs | `docker logs -f e-learning-app-dev` | `docker logs -f e-learning-app` |
 | Restart | `docker compose -f docker-compose.dev.yml restart` | `docker compose -f docker-compose.prod.yml restart` |
 | Seed | `docker exec e-learning-app-dev npx tsx --env-file=.env.local scripts/seed.ts` | `docker exec e-learning-app npx tsx --env-file=.env scripts/seed.ts` |
@@ -232,12 +232,12 @@ docker compose -f docker-compose.prod.yml down
 The original `docker-compose.yml` is kept for reference. Use `docker-compose.prod.yml` for new production deployments.
 
 ```bash
-cp .env.docker .env   # compose template — fill in AUTH_SECRET / AUTH_URL
+cp .env.example .env   # compose reads .env automatically — fill in AUTH_SECRET / AUTH_URL
 docker compose up --build   # nginx on ${HTTP_PORT:-80}, app direct on ${APP_PORT:-3000}, mongo on 27017, rustfs S3 on 9000 + console on 9001, mongo-express on ${ME_PORT:-8585}
 docker compose down         # stop (data persists in the mongodb_data / rustfs_data volumes)
 ```
 
-Browse the app through nginx at `http://localhost`. `AUTH_URL` must match the nginx-facing URL (default `http://localhost` in `.env.docker`). The app container also stays reachable directly on `${APP_PORT:-3000}` for debugging.
+Browse the app through nginx at `http://localhost`. `AUTH_URL` must match the nginx-facing URL (default `http://localhost` in `.env`). The app container also stays reachable directly on `${APP_PORT:-3000}` for debugging.
 
 Seed the container database after `up`:
 
@@ -247,7 +247,7 @@ $env:SEED_PASSWORD='password123'
 npx tsx scripts/seed.ts
 ```
 
-Uploaded images/avatars/cover photos are stored in the RustFS bucket (`RUSTFS_BUCKET`, default `e-learning-msc`) and served back through `app/uploads/[...path]/route.ts`, so the client URL stays `/uploads/<folder>/<name>`. Push Media to the RustFS console at `http://localhost:9001` (default `RUSTFS_ACCESS_KEY` / `RUSTFS_SECRET_KEY` in `.env.docker`).
+Uploaded images/avatars/cover photos are stored in the RustFS bucket (`RUSTFS_BUCKET`, default `e-learning-msc`) and served back through `app/uploads/[...path]/route.ts`, so the client URL stays `/uploads/<folder>/<name>`. Push Media to the RustFS console at `http://localhost:9001` (default `RUSTFS_ACCESS_KEY` / `RUSTFS_SECRET_KEY` in `.env`).
 
 A Mongo web UI is available at `http://localhost:8585` (mongo-express; login `ME_USER`/`ME_PASSWORD`, defaults `admin`/`admin`). Note: `8081` is not used by default — Windows Docker Desktop reserves the 8054–8353 port band, so `ME_PORT` defaults to `8585`.
 
@@ -385,8 +385,7 @@ Source files live at the **project root** (there is no `src/` directory); the `@
 ├── Dockerfile                           # 3-stage build → standalone server (Node 22 alpine, non-root)
 ├── docker-compose.yml                   # nginx + app + MongoDB 7 + RustFS + mongo-express
 ├── .dockerignore
-├── .env.example                         # Environment template
-├── .env.docker                          # Compose env template
+├── .env.example                         # The only tracked env file (template + reference)
 ├── next.config.ts                       # Next.js config (standalone output, proxyClientMaxBodySize)
 ├── proxy.ts                             # NextAuth middleware (protects authenticated routes)
 ├── postcss.config.mjs                   # Tailwind v4 PostCSS config

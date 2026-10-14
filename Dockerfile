@@ -3,7 +3,9 @@ FROM node:22-alpine AS deps
 WORKDIR /app
 
 # Install dependencies only (with native build toolchain if any package needs it)
-RUN apk add --no-cache libc6-compat openssl=3.5.8-r0 && apk upgrade --no-cache
+# Never pin openssl here: the Alpine repo moves faster than this file, and a stale
+# pin makes `apk add` unsatisfiable as soon as the base image is re-pulled.
+RUN apk upgrade --no-cache && apk add --no-cache libc6-compat
 
 COPY package.json package-lock.json ./
 RUN npm ci
@@ -13,6 +15,9 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 ENV NEXT_TELEMETRY_DISABLED=1
+# Cap the heap explicitly: `next build` on the analytics-heavy app can exceed the
+# default limit on a small VPS and die with "JavaScript heap out of memory".
+ENV NODE_OPTIONS=--max-old-space-size=2048
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -32,7 +37,6 @@ ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
 RUN apk upgrade --no-cache \
-  && apk add --no-cache openssl=3.5.8-r0 \
   && addgroup --system --gid 1001 nodejs \
   && adduser --system --uid 1001 nextjs
 

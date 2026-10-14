@@ -30,12 +30,16 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-# Only `.env.example` is tracked. Every other env file may hold real secrets
-# (AUTH_SECRET, OAuth client secrets, IPSTACK_ACCESS_KEY) and must never be committed.
+# env files
+# `.env.example` is the ONLY tracked env file — it is the documented reference for
+# every variable. Real files are `.env.local` (dev) and `.env` (docker compose /
+# VPS), both gitignored. Tracking a real env file is what previously made
+# `git pull` abort on the VPS with "local changes would be overwritten".
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
 !.env.example
 
 # Belt and braces: refuse any stray file that looks like a real IPstack key.
