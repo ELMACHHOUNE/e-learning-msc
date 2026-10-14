@@ -40,7 +40,7 @@ function withGlobals<T>(overrides: Record<string, string | undefined>, run: () =
 
 describe('normalizeIpstackResponse', () => {
   it('normalizes a paid-plan response', () => {
-    const geo = normalizeIpstackResponse(FULL_RESPONSE as unknown as Record<string, unknown>)
+    const geo = normalizeIpstackResponse(FULL_RESPONSE)
     assert.deepEqual(geo, {
       countryCode: 'US',
       countryName: 'United States',
@@ -68,7 +68,7 @@ describe('normalizeIpstackResponse', () => {
       latitude: null,
       longitude: null,
       time_zone: null,
-    } as unknown as Record<string, unknown>)
+    })
 
     assert.equal(geo?.countryCode, 'FR')
     assert.equal(geo?.city, undefined)
@@ -82,23 +82,47 @@ describe('normalizeIpstackResponse', () => {
       country_code: 'DE',
       country_name: 'Germany',
       connection: { isp: 'Telekom', asn: 3320, type: 'business' },
-    } as unknown as Record<string, unknown>)
+    })
     assert.equal(geo?.connectionType, 'business')
   })
 
   it('never invents a location for an unsuccessful payload', () => {
     assert.equal(
-      normalizeIpstackResponse({ success: false, error: { code: 101 } } as unknown as Record<string, unknown>),
+      normalizeIpstackResponse({ success: false, error: { code: 101 } }),
       null,
     )
-    assert.equal(normalizeIpstackResponse({} as Record<string, unknown>), null)
+    assert.equal(normalizeIpstackResponse({}), null)
+  })
+
+  it('returns null for missing or non-object payloads', () => {
+    assert.equal(normalizeIpstackResponse(null), null)
+    assert.equal(normalizeIpstackResponse(undefined), null)
+    assert.equal(normalizeIpstackResponse('country_code: US' as unknown as Record<string, unknown>), null)
+    assert.equal(normalizeIpstackResponse([] as unknown as Record<string, unknown>), null)
+    assert.equal(normalizeIpstackResponse(42 as unknown as Record<string, unknown>), null)
+  })
+
+  it('ignores a success flag that is not a boolean', () => {
+    assert.equal(normalizeIpstackResponse({ success: 'no', country_code: 'US' })?.countryCode, 'US')
+  })
+
+  it('tolerates nested values of the wrong type', () => {
+    const geo = normalizeIpstackResponse({
+      country_code: 'US',
+      country_name: 'United States',
+      time_zone: 'America/Los_Angeles',
+      connection: ['not', 'an', 'object'],
+    })
+    assert.equal(geo?.countryCode, 'US')
+    assert.equal(geo?.timezone, undefined)
+    assert.equal(geo?.isp, undefined)
   })
 
   it('bounds field lengths', () => {
     const geo = normalizeIpstackResponse({
       country_code: 'US',
       country_name: 'x'.repeat(400),
-    } as unknown as Record<string, unknown>)
+    })
     assert.equal(geo?.countryName?.length, 120)
   })
 })

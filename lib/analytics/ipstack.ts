@@ -75,21 +75,32 @@ function cleanNumber(value: unknown): number | undefined {
   return value
 }
 
+/** Narrows an untrusted value to a plain object without casting the caller. */
+function asRecord(value: unknown): Record<string, unknown> | null {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return null
+  return value as Record<string, unknown>
+}
+
 /**
  * Normalizes the IPstack response into the internal geo schema.
  *
  * Fields are only kept when the active subscription actually returned them — the free
  * plan omits ISP/ASN/connection type/latency and the security block is never requested.
+ *
+ * The payload is untrusted JSON, so it is guarded once on entry and every field is read
+ * through the narrowing helpers below. Anything unrecognised yields null rather than a
+ * partially invented location.
  */
-export function normalizeIpstackResponse(payload: Record<string, unknown>): IAnalyticsGeoData | null {
-  if (payload && typeof payload.success === 'boolean' && payload.success === false) return null
+export function normalizeIpstackResponse(payload: Record<string, unknown> | null | undefined): IAnalyticsGeoData | null {
+  if (payload === null || typeof payload !== 'object') return null
+  if (typeof payload.success === 'boolean' && payload.success === false) return null
 
   const countryCode = cleanString(payload.country_code, 4)?.toUpperCase()
   const countryName = cleanString(payload.country_name, 120)
   if (!countryCode && !countryName) return null
 
-  const timezone = payload.time_zone as Record<string, unknown> | undefined
-  const connection = payload.connection as Record<string, unknown> | undefined
+  const timezone = asRecord(payload.time_zone)
+  const connection = asRecord(payload.connection)
 
   return {
     countryCode,
