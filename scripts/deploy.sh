@@ -10,7 +10,7 @@ ENV_FILE=".env"
 
 if [ "$ENV" = "dev" ]; then
     COMPOSE_FILE="docker-compose.dev.yml"
-    ENV_FILE=".env.development"
+    ENV_FILE=".env.development.example"
     echo "Deploying DEVELOPMENT environment..."
 else
     echo "Deploying PRODUCTION environment..."
@@ -19,7 +19,7 @@ fi
 # Check if env file exists
 if [ ! -f "$ENV_FILE" ]; then
     echo "Error: $ENV_FILE not found!"
-    echo "Copy from template: cp .env.$ENV $ENV_FILE"
+    echo "Copy from template: cp .env.${ENV}.example .env"
     echo "Then edit with your values."
     exit 1
 fi

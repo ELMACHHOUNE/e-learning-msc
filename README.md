@@ -154,18 +154,18 @@ curl http://localhost:3000/api/ai/health
 
 ### Development (dev branch)
 
-**Files:** `docker-compose.dev.yml`, `Dockerfile.dev`, `nginx/nginx.dev.conf`, `.env.development`
+**Files:** `docker-compose.dev.yml`, `Dockerfile.dev`, `nginx/nginx.dev.conf`, `.env.development.example`
 
 ```bash
 # Switch to dev branch
 git checkout dev
 
 # First-time setup
-cp .env.development .env.local
+cp .env.development.example .env.local
 # Edit .env.local if needed
 
 # Build & start (hot reload enabled)
-docker compose -f docker-compose.dev.yml --env-file .env.development up -d --build
+docker compose -f docker-compose.dev.yml --env-file .env.development.example up -d --build
 
 # Access at http://localhost:3000 (direct) or http://localhost (via nginx)
 # Mongo Express: http://localhost:8585 (admin/admin)
@@ -180,7 +180,7 @@ docker compose -f docker-compose.dev.yml down
 
 ### Production (main branch)
 
-**Files:** `docker-compose.prod.yml`, `Dockerfile`, `nginx/nginx.conf`, `.env.production`
+**Files:** `docker-compose.prod.yml`, `Dockerfile`, `nginx/nginx.conf`, `.env.production.example`
 
 ```bash
 # On VPS, switch to main
@@ -188,8 +188,8 @@ git checkout main
 git pull origin main
 
 # First-time setup
-cp .env.production .env
-# Edit .env with production values (AUTH_SECRET, AUTH_URL, etc.)
+cp .env.production.example .env
+# Edit .env with production values (AUTH_SECRET, AUTH_URL, IPSTACK_ACCESS_KEY, etc.)
 
 # Build & start
 docker compose -f docker-compose.prod.yml --env-file .env up -d --build
@@ -206,8 +206,8 @@ docker compose -f docker-compose.prod.yml down
 
 | Task | Development | Production |
 |------|-------------|------------|
-| Build | `docker compose -f docker-compose.dev.yml --env-file .env.development build` | `docker compose -f docker-compose.prod.yml --env-file .env build` |
-| Start | `docker compose -f docker-compose.dev.yml --env-file .env.development up -d` | `docker compose -f docker-compose.prod.yml --env-file .env up -d` |
+| Build | `docker compose -f docker-compose.dev.yml --env-file .env.development.example build` | `docker compose -f docker-compose.prod.yml --env-file .env build` |
+| Start | `docker compose -f docker-compose.dev.yml --env-file .env.development.example up -d` | `docker compose -f docker-compose.prod.yml --env-file .env up -d` |
 | Logs | `docker logs -f e-learning-app-dev` | `docker logs -f e-learning-app` |
 | Restart | `docker compose -f docker-compose.dev.yml restart` | `docker compose -f docker-compose.prod.yml restart` |
 | Seed | `docker exec e-learning-app-dev npx tsx --env-file=.env.local scripts/seed.ts` | `docker exec e-learning-app npx tsx --env-file=.env scripts/seed.ts` |

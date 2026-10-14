@@ -71,7 +71,7 @@ All configuration is server-side environment variables. **Never** prefix any of 
 | `ANALYTICS_MAX_BODY_BYTES` | `16384` | Rejects oversized bodies with `413`. |
 | `ANALYTICS_MAX_RANGE_DAYS` | `90` | Hard cap on any dashboard date range. |
 
-Templates: `.env.example` (full reference), `.env.development`, `.env.docker`, `.env.production`.
+Templates: `.env.example` (full reference), `.env.development.example`, `.env.docker`, `.env.production.example`.
 The compose files pass every variable through at **runtime**, so no secret is ever baked into
 an image layer.
 

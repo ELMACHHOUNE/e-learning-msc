@@ -6,12 +6,12 @@
 - **Purpose**: Production-ready code
 - **Deploy**: Directly to VPS (e-teaching.tech)
 - **Protection**: Requires PR review, passes CI
-- **Config**: `.env.production` → `.env`, `docker-compose.prod.yml`, `nginx/nginx.conf`
+- **Config**: `.env.production.example` → `.env`, `docker-compose.prod.yml`, `nginx/nginx.conf`
 
 ### `dev` (Development)
 - **Purpose**: Active development, feature branches merge here
 - **Deploy**: Local development, staging
-- **Config**: `.env.development` → `.env.local`, `docker-compose.dev.yml`, `nginx/nginx.dev.conf`
+- **Config**: `.env.development.example` → `.env.local`, `docker-compose.dev.yml`, `nginx/nginx.dev.conf`
 
 ### Feature Branches
 - Create from `dev`: `git checkout -b feature/my-feature dev`
@@ -32,7 +32,7 @@ git checkout dev
 npm run dev
 
 # Option 2: Run with Docker (matches production)
-docker compose -f docker-compose.dev.yml --env-file .env.development up -d
+docker compose -f docker-compose.dev.yml --env-file .env.development.example up -d
 # Access at http://localhost
 ```
 
@@ -43,7 +43,7 @@ git checkout main
 git pull origin main
 
 # Setup environment (first time only)
-cp .env.production .env
+cp .env.production.example .env
 # Edit .env with your production values
 
 # Deploy
@@ -63,8 +63,8 @@ cp .env.production .env
 | File | Purpose | Committed |
 |------|---------|-----------|
 | `.env.example` | Template for local dev | Yes |
-| `.env.development` | Dev Docker Compose template | Yes |
-| `.env.production` | Prod Docker Compose template | Yes |
+| `.env.development.example` | Dev Docker Compose template | Yes |
+| `.env.production.example` | Prod Docker Compose template | Yes |
 | `.env.local` | Your local overrides | No (gitignored) |
 | `.env` | Production overrides | No (gitignored) |
 
@@ -114,8 +114,8 @@ docker compose -f docker-compose.prod.yml restart nginx
 ├── docker-compose.prod.yml     # Production
 ├── Dockerfile                  # Production build
 ├── Dockerfile.dev              # Development (hot reload)
-├── .env.development            # Dev environment template
-├── .env.production             # Prod environment template
+├── .env.development.example            # Dev environment template
+├── .env.production.example             # Prod environment template
 └── scripts/
     ├── deploy.sh               # Deploy script
     ├── setup-branch.sh         # Branch setup helper

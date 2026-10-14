@@ -31,12 +31,17 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # env files (can opt-in for committing if needed)
-# Only `.env.example` is tracked. Every other env file may hold real secrets
-# (AUTH_SECRET, OAuth client secrets, IPSTACK_ACCESS_KEY) and must never be committed.
+# Only the `*.example` templates are tracked. Every other env file may hold real
+# secrets (AUTH_SECRET, OAuth client secrets, IPSTACK_ACCESS_KEY) and must never be
+# committed — a tracked `.env.production` silently blocks `git pull` on the VPS.
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
 !.env.example
+!.env.development.example
+!.env.production.example
 
 # Belt and braces: refuse any stray file that looks like a real IPstack key.
 *.env
