@@ -79,7 +79,7 @@ an image layer.
 
 1. Create a new key in the APILayer dashboard.
 2. Put it in `.env` on the host as `IPSTACK_ACCESS_KEY`.
-3. `docker compose -f docker-compose.prod.yml up -d app` — no rebuild required.
+3. `docker compose up -d app` — no rebuild required.
 4. Confirm on `/admin/analytics → Settings` that *Geolocation provider configured* is green.
 5. Revoke the old key in APILayer.
 
