@@ -265,9 +265,9 @@ orphans historical rows rather than linking them forward.
 
 ### Known gaps outside this module (pre-existing)
 
-`app/api/upload/route.ts` has no authentication check, and `app/api/support/messages` accepts
-unauthenticated writes. Both predate this work and are unrelated to analytics, but they should
-be fixed.
+`/api/upload` now requires an authenticated admin, instructor or student, validates the image
+type, folder and file signature, and rate-limits uploads per user. `app/api/support/messages`
+still accepts unauthenticated writes; it predates this work and should be fixed.
 
 ---
 

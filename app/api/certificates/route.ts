@@ -54,7 +54,7 @@ export async function GET() {
     try {
       await ensureGraduation(studentId.toString())
     } catch (error) {
-      console.error(`Graduation backfill failed for ${studentId.toString()}:`, error)
+      console.error('Graduation backfill failed for %s:', studentId.toString(), error)
     }
   }
 

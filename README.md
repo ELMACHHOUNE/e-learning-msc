@@ -128,6 +128,11 @@ docker exec e-learning-app-dev npx tsx --env-file=.env.local scripts/seed.ts
 docker compose -f docker-compose.dev.yml down
 ```
 
+Next.js dev mode needs its HMR WebSocket before client components hydrate, so
+`nginx/nginx.dev.conf` forwards upgrades but only for the literal `websocket`
+token (any `h2c` or other upgrade value is dropped). Production has no
+WebSocket endpoints and does not forward upgrades at all.
+
 ### Production (main branch)
 
 **Files:** `docker-compose.yml`, `Dockerfile`, `nginx/nginx.prod.conf`, `.env.example`
@@ -622,13 +627,10 @@ server {
     location / {
         proxy_pass http://app:3000;
         proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection 'upgrade';
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
         proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
     }
 }
 ```
