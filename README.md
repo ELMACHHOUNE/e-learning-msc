@@ -130,7 +130,7 @@ docker compose -f docker-compose.dev.yml down
 
 ### Production (main branch)
 
-**Files:** `docker-compose.prod.yml`, `Dockerfile`, `nginx/nginx.conf`, `.env.example`
+**Files:** `docker-compose.yml`, `Dockerfile`, `nginx/nginx.prod.conf`, `.env.example`
 
 ```bash
 # On VPS, switch to main
@@ -142,24 +142,24 @@ cp .env.example .env
 # Edit .env with production values (AUTH_SECRET, AUTH_URL, IPSTACK_ACCESS_KEY, etc.)
 
 # Build & start
-docker compose -f docker-compose.prod.yml up -d --build
+docker compose up -d --build
 
 # Access at https://e-teaching.tech (SSL via certbot)
 # Mongo Express: http://localhost:8585
 # RustFS Console: http://localhost:9001
 
 # Stop
-docker compose -f docker-compose.prod.yml down
+docker compose down
 ```
 
 ### Quick Commands
 
 | Task | Development | Production |
 |------|-------------|------------|
-| Build | `docker compose -f docker-compose.dev.yml build` | `docker compose -f docker-compose.prod.yml build` |
-| Start | `docker compose -f docker-compose.dev.yml up -d` | `docker compose -f docker-compose.prod.yml up -d` |
+| Build | `docker compose -f docker-compose.dev.yml build` | `docker compose build` |
+| Start | `docker compose -f docker-compose.dev.yml up -d` | `docker compose up -d` |
 | Logs | `docker logs -f e-learning-app-dev` | `docker logs -f e-learning-app` |
-| Restart | `docker compose -f docker-compose.dev.yml restart` | `docker compose -f docker-compose.prod.yml restart` |
+| Restart | `docker compose -f docker-compose.dev.yml restart` | `docker compose restart` |
 | Seed | `docker exec e-learning-app-dev npx tsx --env-file=.env.local scripts/seed.ts` | `docker exec e-learning-app npx tsx --env-file=.env scripts/seed.ts` |
 
 ### Helper Scripts
@@ -177,17 +177,17 @@ docker compose -f docker-compose.prod.yml down
 
 ---
 
-## Legacy Docker Compose (docker-compose.yml)
+## Production Compose (docker-compose.yml)
 
-The original `docker-compose.yml` is kept for reference. Use `docker-compose.prod.yml` for new production deployments.
+`docker-compose.yml` is the production compose file (`Dockerfile` + `nginx/nginx.prod.conf`, TLS via the host's `/etc/letsencrypt`). Use `docker-compose.dev.yml` for local development.
 
 ```bash
 cp .env.example .env   # compose reads .env automatically — fill in AUTH_SECRET / AUTH_URL
-docker compose up --build   # nginx on ${HTTP_PORT:-80}, app direct on ${APP_PORT:-3000}, mongo on 27017, rustfs S3 on 9000 + console on 9001, mongo-express on ${ME_PORT:-8585}
-docker compose down         # stop (data persists in the mongodb_data / rustfs_data volumes)
+docker compose up -d --build   # nginx publishes ${HTTP_PORT:-80}/${HTTPS_PORT:-443}; app, mongo, rustfs and mongo-express stay on the internal network
+docker compose down            # stop (data persists in the mongodb_data / rustfs_data volumes)
 ```
 
-Browse the app through nginx at `http://localhost`. `AUTH_URL` must match the nginx-facing URL (default `http://localhost` in `.env`). The app container also stays reachable directly on `${APP_PORT:-3000}` for debugging.
+Browse through nginx on the public domain (`https://e-teaching.tech`). `AUTH_URL` must match that public URL; the production nginx config rejects unknown hosts and redirects HTTP to HTTPS, so plain `http://localhost` is only expected to work with the dev compose file.
 
 Seed the container database after `up`:
 
@@ -313,7 +313,7 @@ Source files live at the **project root** (there is no `src/` directory); the `@
 │   ├── seed.ts                          # Full DB reset + demo data (6 graduates)
 │   ├── seed-graduations.ts              # Legacy additive graduation data
 │   └── assign-graduate.ts               # Graduate single student by email
-├── nginx/nginx.conf                     # Reverse proxy (HTTP→HTTPS, TLS termination, proxy to app:3000)
+├── nginx/nginx.prod.conf                     # Reverse proxy (HTTP→HTTPS, TLS termination, proxy to app:3000)
 ├── Dockerfile                           # 3-stage build → standalone server (Node 22 alpine, non-root)
 ├── docker-compose.yml                   # nginx + app + MongoDB 7 + RustFS + mongo-express
 ├── .dockerignore
@@ -594,7 +594,7 @@ sudo ss -lntp | grep ':443'
 
 ### Nginx Reverse Proxy Configuration
 
-The `nginx/nginx.conf` reverse proxy terminates TLS and forwards traffic to the Next.js application running on port 3000 (inside the Docker network). The required server blocks:
+The `nginx/nginx.prod.conf` reverse proxy terminates TLS and forwards traffic to the Next.js application running on port 3000 (inside the Docker network). The required server blocks:
 
 ```nginx
 # HTTP → HTTPS redirect

@@ -8,11 +8,13 @@ import { ImageUpload } from '@/components/ui/image-upload'
 import LogoSpinner from '@/components/shared/logo-spinner'
 import {
   Plus, Trash2, Save, ArrowLeft, FileText, BookOpen,
-  CheckSquare, Wrench,
+  CheckSquare, Wrench, FileUp,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from '@/components/ui/alert'
 import RichTextEditor from '@/components/ui/rich-text-editor'
+import CourseImportDialog, { type CourseImportOptions } from '@/components/admin/course-import-dialog'
+import type { ParsedCourseMarkdown } from '@/lib/course-markdown'
 
 type LessonType = 'lesson' | 'checkpoint' | 'workshop'
 
@@ -120,6 +122,7 @@ export default function CourseEditor({ courseId }: { courseId: string }) {
   const [saving, setSaving] = useState(false)
   const [loading, setLoading] = useState(!isNew)
   const [categoryOptions, setCategoryOptions] = useState<{ id: string; name: string }[]>([])
+  const [importOpen, setImportOpen] = useState(false)
 
   useEffect(() => {
     fetch('/api/admin/categories?simple=true')
@@ -248,7 +251,47 @@ export default function CourseEditor({ courseId }: { courseId: string }) {
     setCourse(updater)
   }
 
+  function handleImport(result: ParsedCourseMarkdown, options: CourseImportOptions) {
+    updateCourse((prev) => {
+      const next: CourseData = {
+        ...prev,
+        content: options.replace ? result.modules : [...prev.content, ...result.modules],
+      }
+      if (options.applyMeta) {
+        if (result.title) next.title = result.title
+        if (result.description) next.description = result.description
+        if (result.category) next.category = result.category
+        if (result.coverImage) next.coverImage = result.coverImage
+        if (result.price != null) next.price = result.price
+        if (result.durationInMonths != null) next.durationInMonths = result.durationInMonths
+        if (result.totalSessions != null) next.totalSessions = result.totalSessions
+      }
+      return next
+    })
+    setSelectedModule(0)
+    setSelectedChapter(0)
+    setSelectedLesson(0)
+    const lessonCount = result.modules.reduce(
+      (total, mod) => total + mod.chapters.reduce((sum, chapter) => sum + chapter.lessons.length, 0),
+      0,
+    )
+    toast({
+      variant: 'success',
+      title: 'Course content imported',
+      message: `${result.modules.length} modules and ${lessonCount} lessons loaded from Markdown.`,
+    })
+  }
+
   const modules = course.content
+  const hasContent = course.content.some(
+    (mod) =>
+      mod.title.trim() !== '' ||
+      mod.chapters.some(
+        (chapter) =>
+          chapter.title.trim() !== '' ||
+          chapter.lessons.some((lesson) => lesson.title.trim() !== '' || lesson.content.trim() !== ''),
+      ),
+  )
 
   return (
     <div className="min-h-screen bg-canvas">
@@ -269,6 +312,9 @@ export default function CourseEditor({ courseId }: { courseId: string }) {
             <Badge variant="new">{isNew ? 'New' : 'Draft'}</Badge>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline-dark" size="sm" onClick={() => setImportOpen(true)}>
+              <FileUp className="w-4 h-4 mr-1" /> Import MD
+            </Button>
             <Link href="/admin" className="text-button-md text-mute hover:text-ink no-underline">Cancel</Link>
             <Button variant="primary" size="sm" onClick={saveCourse} disabled={saving}>
               <Save className="w-4 h-4 mr-1" /> {saving ? 'Saving...' : 'Save Course'}
@@ -537,6 +583,13 @@ export default function CourseEditor({ courseId }: { courseId: string }) {
           )}
         </div>
       </div>
+
+      <CourseImportDialog
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImport={handleImport}
+        hasContent={hasContent}
+      />
     </div>
   )
 }

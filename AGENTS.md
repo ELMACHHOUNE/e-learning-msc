@@ -50,15 +50,16 @@ Copy the stack from the right side of `.env.example` to `.env.local`. `.env.loca
 
 ## Docker
 
-The project is containerized. `next.config.ts` sets `output: 'standalone'`; the `Dockerfile` is a 3-stage build (deps → builder → runner) on Node 22 alpine, running the minimal standalone `server.js` as a non-root user. Nginx (`nginx/nginx.conf`) is the front-door reverse proxy on port 80 → `app:3000`. MongoDB 7 and RustFS (S3-compatible object storage) are the companion services.
+The project is containerized. `next.config.ts` sets `output: 'standalone'`; the `Dockerfile` is a 3-stage build (deps → builder → runner) on Node 22 alpine, running the minimal standalone `server.js` as a non-root user. Nginx (`nginx/nginx.prod.conf`) is the production front door on `${HTTP_PORT:-80}`/`${HTTPS_PORT:-443}` → `app:3000`, TLS via the host mount `/etc/letsencrypt`. MongoDB 7 and RustFS (S3-compatible object storage) are the companion services.
 
 ```bash
 cp .env.example .env   # template → docker compose reads `.env` automatically
-docker compose up --build # nginx on ${HTTP_PORT:-80}, app direct on ${APP_PORT:-3000}, mongo on 27017, rustfs S3 on 9000 + console 9001, mongo-express on ${ME_PORT:-8585}
+docker compose up -d --build                        # production: Dockerfile + nginx.prod.conf (TLS)
+docker compose -f docker-compose.dev.yml up -d --build  # local dev: Dockerfile.dev + nginx.dev.conf (HTTP), ports 80/3000/27017/8585/9200/9201
 docker compose down       # stop (data persists in the mongodb_data / rustfs_data volumes)
 ```
 
-- Browse the app through nginx at `http://localhost`; `AUTH_URL` must be the nginx-facing URL (`http://localhost` in `.env`). The app also stays reachable on `${APP_PORT:-3000}`.
+- Production is served through nginx on the public domain; `AUTH_URL` must be the public HTTPS URL. Local development uses `docker-compose.dev.yml`, which publishes app `:3000`, nginx `:80`, mongo `:27017`, mongo-express `:8585` and RustFS `:9200`/`:9201`.
 - `AUTH_TRUST_HOST=true` is set so NextAuth works behind the proxy. Next 16 has NO `experimental.trustHostHeader` (removed) — it reads `x-forwarded-*` headers natively; nginx sets `X-Forwarded-Proto`/`X-Forwarded-For`/`Host`.
 - Compose `environment:` passes `AUTH_SECRET`/`AUTH_URL` to the container and hard-fails (`${VAR:?}`) if unset — always set them in `.env` before `up`. OAuth vars fall back to empty.
 - `MONGODB_URI` inside compose points at the `mongo` service (`mongodb://mongo:27017/e-learning-msc`), overriding the localhost value in `.env.example`.
@@ -112,7 +113,7 @@ docker compose down       # stop (data persists in the mongodb_data / rustfs_dat
 | `tests/` | Node built-in runner suites (`npm test`) |
 | `hooks/` | `use-outside-click.tsx` |
 | `proxy.ts` | Auth middleware (`export default auth(...)`) |
-| `nginx/nginx.conf` | Reverse-proxy front door (port 80 → `app:3000`, sets `X-Forwarded-*`) |
+| `nginx/nginx.prod.conf` | Production reverse-proxy front door (80/443 → `app:3000`, TLS, sets `X-Forwarded-*`) |
 | `public/certificates/PDF/` | Branded certificate template |
 | `scripts/` | `seed.ts`, `seed-graduations.ts`, `assign-graduate.ts`, `ensure-analytics-indexes.ts`, `purge-analytics.ts` |
 

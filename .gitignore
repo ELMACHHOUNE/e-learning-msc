@@ -29,6 +29,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+package-lock.json
 
 # env files
 # `.env.example` is the ONLY tracked env file — it is the documented reference for

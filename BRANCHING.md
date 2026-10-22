@@ -6,7 +6,7 @@
 - **Purpose**: Production-ready code
 - **Deploy**: Directly to VPS (e-teaching.tech)
 - **Protection**: Requires PR review, passes CI
-- **Config**: `.env.example` → `.env`, `docker-compose.prod.yml`, `nginx/nginx.conf`
+- **Config**: `.env.example` → `.env`, `docker-compose.yml`, `nginx/nginx.prod.conf`
 
 ### `dev` (Development)
 - **Purpose**: Active development, feature branches merge here
@@ -71,8 +71,7 @@ cp .env.example .env
 | File | Environment | Nginx Config |
 |------|-------------|--------------|
 | `docker-compose.dev.yml` | Development | `nginx/nginx.dev.conf` (HTTP only) |
-| `docker-compose.prod.yml` | Production | `nginx/nginx.conf` (HTTPS with SSL) |
-| `docker-compose.yml` | Legacy (use prod) | `nginx/nginx.conf` |
+| `docker-compose.yml` | Production | `nginx/nginx.prod.conf` (HTTPS with SSL) |
 
 ## Nginx SSL Setup (Production)
 
@@ -85,31 +84,30 @@ The production nginx config expects Let's Encrypt certificates at:
 ### First-time SSL Setup on VPS:
 ```bash
 # 1. Start with HTTP only (for certbot challenge)
-docker compose -f docker-compose.prod.yml up -d nginx
+docker compose up -d nginx
 
 # 2. Get certificates
 sudo certbot certonly --standalone -d e-teaching.tech -d www.e-teaching.tech
 
 # 3. Restart nginx with SSL
-docker compose -f docker-compose.prod.yml restart nginx
+docker compose restart nginx
 ```
 
 ### Auto-renewal:
 ```bash
 # Add to crontab
-0 0 * * * certbot renew --quiet && docker compose -f /path/to/docker-compose.prod.yml restart nginx
+0 0 * * * certbot renew --quiet && docker compose -f /path/to/docker-compose.yml restart nginx
 ```
 
 ## Project Structure
 
 ```
 ├── nginx/
-│   ├── nginx.conf              # Production (main branch)
+│   ├── nginx.prod.conf         # Production (main branch)
 │   ├── nginx.dev.conf          # Development (dev branch)
 │   └── nginx.prod.conf.template # Template with ${DOMAIN} variable
-├── docker-compose.yml          # Legacy production
-├── docker-compose.dev.yml      # Development
-├── docker-compose.prod.yml     # Production
+├── docker-compose.yml          # Production (main branch)
+├── docker-compose.dev.yml      # Development (dev branch)
 ├── Dockerfile                  # Production build
 ├── Dockerfile.dev              # Development (hot reload)
 ├── .env.example                 # The only tracked env file (template + reference)
