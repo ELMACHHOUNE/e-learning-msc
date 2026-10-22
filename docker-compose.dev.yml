@@ -61,6 +61,7 @@ services:
         condition: service_healthy
 
   app:
+    image: e-learning-msc-app:dev
     build:
       context: .
       dockerfile: Dockerfile.dev
