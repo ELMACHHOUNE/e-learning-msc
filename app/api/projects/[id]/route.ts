@@ -6,6 +6,25 @@ import Guild from '@/models/Guild'
 import { ensureGraduation } from '@/lib/graduation'
 import type { ProjectStep } from '@/types'
 
+interface ObjectIdLike {
+  toString(): string
+}
+
+async function canManageProject(
+  guildId: ObjectIdLike | null | undefined,
+  role: string,
+  userId: string,
+): Promise<boolean> {
+  if (role === 'admin') return true
+  if (role !== 'instructor' || !guildId) return false
+
+  const guild = (await Guild.findById(guildId.toString()).select('instructorId').lean()) as
+    | { instructorId?: ObjectIdLike | null }
+    | null
+
+  return Boolean(guild?.instructorId && guild.instructorId.toString() === userId)
+}
+
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -30,8 +49,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const guild = await Guild.findById(project.guildId)
-    if (guild && guild.instructorId.toString() !== userId && role !== 'admin') {
+    if (!(await canManageProject(project.guildId, role, userId))) {
       return NextResponse.json({ error: 'Not your student' }, { status: 403 })
     }
 
@@ -49,6 +67,10 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   if (action === 'reject') {
     if (role !== 'instructor' && role !== 'admin') {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    if (!(await canManageProject(project.guildId, role, userId))) {
+      return NextResponse.json({ error: 'Not your student' }, { status: 403 })
     }
 
     if (project.status !== 'pending') {
@@ -103,8 +125,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const guild = await Guild.findById(project.guildId)
-    if (guild && guild.instructorId.toString() !== userId && role !== 'admin') {
+    if (!(await canManageProject(project.guildId, role, userId))) {
       return NextResponse.json({ error: 'Not your student' }, { status: 403 })
     }
 
@@ -112,7 +133,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     if (!step || !['presentation', 'gitRepo', 'deployment'].includes(step)) {
       return NextResponse.json({ error: 'Invalid step' }, { status: 400 })
     }
-    if (score === undefined || score < 0 || score > 10) {
+    if (typeof score !== 'number' || !Number.isFinite(score) || score < 0 || score > 10) {
       return NextResponse.json({ error: 'Score must be between 0 and 10' }, { status: 400 })
     }
 

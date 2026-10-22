@@ -711,8 +711,10 @@ export async function getEvents(filter: ParsedFilters, options: { page: number; 
   const match = eventMatch(filter)
   if (options.eventType) match.eventType = options.eventType
   if (options.search) {
+    // Escape the term and let MongoDB treat it as a literal substring; no JS RegExp
+    // is constructed from user input, so no backtracking pattern can be injected.
     const escaped = options.search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
-    const pattern = new RegExp(escaped, 'i')
+    const pattern = { $regex: escaped, $options: 'i' }
     match.$or = [{ path: pattern }, { pageTitle: pattern }, { city: pattern }, { countryName: pattern }]
   }
 

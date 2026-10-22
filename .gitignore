@@ -61,3 +61,5 @@ package-lock.json
 
 /public/uploads/*
 nginx/ssl/
+
+./vscode/*

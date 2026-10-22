@@ -46,7 +46,8 @@ export async function ensureAnalyticsIndexes(): Promise<EnsureIndexesResult> {
       unchanged.push(`${model.collection.collectionName} (schema indexes)`)
     } catch (error) {
       console.error(
-        `[analytics] index creation failed for ${model.collection.collectionName}:`,
+        '[analytics] index creation failed for %s:',
+        model.collection.collectionName,
         error instanceof Error ? error.message : 'unknown',
       )
       created.push(`${model.collection.collectionName} (schema index creation FAILED)`)

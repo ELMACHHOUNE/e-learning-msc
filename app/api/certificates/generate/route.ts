@@ -4,6 +4,21 @@ import path from 'path'
 import fs from 'fs/promises'
 import zlib from 'zlib'
 import { requireRole } from '@/lib/auth'
+import { connectToDatabase } from '@/lib/db'
+import Certificate from '@/models/Certificate'
+
+const CERTIFICATE_ID_PATTERN = /^CERT-\d{4}-\d{4,}$/
+
+interface CertificateLean {
+  studentId: { toString(): string }
+  instructorId?: { toString(): string } | null
+  studentName: string
+  instructorName: string
+  academyName: string
+  durationF: string
+  formationDate: string
+  certificateId: string
+}
 
 interface FieldConfig {
   x: number
@@ -124,15 +139,34 @@ function erasePlaceholdersFromContentStream(page: any, context: any): void {
 }
 
 export async function POST(request: Request) {
-  await requireRole('admin', 'instructor', 'student')
-
   try {
-    const data = await request.json()
-    const { studentFullName, durationF, formationDate, certificateId, instructorName, academyName } = data
+    const user = await requireRole('admin', 'instructor', 'student')
 
-    if (!studentFullName) {
-      return NextResponse.json({ error: 'studentFullName is required' }, { status: 400 })
+    const data = await request.json().catch(() => null)
+    const certificateId = typeof data?.certificateId === 'string' ? data.certificateId.trim() : ''
+
+    if (!CERTIFICATE_ID_PATTERN.test(certificateId)) {
+      return NextResponse.json({ error: 'A valid certificateId is required' }, { status: 400 })
     }
+
+    await connectToDatabase()
+
+    const certificate = (await Certificate.findOne({ certificateId }).lean()) as unknown as CertificateLean | null
+    if (!certificate) {
+      return NextResponse.json({ error: 'Certificate not found' }, { status: 404 })
+    }
+
+    const ownerId = certificate.studentId.toString()
+    const instructorId = certificate.instructorId?.toString()
+
+    if (user.role === 'student' && ownerId !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+    if (user.role === 'instructor' && instructorId !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const studentFullName = certificate.studentName
 
     const templatePath = path.join(
       process.cwd(),
@@ -150,11 +184,11 @@ export async function POST(request: Request) {
 
     const values: Record<string, string> = {
       studentFullName,
-      durationF: durationF ?? '',
-      formationDate: formationDate ?? '',
-      certificateId: certificateId ?? '',
-      instructorName: instructorName ?? '',
-      academyName: academyName ?? '',
+      durationF: certificate.durationF ?? '',
+      formationDate: certificate.formationDate,
+      certificateId: certificate.certificateId,
+      instructorName: certificate.instructorName,
+      academyName: certificate.academyName,
     }
 
     for (const [name, value] of Object.entries(values)) {
@@ -192,6 +226,12 @@ export async function POST(request: Request) {
       },
     })
   } catch (error) {
+    if (error instanceof Error && error.message === 'Unauthorized') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+    if (error instanceof Error && error.message === 'Forbidden') {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
     console.error('Certificate generation error:', error)
     return NextResponse.json(
       { error: 'Internal server error' },

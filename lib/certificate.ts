@@ -17,7 +17,7 @@ export async function generateCertificate(
   const response = await fetch('/api/certificates/generate', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
+    body: JSON.stringify({ certificateId: data.certificateId }),
   })
 
   if (!response.ok) {
