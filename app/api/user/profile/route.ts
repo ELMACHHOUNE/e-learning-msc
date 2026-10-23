@@ -4,6 +4,16 @@ import { auth } from '@/lib/auth'
 import { connectToDatabase } from '@/lib/db'
 import User from '@/models/User'
 
+function sanitizeAvatar(value: unknown): string | undefined | null {
+  if (value === undefined) return undefined
+  if (value === null) return null
+  const text = String(value).trim()
+  if (!text) return ''
+  if (text.startsWith('/uploads/')) return text
+  if (/^https:\/\/[^\s]+$/i.test(text)) return text
+  return null
+}
+
 export async function GET() {
   const session = await auth()
   if (!session?.user?.id) {
@@ -43,7 +53,13 @@ export async function PUT(req: Request) {
 
   if (name) user.name = name
   if (phone !== undefined) user.phone = phone
-  if (avatar !== undefined) user.avatar = avatar
+  if (avatar !== undefined) {
+    const sanitized = sanitizeAvatar(avatar)
+    if (sanitized === null) {
+      return NextResponse.json({ error: 'Invalid avatar URL' }, { status: 400 })
+    }
+    user.avatar = sanitized
+  }
 
   if (currentPassword && newPassword) {
     const isValid = await bcrypt.compare(currentPassword, user.password!)

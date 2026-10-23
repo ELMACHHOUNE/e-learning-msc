@@ -8,14 +8,23 @@ import {
 
 export const RUSTFS_BUCKET = process.env.RUSTFS_BUCKET || 'e-learning-msc'
 
+const DEFAULT_ACCESS_KEY = 'elearningfsadmin'
+const DEFAULT_SECRET_KEY = 'elearningfsadmin-secret'
+
 const endpoint = process.env.RUSTFS_ENDPOINT || 'http://localhost:9000'
-const accessKey = process.env.RUSTFS_ACCESS_KEY || 'elearningfsadmin'
-const secretKey = process.env.RUSTFS_SECRET_KEY || 'elearningfsadmin-secret'
+const accessKey = process.env.RUSTFS_ACCESS_KEY || DEFAULT_ACCESS_KEY
+const secretKey = process.env.RUSTFS_SECRET_KEY || DEFAULT_SECRET_KEY
 const region = process.env.RUSTFS_REGION || 'us-east-1'
 
 let client: S3Client | undefined
 
 export function getClient(): S3Client {
+  if (
+    process.env.NODE_ENV === 'production' &&
+    (accessKey === DEFAULT_ACCESS_KEY || secretKey === DEFAULT_SECRET_KEY)
+  ) {
+    throw new Error('RustFS default credentials are not allowed in production. Set RUSTFS_ACCESS_KEY and RUSTFS_SECRET_KEY.')
+  }
   if (!client) {
     client = new S3Client({
       endpoint,

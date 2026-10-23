@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import Guild from '@/models/Guild'
 
 export async function GET() {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   await connectToDatabase()
   const guilds = await Guild.find()
     .populate('courseId', 'title')
@@ -29,7 +30,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   const body = await req.json()
   const { name, courseId, instructorId, studentIds } = body
   if (!name || !courseId || !instructorId) {

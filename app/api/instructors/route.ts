@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import User from '@/models/User'
 import Guild from '@/models/Guild'
 
 export async function GET() {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   await connectToDatabase()
 
   const instructors = await User.find({ role: 'instructor' })

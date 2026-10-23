@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import User from '@/models/User'
 import Certificate from '@/models/Certificate'
@@ -9,7 +9,8 @@ import Guild from '@/models/Guild'
 import SessionLog from '@/models/SessionLog'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   const { id } = await params
   const body = await req.json()
   await connectToDatabase()
@@ -27,7 +28,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   const { id } = await params
   await connectToDatabase()
 

@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import LabPhase from '@/models/LabPhase'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
 
   const body = await req.json()
   const { status, rejectionReason } = body

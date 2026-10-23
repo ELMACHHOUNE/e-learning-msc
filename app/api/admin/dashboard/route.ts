@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import User from '@/models/User'
 import Course from '@/models/Course'
@@ -10,7 +10,8 @@ import LabPhase from '@/models/LabPhase'
 type Tab = 'users' | 'courses' | 'guilds' | 'categories' | 'messages'
 
 export async function GET(req: Request) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   await connectToDatabase()
 
   const { searchParams } = new URL(req.url)

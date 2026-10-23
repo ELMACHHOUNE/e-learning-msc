@@ -4,7 +4,21 @@ import Google from 'next-auth/providers/google'
 import GitHub from 'next-auth/providers/github'
 import bcrypt from 'bcryptjs'
 import { connectToDatabase } from '@/lib/db'
+import { consumeRateLimit } from '@/lib/analytics/rate-limit'
 import User, { type UserDocument } from '@/models/User'
+
+const DUMMY_PASSWORD_HASH = '$2b$10$7zjAF4R8SWV2uimhCsS/2.1v1uoWz1FY5sqH11aNj1o1i1TpgBq0q'
+
+function getClientIp(request: Request) {
+  const realIp = request.headers.get('x-real-ip')?.trim()
+  if (realIp) return realIp
+  const forwarded = request.headers.get('x-forwarded-for')
+  if (forwarded) {
+    const parts = forwarded.split(',').map((part) => part.trim()).filter(Boolean)
+    if (parts.length > 0) return parts[parts.length - 1]
+  }
+  return 'unknown'
+}
 
 type AuthToken = {
   id: string
@@ -43,17 +57,31 @@ function getAuthInstance(): NextAuthInstance {
             email: { label: 'Email', type: 'email' },
             password: { label: 'Password', type: 'password' },
           },
-          async authorize(credentials) {
+          async authorize(credentials, request) {
             if (!credentials?.email || !credentials?.password) {
               return null
             }
 
+            const email = String(credentials.email).trim()
+            const password = String(credentials.password)
+            const ip = getClientIp(request)
+
+            const emailLimit = consumeRateLimit(`auth:email:${email.toLowerCase()}`, 10)
+            const ipLimit = consumeRateLimit(`auth:ip:${ip}`, 20)
+            if (!emailLimit.allowed || !ipLimit.allowed) return null
+
             await connectToDatabase()
 
-            const user = await User.findOne({ email: credentials.email as string }).select('+password')
-            if (!user) return null
+            const user = await User.findOne({ email }).select('+password')
+            if (!user) {
+              await bcrypt.compare(password, DUMMY_PASSWORD_HASH)
+              return null
+            }
 
-            const isValid = await bcrypt.compare(credentials.password as string, user.password as string)
+            const hash = typeof user.password === 'string' && user.password.length > 0
+              ? user.password
+              : DUMMY_PASSWORD_HASH
+            const isValid = await bcrypt.compare(password, hash)
             if (!isValid) return null
 
             return {

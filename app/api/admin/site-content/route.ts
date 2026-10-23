@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import SiteContent from '@/models/SiteContent'
 import {
@@ -10,7 +10,8 @@ import {
 import type { SiteContentKey } from '@/lib/site-content'
 
 export async function GET() {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   await connectToDatabase()
 
   const docs = await getAllSiteContent()
@@ -37,7 +38,9 @@ export async function GET() {
 }
 
 export async function PUT(req: Request) {
-  const user = await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
+  const user = guard.user
   const body = await req.json()
   const { key, content } = body
 
@@ -70,7 +73,8 @@ export async function PUT(req: Request) {
 }
 
 export async function DELETE(req: Request) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
 
   const { searchParams } = new URL(req.url)
   const key = searchParams.get('key')

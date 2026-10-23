@@ -8,6 +8,13 @@ import type { ILoginSection } from "@/types";
 
 const OAuthProviders = ["google", "github"] as const;
 
+function getCallbackUrl() {
+  if (typeof window === "undefined") return "/dashboard";
+  const value = new URLSearchParams(window.location.search).get("callbackUrl");
+  if (value && value.startsWith("/") && !value.startsWith("//")) return value;
+  return "/dashboard";
+}
+
 export function LoginForm({ section }: { section: ILoginSection }) {
   const router = useRouter();
   const { status } = useSession();
@@ -25,7 +32,7 @@ export function LoginForm({ section }: { section: ILoginSection }) {
 
   useEffect(() => {
     if (status === "authenticated") {
-      router.replace("/dashboard");
+      router.replace(getCallbackUrl());
     }
   }, [status, router]);
 
@@ -40,18 +47,20 @@ export function LoginForm({ section }: { section: ILoginSection }) {
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
+    const callbackUrl = getCallbackUrl();
 
     try {
       const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
+        callbackUrl,
       });
 
       if (result?.error) {
         setError("Invalid email or password");
       } else {
-        router.push("/dashboard");
+        router.push(callbackUrl);
         router.refresh();
       }
     } catch {
@@ -141,7 +150,7 @@ export function LoginForm({ section }: { section: ILoginSection }) {
                         : "This provider is not configured on the server"
                     }
                     onClick={() =>
-                      signIn(providerId, { callbackUrl: "/dashboard" }).catch(() =>
+                      signIn(providerId, { callbackUrl: getCallbackUrl() }).catch(() =>
                         setError("This sign-in provider is not available. Try another method."),
                       )
                     }
