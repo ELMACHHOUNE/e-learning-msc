@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import Certificate from '@/models/Certificate'
 import ProjectApplication from '@/models/ProjectApplication'
@@ -44,7 +44,8 @@ function toRecord(cert: CertificateLean): GraduationRecord {
 }
 
 export async function GET() {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   await connectToDatabase()
 
   // Backfill: any student with a completed lab phase project + completed course

@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import User from '@/models/User'
 
 export async function GET(req: Request) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   await connectToDatabase()
   const { searchParams } = new URL(req.url)
   const role = searchParams.get('role')
@@ -20,7 +21,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   const body = await req.json()
   const { name, email, phone, password, role } = body
   if (!name || !email || !password || !role) {

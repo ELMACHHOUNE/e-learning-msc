@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import Course from '@/models/Course'
 import CourseContent from '@/models/CourseContent'
 
 export async function GET() {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   await connectToDatabase()
   const courses = await Course.find()
     .select('title description coverImage price active durationInMonths totalSessions category moduleCount createdAt')
@@ -16,7 +17,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   let body: Record<string, unknown>
   try {
     body = await req.json()

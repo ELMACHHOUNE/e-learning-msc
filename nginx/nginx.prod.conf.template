@@ -1,3 +1,5 @@
+server_tokens off;
+
 upstream e_learning_app {
     server app:3000;
 }
@@ -23,8 +25,9 @@ server {
 
 # HTTPS server - only loads if SSL certificates exist
 server {
-    listen 443 ssl http2;
-    listen [::]:443 ssl http2;
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    http2 on;
 
     server_name ${DOMAIN:-e-teaching.tech} www.${DOMAIN:-e-teaching.tech};
 
@@ -42,9 +45,11 @@ server {
 
     # Security headers
     add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
-    add_header X-Frame-Options "SAMEORIGIN" always;
+    add_header X-Frame-Options "DENY" always;
     add_header X-Content-Type-Options "nosniff" always;
-    add_header X-XSS-Protection "1; mode=block" always;
+    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+    add_header Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()" always;
+    add_header Cross-Origin-Opener-Policy "same-origin" always;
 
     client_max_body_size 50m;
 
@@ -65,11 +70,11 @@ server {
     # Cache static assets
     location /_next/static/ {
         proxy_pass http://e_learning_app;
-        add_header Cache-Control "public, max-age=31536000, immutable";
+        expires 1y;
     }
 
     location /images/ {
         proxy_pass http://e_learning_app;
-        add_header Cache-Control "public, max-age=31536000, immutable";
+        expires 1y;
     }
 }

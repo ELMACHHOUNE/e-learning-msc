@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { auth, requireRole } from '@/lib/auth'
+import { auth } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import LabPhase from '@/models/LabPhase'
 
@@ -49,10 +50,10 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  await requireRole('admin', 'instructor')
-  const session = await auth()
-  const userId = session!.user.id
-  const role = session!.user.role
+  const guard = await authenticate('admin', 'instructor')
+  if (!guard.ok) return guard.response
+  const userId = guard.user.id
+  const role = guard.user.role
 
   const body = await req.json()
   const { title, description, instructions, duration, image, category } = body

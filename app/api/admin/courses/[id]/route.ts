@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import Course from '@/models/Course'
 import CourseContent from '@/models/CourseContent'
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   const { id } = await params
   await connectToDatabase()
   const [course, courseContent] = await Promise.all([
@@ -31,7 +32,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   const { id } = await params
   const body = await req.json()
   await connectToDatabase()
@@ -81,7 +83,8 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   const { id } = await params
   await connectToDatabase()
   const course = await Course.findByIdAndDelete(id)

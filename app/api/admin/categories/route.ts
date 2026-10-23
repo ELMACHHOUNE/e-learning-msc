@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
-import { requireRole } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import Category from '@/models/Category'
 import Course from '@/models/Course'
 import LabPhase from '@/models/LabPhase'
 
 export async function GET(req: Request) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   await connectToDatabase()
 
   const { searchParams } = new URL(req.url)
@@ -50,7 +51,8 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  await requireRole('admin')
+  const guard = await authenticate('admin')
+  if (!guard.ok) return guard.response
   const body = await req.json()
   const { name } = body
 

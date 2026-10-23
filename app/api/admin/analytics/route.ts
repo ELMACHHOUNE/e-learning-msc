@@ -57,7 +57,8 @@ function unauthorizedResponse(error: unknown) {
 
 function csvEscape(value: unknown) {
   if (value === undefined || value === null) return ''
-  const text = String(value)
+  let text = String(value)
+  if (/^[=+\-@\t\r]/.test(text)) text = `'${text}`
   if (/[",\n\r]/.test(text)) return `"${text.replace(/"/g, '""')}"`
   return text
 }

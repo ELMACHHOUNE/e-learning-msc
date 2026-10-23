@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
-import { auth, requireRole } from '@/lib/auth'
+import { auth } from '@/lib/auth'
+import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
 import ProjectApplication from '@/models/ProjectApplication'
 import Guild from '@/models/Guild'
@@ -60,9 +61,9 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  await requireRole('student')
-  const session = await auth()
-  const userId = session!.user.id
+  const guard = await authenticate('student')
+  if (!guard.ok) return guard.response
+  const userId = guard.user.id
 
   const body = await req.json()
   const { labPhaseId } = body
