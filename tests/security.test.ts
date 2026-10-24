@@ -321,3 +321,68 @@ describe('unauthenticated API responses', () => {
     assert.match(route, /req\.json\(\)\.catch\(\(\) => null\)/)
   })
 })
+
+describe('edge security headers', () => {
+  it('never declares a scheme-wide CSP source', () => {
+    const config = read('next.config.ts')
+    assert.equal(/img-src[^\n]*\shttps:\s/.test(config), false, 'img-src https:')
+    assert.equal(/media-src[^\n]*\shttps:\s/.test(config), false, 'media-src https:')
+    assert.equal(/connect-src[^\n]* https:/.test(config), false, 'connect-src https:')
+    assert.equal(/connect-src[^\n]*wss:/.test(config), false, 'connect-src wss:')
+  })
+
+  it('locks down inline attributes, workers and the manifest', () => {
+    const config = read('next.config.ts')
+    assert.match(config, /script-src-attr 'none'/)
+    assert.match(config, /worker-src 'self' blob:/)
+    assert.match(config, /manifest-src 'self'/)
+  })
+
+  it('lets nginx own the duplicated security headers', () => {
+    const conf = read('nginx/nginx.prod.conf')
+    for (const header of [
+      'Strict-Transport-Security',
+      'X-Frame-Options',
+      'X-Content-Type-Options',
+      'Referrer-Policy',
+      'Permissions-Policy',
+      'X-XSS-Protection',
+    ]) {
+      assert.match(conf, new RegExp(`proxy_hide_header ${header};`), header)
+    }
+    assert.equal((conf.match(/add_header Strict-Transport-Security/g) || []).length, 2)
+  })
+
+  it('never adds headers inside a location block', () => {
+    const conf = read('nginx/nginx.prod.conf')
+    let depth = 0
+    for (const line of conf.split('\n')) {
+      if (line.includes('add_header') && depth > 1) {
+        assert.fail(`add_header inside a location block: ${line.trim()}`)
+      }
+      depth += (line.match(/{/g) || []).length
+      depth -= (line.match(/}/g) || []).length
+    }
+  })
+
+  it('suppresses the nginx version banner', () => {
+    assert.match(read('nginx/nginx.prod.conf'), /server_tokens off;/)
+  })
+})
+
+describe('auth redirect responses', () => {
+  it('always advertises a content type on middleware redirects', () => {
+    const middleware = read('proxy.ts')
+    assert.match(middleware, /Content-Type/)
+    assert.match(middleware, /function redirect\(/)
+  })
+})
+
+describe('public forms', () => {
+  it('never natively submits credentials or reset links', () => {
+    assert.equal(
+      read('app/(auth)/forgot-password/forgot-password-form.tsx').includes('method="post"'),
+      false
+    )
+  })
+})

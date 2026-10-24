@@ -5,12 +5,15 @@ const isDev = process.env.NODE_ENV !== 'production'
 const contentSecurityPolicy = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
+  "script-src-attr 'none'",
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https:",
+  "img-src 'self' data: blob: https://*.googleusercontent.com https://avatars.githubusercontent.com https://e-teaching.tech https://www.e-teaching.tech",
   "font-src 'self' data:",
-  "media-src 'self' https: data: blob:",
+  "media-src 'self' data: blob:",
   "frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com",
-  `connect-src 'self' https: wss:${isDev ? ' ws:' : ''}`,
+  `connect-src 'self'${isDev ? ' ws:' : ''}`,
+  "worker-src 'self' blob:",
+  "manifest-src 'self'",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -33,6 +36,21 @@ const securityHeaders = [
   ...(isDev
     ? []
     : [{ key: 'Strict-Transport-Security', value: 'max-age=31536000; includeSubDomains' }]),
+]
+
+const cacheHeaders = [
+  {
+    source: '/robots.txt',
+    headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
+  },
+  {
+    source: '/sitemap.xml',
+    headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
+  },
+  {
+    source: '/manifest.json',
+    headers: [{ key: 'Cache-Control', value: 'public, max-age=86400' }],
+  },
 ]
 
 const nextConfig: NextConfig = {
@@ -64,6 +82,7 @@ const nextConfig: NextConfig = {
         source: '/:path*',
         headers: securityHeaders,
       },
+      ...cacheHeaders,
     ]
   },
   serverExternalPackages: ['mongoose', '@aws-sdk/client-s3'],

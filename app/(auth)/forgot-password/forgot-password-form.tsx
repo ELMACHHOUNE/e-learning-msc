@@ -43,13 +43,14 @@ export function ForgotPasswordForm({
               {section.description}
             </p>
 
-            <form onSubmit={handleSubmit} method="post" className="space-y-lg">
+            <form onSubmit={handleSubmit} className="space-y-lg">
               <Input
                 id="email"
                 name="email"
                 type="email"
                 label="Email"
                 placeholder="Enter your email"
+                autoComplete="email"
                 required
               />
 
