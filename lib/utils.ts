@@ -18,6 +18,12 @@ export function truncate(str: string, length: number): string {
   return str.slice(0, length) + '...'
 }
 
+const OBJECT_ID_PATTERN = /^[a-f\d]{24}$/i
+
+export function isObjectId(value: unknown): value is string {
+  return typeof value === 'string' && OBJECT_ID_PATTERN.test(value)
+}
+
 export function safeUrl(url: string | undefined | null): string {
   if (!url) return ''
   if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('/')) return url

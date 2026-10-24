@@ -228,3 +228,96 @@ describe('exclusions and retention', () => {
     assert.match(read('lib/analytics/indexes.ts'), /expireAfterSeconds/)
   })
 })
+
+describe('session claim integrity', () => {
+  it('never lets a client rewrite its own email or role claim', () => {
+    const auth = read('lib/auth.ts')
+    assert.equal(/typedToken\.email\s*=\s*session\.email/.test(auth), false)
+    assert.match(auth, /if \(typeof session\.name === 'string'/)
+    assert.match(auth, /typedToken\.picture = session\.image/)
+  })
+
+  it('only whitelists display fields on the update trigger', () => {
+    const updateBlock = read('lib/auth.ts').match(
+      /if \(trigger === 'update' && session\) \{([\s\S]*?)\n\s*\}/,
+    )?.[1]
+    assert.ok(updateBlock, 'expected the update-trigger block')
+    assert.match(updateBlock, /typedToken\.name = session\.name/)
+    assert.match(updateBlock, /typedToken\.picture = session\.image/)
+    assert.equal(/typedToken\.email/.test(updateBlock), false)
+    assert.equal(/typedToken\.role/.test(updateBlock), false)
+  })
+})
+
+describe('upload path safety', () => {
+  const route = read('app/uploads/[...path]/route.ts')
+
+  it('validates every path segment before building the object key', () => {
+    assert.match(route, /SAFE_SEGMENT/)
+    assert.match(route, /isValidUploadPath\(path\)/)
+    const validationIndex = route.indexOf('isValidUploadPath(path)')
+    const keyIndex = route.indexOf('const key =')
+    assert.ok(validationIndex !== -1 && keyIndex > validationIndex, 'validation must precede key construction')
+  })
+
+  it('only accepts segment-safe keys', () => {
+    assert.match(route, /const SAFE_SEGMENT = \/\^\[A-Za-z0-9\]/)
+    assert.match(route, /path\.every\(/)
+  })
+
+  it('answers 404 for missing objects and 502 for storage failures', () => {
+    assert.match(route, /status: 404/)
+    assert.match(route, /status: 502/)
+    assert.match(route, /NoSuchKey/)
+  })
+})
+
+describe('admin write validation', () => {
+  it('restricts account creation to the known roles', () => {
+    const route = read('app/api/admin/users/route.ts')
+    assert.match(route, /const ROLES = \['admin', 'instructor', 'student'\] as const/)
+    assert.match(route, /ROLES\.includes\(role\)/)
+    assert.match(route, /EMAIL_PATTERN\.test\(email\)/)
+    assert.match(route, /status: 409/)
+  })
+
+  it('blocks self-deletion and removal of the last admin', () => {
+    const route = read('app/api/admin/users/[id]/route.ts')
+    assert.match(route, /id === guard\.user\.id/)
+    assert.match(route, /last admin/)
+  })
+
+  it('never wipes a lab phase category that the request omitted', () => {
+    const route = read('app/api/admin/labphases/[id]/route.ts')
+    assert.match(route, /if \(category !== undefined\)/)
+  })
+})
+
+describe('project review integrity', () => {
+  it('re-opens validation when a validated deliverable is replaced', () => {
+    const route = read('app/api/projects/[id]/route.ts')
+    assert.match(route, /replacingValidatedStep/)
+    assert.match(route, /stepRecord\.validated = false/)
+    assert.match(route, /project\.finalGrade = undefined/)
+  })
+})
+
+describe('one-to-one privacy', () => {
+  it('hides peer identities from students', () => {
+    const route = read('app/api/one-to-one/route.ts')
+    assert.match(route, /function serializeSlot\(s: LeanSlot, exposeStudent: boolean\)/)
+    assert.match(route, /studentName: exposeStudent \?/)
+  })
+})
+
+describe('unauthenticated API responses', () => {
+  it('answers 401 rather than an empty course list', () => {
+    const route = read('app/api/courses/route.ts')
+    assert.match(route, /error: 'Unauthorized' \}, \{ status: 401 \}/)
+  })
+
+  it('answers 400 for malformed JSON bodies', () => {
+    const route = read('app/api/admin/users/route.ts')
+    assert.match(route, /req\.json\(\)\.catch\(\(\) => null\)/)
+  })
+})

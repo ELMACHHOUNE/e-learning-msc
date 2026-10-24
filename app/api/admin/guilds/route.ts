@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
+import { isObjectId } from '@/lib/utils'
 import Guild from '@/models/Guild'
 
 export async function GET() {
@@ -32,12 +33,26 @@ export async function GET() {
 export async function POST(req: Request) {
   const guard = await authenticate('admin')
   if (!guard.ok) return guard.response
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   const { name, courseId, instructorId, studentIds } = body
   if (!name || !courseId || !instructorId) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
   }
+  if (!isObjectId(courseId) || !isObjectId(instructorId)) {
+    return NextResponse.json({ error: 'Invalid course or instructor id' }, { status: 400 })
+  }
+  if (studentIds !== undefined && !Array.isArray(studentIds)) {
+    return NextResponse.json({ error: 'studentIds must be an array' }, { status: 400 })
+  }
+  const students: string[] = studentIds ?? []
+  if (!students.every((sid) => isObjectId(sid))) {
+    return NextResponse.json({ error: 'Invalid student id' }, { status: 400 })
+  }
+
   await connectToDatabase()
-  const guild = await Guild.create({ name, courseId, instructorId, studentIds: studentIds ?? [] })
+  const guild = await Guild.create({ name, courseId, instructorId, studentIds: students })
   return NextResponse.json({ id: guild._id.toString(), name: guild.name })
 }

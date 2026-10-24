@@ -42,7 +42,10 @@ export async function PUT(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   const { name, phone, avatar, currentPassword, newPassword } = body
 
   await connectToDatabase()
@@ -62,7 +65,16 @@ export async function PUT(req: Request) {
   }
 
   if (currentPassword && newPassword) {
-    const isValid = await bcrypt.compare(currentPassword, user.password!)
+    if (!user.password) {
+      return NextResponse.json(
+        { error: 'This account has no password set. Sign in with your provider instead.' },
+        { status: 400 }
+      )
+    }
+    if (typeof newPassword !== 'string' || newPassword.length < 8) {
+      return NextResponse.json({ error: 'New password must be at least 8 characters' }, { status: 400 })
+    }
+    const isValid = await bcrypt.compare(currentPassword, user.password)
     if (!isValid) {
       return NextResponse.json({ error: 'Current password is incorrect' }, { status: 400 })
     }

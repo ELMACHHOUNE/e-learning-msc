@@ -11,7 +11,7 @@ export async function GET() {
   const user = session?.user
 
   if (!user) {
-    return NextResponse.json([])
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
   let courseIds: string[] = []

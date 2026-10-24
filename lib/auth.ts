@@ -139,9 +139,8 @@ function getAuthInstance(): NextAuthInstance {
             }
           }
           if (trigger === 'update' && session) {
-            if (session.name) typedToken.name = session.name
-            if (session.image) typedToken.picture = session.image
-            if (session.email) typedToken.email = session.email
+            if (typeof session.name === 'string' && session.name.trim()) typedToken.name = session.name
+            if (typeof session.image === 'string' && session.image) typedToken.picture = session.image
           }
           return token
         },
@@ -157,7 +156,9 @@ function getAuthInstance(): NextAuthInstance {
                 await connectToDatabase()
                 const u = await User.findById(typedToken.id).select('avatar').lean() as { avatar?: string } | null
                 if (u?.avatar) typedSessionUser.image = String(u.avatar)
-              } catch {}
+              } catch (error) {
+                console.warn('Failed to load session avatar', error)
+              }
             }
           }
           return session
