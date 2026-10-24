@@ -105,6 +105,7 @@ export function LoginForm({ section }: { section: ILoginSection }) {
                 name="email"
                 type="email"
                 placeholder="you@example.com"
+                autoComplete="email"
                 required
                 className="w-full h-11 bg-canvas text-ink text-body-md px-0 border-b border-ink focus:outline-none focus:border-primary transition-colors placeholder:text-stone"
               />
@@ -122,6 +123,7 @@ export function LoginForm({ section }: { section: ILoginSection }) {
                 name="password"
                 type="password"
                 placeholder="Enter your password"
+                autoComplete="current-password"
                 required
                 className="w-full h-11 bg-canvas text-ink text-body-md px-0 border-b border-ink focus:outline-none focus:border-primary transition-colors placeholder:text-stone"
               />
