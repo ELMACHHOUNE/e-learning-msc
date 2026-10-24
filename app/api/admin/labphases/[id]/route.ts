@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { connectToDatabase } from '@/lib/db'
+import { isObjectId } from '@/lib/utils'
 import LabPhase from '@/models/LabPhase'
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
@@ -10,6 +11,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const userId = session.user.id
   const role = session.user.role
   const { id } = await params
+  if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 
   await connectToDatabase()
 
@@ -24,17 +26,29 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
     return NextResponse.json({ error: 'Can only edit pending labphases' }, { status: 403 })
   }
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   const { title, description, instructions, duration, image, category } = body
+
+  if (duration !== undefined) {
+    if (typeof duration !== 'string' || !duration.trim()) {
+      return NextResponse.json({ error: 'Duration is required' }, { status: 400 })
+    }
+    lab.duration = duration.trim()
+  }
 
   if (title) lab.title = title
   if (description) lab.description = description
   if (instructions) lab.instructions = instructions
-  if (duration) lab.duration = duration
   if (image !== undefined) lab.image = image
-  lab.category = category || undefined
+  if (category !== undefined) lab.category = category || undefined
 
   if (role === 'admin' && body.status) {
+    if (!['pending', 'approved', 'rejected'].includes(body.status)) {
+      return NextResponse.json({ error: 'Invalid status' }, { status: 400 })
+    }
     lab.status = body.status
   }
 
@@ -64,6 +78,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   const userId = session.user.id
   const role = session.user.role
   const { id } = await params
+  if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 
   await connectToDatabase()
 

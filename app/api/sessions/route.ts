@@ -155,12 +155,15 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  const body = (await req.json()) as {
+  const body = (await req.json().catch(() => null)) as {
     guildId?: string
     sessionNumber?: number
     title?: string
     date?: string
     link?: string
+  } | null
+  if (!body) {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
   const guildId = body.guildId
   const sessionNumber = body.sessionNumber

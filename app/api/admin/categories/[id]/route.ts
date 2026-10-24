@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
+import { isObjectId } from '@/lib/utils'
 import Category from '@/models/Category'
 
 export async function PUT(
@@ -10,7 +11,11 @@ export async function PUT(
   const guard = await authenticate('admin')
   if (!guard.ok) return guard.response
   const { id } = await params
-  const body = await req.json()
+  if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   const { name } = body
 
   if (!name || !name.trim()) {
@@ -47,6 +52,7 @@ export async function DELETE(
   const guard = await authenticate('admin')
   if (!guard.ok) return guard.response
   const { id } = await params
+  if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 
   await connectToDatabase()
 

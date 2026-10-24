@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
+import { isObjectId } from '@/lib/utils'
 import Course from '@/models/Course'
 import CourseContent from '@/models/CourseContent'
 
@@ -8,6 +9,7 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   const guard = await authenticate('admin')
   if (!guard.ok) return guard.response
   const { id } = await params
+  if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
   await connectToDatabase()
   const [course, courseContent] = await Promise.all([
     Course.findById(id).select('title description coverImage price active durationInMonths totalSessions category moduleCount createdAt').lean(),
@@ -35,7 +37,11 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const guard = await authenticate('admin')
   if (!guard.ok) return guard.response
   const { id } = await params
-  const body = await req.json()
+  if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   await connectToDatabase()
 
   const course = await Course.findById(id)
@@ -86,6 +92,7 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const guard = await authenticate('admin')
   if (!guard.ok) return guard.response
   const { id } = await params
+  if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
   await connectToDatabase()
   const course = await Course.findByIdAndDelete(id)
   if (!course) return NextResponse.json({ error: 'Course not found' }, { status: 404 })

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { connectToDatabase } from '@/lib/db'
 import { auth } from '@/lib/auth'
+import { isObjectId } from '@/lib/utils'
 import Course from '@/models/Course'
 import CourseContent from '@/models/CourseContent'
 import Guild from '@/models/Guild'
@@ -16,6 +17,9 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
   }
 
   const { id } = await params
+  if (!isObjectId(id)) {
+    return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
+  }
 
   // Check if user has access to this course
   let hasAccess = false

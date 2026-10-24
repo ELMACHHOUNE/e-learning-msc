@@ -128,7 +128,10 @@ export async function POST(req: Request) {
   const session = await auth()
   if (!session?.user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   const { message, targetEmail } = body
   if (!message || typeof message !== 'string' || message.trim().length === 0) {
     return NextResponse.json({ error: 'Message is required' }, { status: 400 })
@@ -139,6 +142,17 @@ export async function POST(req: Request) {
 
   const user = session.user
   const isStaff = user.role === 'admin' || user.role === 'instructor'
+
+  if (isStaff && targetEmail !== undefined) {
+    if (
+      typeof targetEmail !== 'string' ||
+      targetEmail.length > 320 ||
+      !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetEmail)
+    ) {
+      return NextResponse.json({ error: 'Invalid target email' }, { status: 400 })
+    }
+  }
+
   const email = isStaff ? (targetEmail || user.email) : (user.email || 'unknown')
   const isAdmin = isStaff
 

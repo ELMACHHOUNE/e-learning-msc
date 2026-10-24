@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { connectToDatabase } from '@/lib/db'
+import { isObjectId } from '@/lib/utils'
 import ProjectApplication from '@/models/ProjectApplication'
 import Guild from '@/models/Guild'
 import { ensureGraduation } from '@/lib/graduation'
@@ -32,8 +33,12 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const userId = session.user.id
   const role = session.user.role
   const { id } = await params
+  if (!isObjectId(id)) return NextResponse.json({ error: 'Invalid id' }, { status: 400 })
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   const { action } = body
 
   if (!action) return NextResponse.json({ error: 'Action is required' }, { status: 400 })
@@ -112,11 +117,22 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
       }
     }
 
-    ;(project as unknown as Record<ProjectStep, { url: string; validated: boolean }>)[step].url = url
+    const stepRecord = (project as unknown as Record<ProjectStep, { url: string; validated: boolean; score?: number }>)[step]
+    const replacingValidatedStep = Boolean(stepRecord.validated) && stepRecord.url !== url
+
+    stepRecord.url = url
+
+    if (replacingValidatedStep) {
+      // The review gate must run again: an already-validated deliverable was swapped.
+      stepRecord.validated = false
+      stepRecord.score = undefined
+      project.finalGrade = undefined
+    }
+
     project.status = 'in_progress'
     await project.save()
 
-    return NextResponse.json({ success: true, step, url })
+    return NextResponse.json({ success: true, step, url, revalidationRequired: replacingValidatedStep })
   }
 
   // Validate step by instructor

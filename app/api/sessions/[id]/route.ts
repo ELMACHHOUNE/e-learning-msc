@@ -19,12 +19,16 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Invalid session id' }, { status: 400 })
   }
 
-  const body = (await req.json()) as {
+  const body = (await req.json().catch(() => null)) as {
     title?: string
     link?: string
     date?: string
     sessionNumber?: number
     records?: { studentId: string; status: string }[]
+  } | null
+
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
   await connectToDatabase()

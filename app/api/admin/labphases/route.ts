@@ -55,11 +55,18 @@ export async function POST(req: Request) {
   const userId = guard.user.id
   const role = guard.user.role
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   const { title, description, instructions, duration, image, category } = body
 
-  if (!title || !description || !instructions || !duration) {
+  if (!title || !description || !instructions) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+  }
+
+  if (typeof duration !== 'string' || !duration.trim()) {
+    return NextResponse.json({ error: 'Duration is required' }, { status: 400 })
   }
 
   await connectToDatabase()
@@ -70,7 +77,7 @@ export async function POST(req: Request) {
     title,
     description,
     instructions,
-    duration,
+    duration: duration.trim(),
     image,
     category: category || undefined,
     status,

@@ -24,13 +24,13 @@ type LeanGuild = {
   studentIds?: unknown[]
 }
 
-function serializeSlot(s: LeanSlot) {
+function serializeSlot(s: LeanSlot, exposeStudent: boolean) {
   return {
     id: (s._id as { toString(): string }).toString(),
     guildId: String(s.guildId),
     instructorId: String(s.instructorId),
-    studentId: s.studentId?._id ? String(s.studentId._id) : null,
-    studentName: s.studentId?.name ?? null,
+    studentId: exposeStudent && s.studentId?._id ? String(s.studentId._id) : null,
+    studentName: exposeStudent ? (s.studentId?.name ?? null) : null,
     title: s.title ?? '',
     date: s.date,
     duration: s.duration,
@@ -60,7 +60,7 @@ export async function GET() {
       .populate('studentId', 'name')
       .sort({ date: 1 })
       .lean()
-    const slots = rawSlots.map((s) => serializeSlot(s as unknown as LeanSlot))
+    const slots = rawSlots.map((s) => serializeSlot(s as unknown as LeanSlot, true))
 
     return NextResponse.json({
       role,
@@ -91,7 +91,9 @@ export async function GET() {
       .sort({ date: 1 })
       .lean()
 
-    const slots = rawSlots.map((s) => serializeSlot(s as unknown as LeanSlot))
+    const slots = rawSlots.map((s) =>
+      serializeSlot(s as unknown as LeanSlot, String((s as unknown as LeanSlot).studentId?._id ?? '') === userId)
+    )
 
     return NextResponse.json({
       role,
@@ -108,7 +110,7 @@ export async function GET() {
 
   // admin: everything
   const rawSlots = await OneToOne.find().populate('studentId', 'name').sort({ date: 1 }).lean()
-  const slots = rawSlots.map((s) => serializeSlot(s as unknown as LeanSlot))
+  const slots = rawSlots.map((s) => serializeSlot(s as unknown as LeanSlot, true))
 
   return NextResponse.json({ role, guilds: [], slots })
 }
@@ -120,12 +122,15 @@ export async function POST(req: Request) {
   const userId = session.user.id
   const role = session.user.role
 
-  const body = (await req.json()) as {
+  const body = (await req.json().catch(() => null)) as {
     guildId?: string
     date?: string
     duration?: number
     title?: string
     slotId?: string
+  } | null
+  if (!body) {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
   }
 
   await connectToDatabase()
@@ -231,7 +236,7 @@ export async function POST(req: Request) {
     {
       success: true,
       id: String((created as { _id: unknown })._id),
-      slot: serializeSlot(created as unknown as LeanSlot),
+      slot: serializeSlot(created as unknown as LeanSlot, true),
     },
     { status: 201 }
   )

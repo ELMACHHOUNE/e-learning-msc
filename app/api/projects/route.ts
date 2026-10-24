@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { authenticate } from '@/lib/api-auth'
 import { connectToDatabase } from '@/lib/db'
+import { isObjectId } from '@/lib/utils'
 import ProjectApplication from '@/models/ProjectApplication'
 import Guild from '@/models/Guild'
 import LabPhase from '@/models/LabPhase'
@@ -65,11 +66,17 @@ export async function POST(req: Request) {
   if (!guard.ok) return guard.response
   const userId = guard.user.id
 
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   const { labPhaseId } = body
 
   if (!labPhaseId) {
     return NextResponse.json({ error: 'LabPhase ID is required' }, { status: 400 })
+  }
+  if (!isObjectId(labPhaseId)) {
+    return NextResponse.json({ error: 'Invalid lab phase id' }, { status: 400 })
   }
 
   await connectToDatabase()

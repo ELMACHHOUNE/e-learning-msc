@@ -53,7 +53,10 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const guard = await authenticate('admin')
   if (!guard.ok) return guard.response
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   const { name } = body
 
   if (!name || !name.trim()) {

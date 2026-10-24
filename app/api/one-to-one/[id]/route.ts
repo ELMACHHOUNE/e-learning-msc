@@ -13,8 +13,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     return NextResponse.json({ error: 'Invalid slot id' }, { status: 400 })
   }
 
-  const body = (await req.json()) as { action?: string }
-  if (body.action !== 'cancel') {
+  const body = (await req.json().catch(() => null)) as { action?: string } | null
+  if (!body || body.action !== 'cancel') {
     return NextResponse.json({ error: 'Unsupported action' }, { status: 400 })
   }
 

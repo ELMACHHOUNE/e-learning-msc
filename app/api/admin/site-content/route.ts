@@ -41,7 +41,10 @@ export async function PUT(req: Request) {
   const guard = await authenticate('admin')
   if (!guard.ok) return guard.response
   const user = guard.user
-  const body = await req.json()
+  const body = await req.json().catch(() => null)
+  if (!body || typeof body !== 'object') {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
   const { key, content } = body
 
   const meta = SITE_SECTIONS.find((s) => s.key === key)
