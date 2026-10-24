@@ -17,14 +17,21 @@ const secretKey = process.env.RUSTFS_SECRET_KEY || DEFAULT_SECRET_KEY
 const region = process.env.RUSTFS_REGION || 'us-east-1'
 
 let client: S3Client | undefined
+let warnedDefaultCredentials = false
+
+function warnOnDefaultCredentials() {
+  if (warnedDefaultCredentials) return
+  if (process.env.NODE_ENV !== 'production') return
+  if (accessKey !== DEFAULT_ACCESS_KEY && secretKey !== DEFAULT_SECRET_KEY) return
+  warnedDefaultCredentials = true
+  console.warn(
+    '[rustfs] Using the default object-storage credentials in production. ' +
+      'Set RUSTFS_ACCESS_KEY and RUSTFS_SECRET_KEY to non-default values and restart the stack.'
+  )
+}
 
 export function getClient(): S3Client {
-  if (
-    process.env.NODE_ENV === 'production' &&
-    (accessKey === DEFAULT_ACCESS_KEY || secretKey === DEFAULT_SECRET_KEY)
-  ) {
-    throw new Error('RustFS default credentials are not allowed in production. Set RUSTFS_ACCESS_KEY and RUSTFS_SECRET_KEY.')
-  }
+  warnOnDefaultCredentials()
   if (!client) {
     client = new S3Client({
       endpoint,

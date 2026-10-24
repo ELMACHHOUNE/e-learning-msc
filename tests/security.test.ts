@@ -378,6 +378,14 @@ describe('auth redirect responses', () => {
   })
 })
 
+describe('object storage', () => {
+  it('warns instead of throwing when production uses default credentials', () => {
+    const source = read('lib/rustfs.ts')
+    assert.equal(/throw new Error\(\s*'RustFS default credentials/.test(source), false)
+    assert.match(source, /console\.warn/)
+  })
+})
+
 describe('public forms', () => {
   it('never natively submits credentials or reset links', () => {
     assert.equal(
